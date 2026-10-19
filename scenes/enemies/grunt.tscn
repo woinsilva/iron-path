@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3 uid="uid://cxgrunt123"]
+
+[ext_resource type="Script" path="res://scripts/battle/enemy.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2_health"]
+[ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="3_move"]
+[ext_resource type="Script" path="res://scripts/components/status_component.gd" id="4_status"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_sprite"]
+size = Vector2(40, 40)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_col"]
+radius = 20.0
+
+[node name="Grunt" type="PathFollow2D" groups=["enemies"]]
+rotates = false
+loop = false
+script = ExtResource("1_enemy")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2_health")
+max_health = 10.0
+
+[node name="MovementComponent" type="Node" parent="."]
+script = ExtResource("3_move")
+
+[node name="StatusComponent" type="Node" parent="."]
+script = ExtResource("4_status")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.8, 0.2, 0.2, 1)
+texture = SubResource("PlaceholderTexture2D_sprite")
+
+[node name="Hitbox" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource("CircleShape2D_col")

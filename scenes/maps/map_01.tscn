@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3 uid="uid://map01uid12345"]
+
+[ext_resource type="PackedScene" path="res://scenes/battle/build_pad.tscn" id="1_pad"]
+
+[sub_resource type="Curve2D" id="Curve2D_enemy_path"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 100, 200, 0, 0, 0, 0, 1500, 200, 0, 0, 0, 0, 1500, 800, 0, 0, 0, 0, 300, 800, 0, 0, 0, 0, 300, 1000)
+}
+point_count = 5
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_bg"]
+size = Vector2(1920, 1080)
+
+[node name="Map01" type="Node2D"]
+
+[node name="Background" type="Sprite2D" parent="."]
+modulate = Color(0.18, 0.22, 0.18, 1)
+position = Vector2(960, 540)
+texture = SubResource("PlaceholderTexture2D_bg")
+
+[node name="EnemyPath" type="Path2D" parent="."]
+curve = SubResource("Curve2D_enemy_path")
+
+[node name="Pads" type="Node2D" parent="."]
+
+[node name="BuildPad1" parent="Pads" instance=ExtResource("1_pad")]
+position = Vector2(500, 120)
+
+[node name="BuildPad2" parent="Pads" instance=ExtResource("1_pad")]
+position = Vector2(1000, 120)
+
+[node name="BuildPad3" parent="Pads" instance=ExtResource("1_pad")]
+position = Vector2(1000, 280)

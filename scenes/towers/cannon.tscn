@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://cannon123"]
+
+[ext_resource type="Script" path="res://scripts/components/targeting_component.gd" id="1_tgt"]
+[ext_resource type="Script" path="res://scripts/components/weapon_component.gd" id="2_wpn"]
+[ext_resource type="PackedScene" path="res://scenes/projectiles/arrow.tscn" id="3_arrow"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_sprite"]
+size = Vector2(50, 50)
+
+[node name="CannonTower" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.4, 0.4, 0.4, 1)
+position = Vector2(0, -25)
+texture = SubResource("PlaceholderTexture2D_sprite")
+
+[node name="TargetingComponent" type="Area2D" parent="."]
+script = ExtResource("1_tgt")
+range_radius = 190.0
+target_layer = 0
+
+[node name="WeaponComponent" type="Node2D" parent="."]
+position = Vector2(0, -40)
+script = ExtResource("2_wpn")
+projectile_scene = ExtResource("3_arrow")
+damage = 36.0
+attack_cooldown = 1.81
+splash_radius = 62.0

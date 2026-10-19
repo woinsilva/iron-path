@@ -1,0 +1,30 @@
+[gd_scene load_steps=6 format=3 uid="uid://battlemain123"]
+
+[ext_resource type="Script" path="res://scripts/battle/battle.gd" id="1_battle"]
+[ext_resource type="Script" path="res://scripts/battle/wave_manager.gd" id="2_wave"]
+[ext_resource type="Script" path="res://scripts/battle/build_manager.gd" id="3_build"]
+[ext_resource type="PackedScene" path="res://scenes/maps/map_01.tscn" id="4_map"]
+[ext_resource type="PackedScene" path="res://scenes/towers/archer.tscn" id="5_archer"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/grunt.tscn" id="6_grunt"]
+[ext_resource type="PackedScene" path="res://scenes/ui/battle_hud.tscn" id="7_hud"]
+
+[node name="Battle" type="Node"]
+script = ExtResource("1_battle")
+
+[node name="WaveManager" type="Node" parent="."]
+script = ExtResource("2_wave")
+grunt_scene = ExtResource("6_grunt")
+
+[node name="BuildManager" type="Node" parent="."]
+script = ExtResource("3_build")
+archer_scene = ExtResource("5_archer")
+
+[node name="MapRoot" type="Node2D" parent="."]
+
+[node name="Map01" parent="MapRoot" instance=ExtResource("4_map")]
+
+[node name="EntityRoot" type="Node2D" parent="."]
+
+[node name="ProjectileRoot" type="Node2D" parent="." groups=["projectile_root"]]
+
+[node name="BattleHUD" parent="." instance=ExtResource("7_hud")]
