@@ -312,8 +312,9 @@ func _sync_enemies(delta: float) -> void:
 		if state == null:
 			continue
 		var old: Vector3 = actor.position
-		actor.position = state.position + Vector3(0, diorama.walk_surface_height(state.position), 0)
-		if state.layer == "air": actor.position.y = maxf(state.position.y, float(simulation.catalog.enemies[state.type_id].flight_height)) + 0.1
+		var drawn: Vector3 = simulation.display_position(state)
+		actor.position = drawn + Vector3(0, diorama.walk_surface_height(drawn), 0)
+		if state.layer == "air": actor.position.y = maxf(drawn.y, float(simulation.catalog.enemies[state.type_id].flight_height)) + 0.1
 		actor.health_ratio = state.health / state.maximum_health
 		if actor is CrawlerActorV2:
 			(actor as CrawlerActorV2).set_summoned(state.summoner_id >= 0)
@@ -912,7 +913,7 @@ func _sync_enemy_areas() -> void:
 				_retire_area(_enemy_areas[enemy.id] as Node3D)
 				_enemy_areas.erase(enemy.id)
 			if not _enemy_areas.has(enemy.id): _enemy_areas[enemy.id] = _acquire_area(kind, float(enemy.support.radius) if aura else float(enemy.ability.radius))
-			(_enemy_areas[enemy.id] as Node3D).position = enemy.position + Vector3(0, 0.15, 0)
+			(_enemy_areas[enemy.id] as Node3D).position = simulation.display_position(enemy) + Vector3(0, 0.15, 0)
 	for id: int in _enemy_areas.keys():
 		if not required.has(id):
 			_retire_area(_enemy_areas[id] as Node3D)

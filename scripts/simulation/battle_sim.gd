@@ -20,6 +20,7 @@ var _active_speed_auras: Array[SimEnemyV2] = []
 var pads: PackedVector3Array = PackedVector3Array()
 var routes: Array[Curve3D] = []
 var catalog: Dictionary
+var movement_rules: Dictionary = {}
 var waves: Array = []
 var events: Array[Dictionary] = []
 var kills: int = 0
@@ -39,6 +40,7 @@ var _accumulator: float = 0.0
 
 func _init(definitions: Dictionary, route_list: Array[Curve3D], build_pads: PackedVector3Array, wave_list: Array, starting_coins: int = 200, starting_lives: int = 20) -> void:
 	catalog = definitions
+	movement_rules = definitions.get("movement", {"lane_spacing": 0.6, "body_radius": 0.42, "boss_scale": 1.8, "lane_change_speed": 1.8})
 	routes = route_list
 	pads = build_pads
 	waves = wave_list
@@ -163,6 +165,7 @@ func spawn_enemy(type_id: String, route_index: int = 0, at_distance: float = 0.0
 
 func _move_enemies() -> void:
 	for item: SimEnemyV2 in enemies.values():
+		item.previous_distance = item.distance
 		var movement: float = movement_factor(item)
 		var was_underground: bool = item.underground()
 		var pace: float = item.burrow_speed if was_underground else item.speed
@@ -187,6 +190,85 @@ func _move_enemies() -> void:
 			if lives <= 0:
 				_end(State.DEFEAT)
 				return
+	_separate_enemies()
+
+## Keeps walkers from passing through each other. Rules (range, splash, leaks) still use the road's centre line,
+## so towers reach every lane exactly as before; lanes only decide who waits and where each body is drawn.
+func _separate_enemies() -> void:
+	var columns: Dictionary = {}
+	for item: SimEnemyV2 in enemies.values():
+		if item.underground(): continue
+		# Flyers queue among themselves; ground walkers never wait for something overhead.
+		var key: int = item.route_id * 2 + (1 if item.layer == "air" else 0)
+		if not columns.has(key): columns[key] = []
+		(columns[key] as Array).append(item)
+	for key: int in columns:
+		var column: Array = columns[key]
+		column.sort_custom(func(a: SimEnemyV2, b: SimEnemyV2) -> bool: return a.distance > b.distance or (is_equal_approx(a.distance, b.distance) and a.id < b.id))
+		var route: Curve3D = routes[(column[0] as SimEnemyV2).route_id]
+		for index in range(column.size()):
+			var item: SimEnemyV2 = column[index]
+			var blocker: SimEnemyV2 = _lane_blocker(column, index, item.target_lateral)
+			if blocker != null:
+				var lane: float = _free_lane(column, index, item)
+				if is_nan(lane):
+					item.distance = maxf(item.previous_distance, minf(item.distance, blocker.distance - _gap(item, blocker)))
+				else:
+					item.target_lateral = lane
+			elif not is_zero_approx(item.target_lateral) and _lane_open(column, index, item, 0.0):
+				item.target_lateral = 0.0
+			item.lateral = move_toward(item.lateral, item.target_lateral, float(movement_rules.lane_change_speed) * STEP)
+			item.position = route.sample_baked(minf(item.distance, route.get_baked_length()))
+
+func _gap(item: SimEnemyV2, other: SimEnemyV2) -> float:
+	return float(movement_rules.body_radius) * ((float(movement_rules.boss_scale) if item.boss else 1.0) + (float(movement_rules.boss_scale) if other.boss else 1.0))
+
+## Nearest walker ahead that shares this lane closely enough to be walked into.
+func _lane_blocker(column: Array, index: int, lateral: float) -> SimEnemyV2:
+	var item: SimEnemyV2 = column[index]
+	for ahead in range(index - 1, -1, -1):
+		var other: SimEnemyV2 = column[ahead]
+		var gap: float = _gap(item, other)
+		if other.distance - item.distance > gap: break
+		if absf(other.lateral - lateral) < float(movement_rules.lane_spacing) * 0.6: return other
+	return null
+
+## True when nobody within body reach, ahead or behind, stands in or is heading for that lane.
+## The column is sorted by distance, so the scan stops as soon as walkers are out of reach.
+func _lane_open(column: Array, index: int, item: SimEnemyV2, lane: float) -> bool:
+	var reach: float = float(movement_rules.body_radius) * 2.0 * float(movement_rules.boss_scale)
+	var width: float = float(movement_rules.lane_spacing) * 0.6
+	for direction: int in [-1, 1]:
+		var other_index: int = index + direction
+		while other_index >= 0 and other_index < column.size():
+			var other: SimEnemyV2 = column[other_index]
+			if absf(other.distance - item.distance) > reach: break
+			if absf(other.distance - item.distance) <= _gap(item, other) and (absf(other.lateral - lane) < width or absf(other.target_lateral - lane) < width): return false
+			other_index += direction
+	return true
+
+## Closest side lane with room to pass, or NAN when every lane is taken and the walker has to queue.
+func _free_lane(column: Array, index: int, item: SimEnemyV2) -> float:
+	var spacing: float = float(movement_rules.lane_spacing)
+	var options: Array[float] = []
+	if is_zero_approx(item.target_lateral): options.assign([-spacing, spacing])
+	else: options.assign([0.0, -item.target_lateral])
+	if item.id % 2 == 1: options.reverse()
+	for lane: float in options:
+		if is_equal_approx(lane, item.target_lateral): continue
+		if _lane_open(column, index, item, lane): return lane
+	return NAN
+
+## Where the body is drawn: the centre line pushed sideways by the walker's lane.
+func display_position(item: SimEnemyV2) -> Vector3:
+	var route: Curve3D = routes[item.route_id]
+	var length: float = route.get_baked_length()
+	var at: float = minf(item.distance, length)
+	var tangent: Vector3 = route.sample_baked(minf(length, at + 0.2)) - route.sample_baked(maxf(0.0, at - 0.2))
+	tangent.y = 0
+	if tangent.length_squared() < 0.000001: return item.position
+	tangent = tangent.normalized()
+	return item.position + Vector3(-tangent.z, 0, tangent.x) * item.lateral
 
 func _resolve_enemy(enemy: SimEnemyV2, killed: bool, source: int) -> void:
 	if not enemy.alive or not enemies.has(enemy.id):

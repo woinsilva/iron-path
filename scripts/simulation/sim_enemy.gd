@@ -13,6 +13,11 @@ var reward: int
 var leak: int
 var layer: String
 var distance: float = 0.0
+## Distance before this tick's step; a queued walker is never pushed back past it.
+var previous_distance: float = 0.0
+## Sideways offset from the road's centre line, in metres; only the drawn body and queueing use it.
+var lateral: float = 0.0
+var target_lateral: float = 0.0
 var position: Vector3 = Vector3.ZERO
 var alive: bool = true
 var route_id: int = 0

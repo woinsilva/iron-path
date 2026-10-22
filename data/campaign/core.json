@@ -1,5 +1,11 @@
 {
   "schema": 2,
+  "movement": {
+    "lane_spacing": 0.6,
+    "body_radius": 0.42,
+    "boss_scale": 1.8,
+    "lane_change_speed": 1.8
+  },
   "enemies": {
     "grunt": {
       "name": "Saqueador",
