@@ -58,7 +58,7 @@ func _initialize() -> void:
 				if enemy.type_id == "boss_ruin": boss = enemy
 			sim.consume_events()
 		check(sim.state == BattleSimV2.State.VICTORY and sim.wave_index == 24, "Ruin formation %d completes all twenty four automatic waves" % variant)
-		check(sim.kills + sim.leaks == sim.spawned and sim.spawned >= 432 and sim.spawned <= 512 and sim.coins >= 0, "Ruin formation %d resolves all authored enemies with legal economy" % variant)
+		check(sim.kills + sim.leaks == sim.spawned and sim.spawned >= StageSessionV2.authored_enemy_count(stage) and sim.spawned <= StageSessionV2.authored_enemy_count(stage) + 80 and sim.coins >= 0, "Ruin formation %d resolves all authored enemies with legal economy" % variant)
 		check(sim.tower_on_pad(2).level == 5 and sim.tower_on_pad(13).level == 5, "Ruin formation %d earns its real level five upgrades" % variant)
 		var families: Dictionary = {}
 		for tower: SimTowerV2 in sim.towers.values(): families[tower.type_id] = true

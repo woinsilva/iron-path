@@ -51,7 +51,7 @@ func _initialize() -> void:
 			sim.step()
 			sim.consume_events()
 		check(sim.state == BattleSimV2.State.VICTORY and sim.wave_index == 18, "Quarry formation %d completes eighteen automatic waves" % variant)
-		check(sim.coins >= 0 and sim.kills + sim.leaks == sim.spawned and sim.spawned == 292, "Quarry formation %d resolves every enemy and legal currency" % variant)
+		check(sim.coins >= 0 and sim.kills + sim.leaks == sim.spawned and sim.spawned == StageSessionV2.authored_enemy_count(stage), "Quarry formation %d resolves every enemy and legal currency" % variant)
 		check(sim.tower_on_pad(12).supported_attacks > 0 and sim.tower_on_pad(12).damage_done == 0, "Quarry formation %d uses actual support without inventing banner damage" % variant)
 		check(sim.tower_on_pad(13).level == 4 and sim.tower_on_pad(7).level == 4, "Quarry formation %d earns anti-air and Arcane specializations" % variant)
 		print("QUARRY_VARIANT ", variant, " ", sim.summary())

@@ -35,7 +35,7 @@ func run() -> void:
 		check(valid_economy, "Strategy %d never creates negative money" % strategy)
 		if strategy < 2:
 			check(sim.state == BattleSimV2.State.VICTORY, "Legal strategy %d wins without injected money" % strategy)
-			check(sim.wave_index == 10 and sim.spawned == 106, "Strategy %d resolves all automatic waves" % strategy)
+			check(sim.wave_index == 10 and sim.spawned == StageSessionV2.authored_enemy_count(stage), "Strategy %d resolves all automatic waves" % strategy)
 			check(sim.kills + sim.leaks == sim.spawned, "Strategy %d resolves every enemy once" % strategy)
 		else:
 			check(sim.state == BattleSimV2.State.DEFEAT, "No defense loses the first stage")

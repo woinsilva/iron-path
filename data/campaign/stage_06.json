@@ -95,7 +95,7 @@
       "groups": [
         {
           "enemy": "grunt",
-          "count": 8,
+          "count": 7,
           "interval": 1,
           "route": 0,
           "at": 0
@@ -114,14 +114,14 @@
       "groups": [
         {
           "enemy": "armored",
-          "count": 5,
+          "count": 4,
           "interval": 1.5,
           "route": 0,
           "at": 0
         },
         {
           "enemy": "grunt",
-          "count": 10,
+          "count": 8,
           "interval": 0.8,
           "route": 0,
           "at": 2
@@ -133,14 +133,14 @@
       "groups": [
         {
           "enemy": "brute",
-          "count": 1,
+          "count": 3,
           "interval": 4,
           "route": 0,
           "at": 0
         },
         {
           "enemy": "healer",
-          "count": 1,
+          "count": 4,
           "interval": 1,
           "route": 0,
           "at": 2
@@ -152,14 +152,14 @@
       "groups": [
         {
           "enemy": "runner_veteran",
-          "count": 2,
+          "count": 4,
           "interval": 2,
           "route": 0,
           "at": 0
         },
         {
           "enemy": "runner",
-          "count": 6,
+          "count": 13,
           "interval": 1,
           "route": 0,
           "at": 2
@@ -180,25 +180,6 @@
           "enemy": "brute",
           "count": 2,
           "interval": 3,
-          "route": 0,
-          "at": 3
-        }
-      ]
-    },
-    {
-      "interval": 8,
-      "groups": [
-        {
-          "enemy": "flyer",
-          "count": 8,
-          "interval": 1.1,
-          "route": 1,
-          "at": 0
-        },
-        {
-          "enemy": "grunt_elite",
-          "count": 8,
-          "interval": 1,
           "route": 0,
           "at": 3
         }
@@ -235,14 +216,14 @@
       "groups": [
         {
           "enemy": "runner_veteran",
-          "count": 6,
+          "count": 5,
           "interval": 1.4,
           "route": 0,
           "at": 0
         },
         {
           "enemy": "swarm",
-          "count": 16,
+          "count": 18,
           "interval": 0.4,
           "route": 0,
           "at": 3
@@ -253,37 +234,18 @@
       "interval": 8,
       "groups": [
         {
-          "enemy": "armored",
-          "count": 8,
-          "interval": 1.2,
-          "route": 0,
-          "at": 0
-        },
-        {
-          "enemy": "brute",
-          "count": 3,
-          "interval": 3,
-          "route": 0,
-          "at": 2
-        }
-      ]
-    },
-    {
-      "interval": 8,
-      "groups": [
-        {
           "enemy": "flyer",
-          "count": 10,
-          "interval": 1,
+          "count": 7,
+          "interval": 1.1,
           "route": 1,
           "at": 0
         },
         {
-          "enemy": "brute",
-          "count": 4,
-          "interval": 3,
+          "enemy": "grunt_elite",
+          "count": 7,
+          "interval": 1,
           "route": 0,
-          "at": 2
+          "at": 3
         }
       ]
     },
@@ -292,14 +254,14 @@
       "groups": [
         {
           "enemy": "runner_veteran",
-          "count": 8,
+          "count": 12,
           "interval": 1.2,
           "route": 0,
           "at": 0
         },
         {
           "enemy": "healer",
-          "count": 2,
+          "count": 4,
           "interval": 3,
           "route": 0,
           "at": 3
@@ -329,8 +291,46 @@
       "interval": 8,
       "groups": [
         {
+          "enemy": "armored",
+          "count": 8,
+          "interval": 1.2,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "brute",
+          "count": 3,
+          "interval": 3,
+          "route": 0,
+          "at": 2
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "flyer",
+          "count": 10,
+          "interval": 1,
+          "route": 1,
+          "at": 0
+        },
+        {
+          "enemy": "brute",
+          "count": 3,
+          "interval": 3,
+          "route": 0,
+          "at": 2
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
           "enemy": "grunt_elite",
-          "count": 16,
+          "count": 14,
           "interval": 0.8,
           "route": 0,
           "at": 0
@@ -341,89 +341,6 @@
           "interval": 3,
           "route": 0,
           "at": 2
-        }
-      ]
-    },
-    {
-      "interval": 8,
-      "groups": [
-        {
-          "enemy": "brute",
-          "count": 6,
-          "interval": 2.5,
-          "route": 0,
-          "at": 0
-        },
-        {
-          "enemy": "flyer",
-          "count": 10,
-          "interval": 1,
-          "route": 1,
-          "at": 3
-        }
-      ]
-    },
-    {
-      "interval": 8,
-      "groups": [
-        {
-          "enemy": "runner_veteran",
-          "count": 10,
-          "interval": 1.2,
-          "route": 0,
-          "at": 0
-        },
-        {
-          "enemy": "armored",
-          "count": 8,
-          "interval": 1.2,
-          "route": 0,
-          "at": 3
-        }
-      ]
-    },
-    {
-      "interval": 8,
-      "groups": [
-        {
-          "enemy": "brute",
-          "count": 7,
-          "interval": 2.5,
-          "route": 0,
-          "at": 0
-        },
-        {
-          "enemy": "healer",
-          "count": 2,
-          "interval": 3,
-          "route": 0,
-          "at": 2
-        }
-      ]
-    },
-    {
-      "interval": 8,
-      "groups": [
-        {
-          "enemy": "swarm",
-          "count": 26,
-          "interval": 0.3,
-          "route": 0,
-          "at": 0
-        },
-        {
-          "enemy": "runner_veteran",
-          "count": 8,
-          "interval": 1.2,
-          "route": 0,
-          "at": 3
-        },
-        {
-          "enemy": "flyer",
-          "count": 10,
-          "interval": 1,
-          "route": 1,
-          "at": 4
         }
       ]
     },
@@ -443,10 +360,93 @@
           "interval": 3,
           "route": 0,
           "at": 2
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "runner_veteran",
+          "count": 9,
+          "interval": 1.2,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "armored",
+          "count": 7,
+          "interval": 1.2,
+          "route": 0,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "brute",
+          "count": 5,
+          "interval": 2.5,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "flyer",
+          "count": 8,
+          "interval": 1,
+          "route": 1,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "swarm",
+          "count": 22,
+          "interval": 0.3,
+          "route": 0,
+          "at": 0
         },
         {
           "enemy": "runner_veteran",
-          "count": 10,
+          "count": 7,
+          "interval": 1.2,
+          "route": 0,
+          "at": 3
+        },
+        {
+          "enemy": "flyer",
+          "count": 8,
+          "interval": 1,
+          "route": 1,
+          "at": 4
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "brute",
+          "count": 7,
+          "interval": 2.5,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "healer",
+          "count": 3,
+          "interval": 3,
+          "route": 0,
+          "at": 2
+        },
+        {
+          "enemy": "runner_veteran",
+          "count": 8,
           "interval": 1.2,
           "route": 0,
           "at": 5

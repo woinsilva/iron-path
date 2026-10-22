@@ -53,3 +53,11 @@ static func create(stage: Dictionary, difficulty: String = "normal") -> BattleSi
 		for point: Array in extra: branch_points.append(Vector3(float(point[0]), float(point[1]), float(point[2])))
 		routes.append(curve_from_points(branch_points))
 	return BattleSimV2.new(definitions, routes, pads, waves, initial_money, initial_health)
+
+## Enemies written in the stage's waves (optionally of one type), before summons add any of their own.
+static func authored_enemy_count(stage: Dictionary, enemy_id: String = "") -> int:
+	var total: int = 0
+	for wave: Dictionary in stage.waves:
+		for group: Dictionary in wave.groups:
+			if enemy_id.is_empty() or str(group.enemy) == enemy_id: total += int(group.count)
+	return total

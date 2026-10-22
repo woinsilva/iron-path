@@ -43,7 +43,7 @@ func run() -> void:
 		sim.step()
 		var events: Array[Dictionary] = sim.consume_events()
 		if sim._terminal(): battle._handle_events(events)
-	check(sim.state == BattleSimV2.State.VICTORY and sim.wave_index == 10 and sim.spawned == 106, "Full first stage resolves all automatic waves through a legal defense")
+	check(sim.state == BattleSimV2.State.VICTORY and sim.wave_index == 10 and sim.spawned == StageSessionV2.authored_enemy_count(battle.stage), "Full first stage resolves all automatic waves through a legal defense")
 	check(is_instance_valid(battle._result) and battle._result.visible, "Real terminal event opens the result interface")
 	var loaded: Dictionary = save.load_game()
 	check(int(loaded.progress.campaign["stage_01:normal"].stars) > 0, "Victory signal commits the result atomically to the isolated campaign save")

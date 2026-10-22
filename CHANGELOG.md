@@ -5,6 +5,12 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Unreleased] — 2026-10-19
 
+### Fase 3 — progressão consistente das ondas (2026-10-22)
+- Nota de ameaça por onda (vida efetiva com armadura, resistência, escudo e suporte, velocidade, voo e densidade), com pesos em `data/campaign/wave_curve.json`.
+- `tools/wave_curve.py` reorganizou as 12 fases: ondas vizinhas trocam de lugar (no máximo duas posições, sem antecipar a estreia de nenhum inimigo) e as contagens foram reescaladas para que nenhuma onda seja mais fraca que a anterior. Antes havia 79 quedas.
+- A ameaça total de cada fase ficou igual à escrita, exceto nas fases 3 (76%), 4 (96%), 8 (84%) e 9 (84%), suavizadas até as defesas de referência voltarem a vencer.
+- A verificação da curva entrou em `run.ps1`; os testes das fases leem o total de inimigos dos dados (`StageSessionV2.authored_enemy_count`) em vez de números fixos.
+
 ### Fase 2 — menus no estilo de app de celular (2026-10-22)
 - Tela inicial com o Vale ao fundo em movimento lento, logo grande, botão JOGAR e ícones redondos para Guia, Ajustes e Créditos.
 - Mapa da campanha com os três biomas lado a lado (arrastar para navegar), fases como círculos ligados por trilha, estrelas, cadeado nas bloqueadas e destaque pulsante na próxima fase. Desafios opcionais aparecem como selo dourado no bioma.

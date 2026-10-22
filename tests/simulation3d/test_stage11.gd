@@ -55,7 +55,7 @@ func _initialize() -> void:
 			sim.step()
 			sim.consume_events()
 		check(sim.state == BattleSimV2.State.VICTORY and sim.wave_index == 22, "Nest formation %d completes all twenty two automatic waves" % variant)
-		check(sim.kills + sim.leaks == sim.spawned and sim.spawned >= 379 and sim.spawned <= 439 and sim.coins >= 0, "Nest formation %d resolves all authored enemies with legal economy" % variant)
+		check(sim.kills + sim.leaks == sim.spawned and sim.spawned >= StageSessionV2.authored_enemy_count(stage) and sim.spawned <= StageSessionV2.authored_enemy_count(stage) + int(sim.catalog.enemies.summoner.ability.summon_limit) * StageSessionV2.authored_enemy_count(stage, "summoner") and sim.coins >= 0, "Nest formation %d resolves all authored enemies with legal economy" % variant)
 		check(sim.tower_on_pad(2).level == 5 and sim.tower_on_pad(13).level == 5, "Nest formation %d earns its real level five upgrades" % variant)
 		var families: Dictionary = {}
 		for tower: SimTowerV2 in sim.towers.values(): families[tower.type_id] = true

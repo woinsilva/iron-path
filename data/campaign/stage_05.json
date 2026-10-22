@@ -134,7 +134,7 @@
         },
         {
           "enemy": "grunt",
-          "count": 10,
+          "count": 11,
           "interval": 0.7,
           "route": 0,
           "at": 0
@@ -146,7 +146,7 @@
       "groups": [
         {
           "enemy": "swarm",
-          "count": 16,
+          "count": 21,
           "interval": 0.45,
           "route": 2,
           "at": 0
@@ -184,7 +184,7 @@
       "groups": [
         {
           "enemy": "armored",
-          "count": 4,
+          "count": 5,
           "interval": 1.7,
           "route": 0,
           "at": 0
@@ -198,7 +198,7 @@
         },
         {
           "enemy": "runner",
-          "count": 6,
+          "count": 11,
           "interval": 1,
           "route": 2,
           "at": 4
@@ -221,25 +221,6 @@
           "interval": 0.4,
           "route": 0,
           "at": 4
-        }
-      ]
-    },
-    {
-      "interval": 8,
-      "groups": [
-        {
-          "enemy": "flyer",
-          "count": 10,
-          "interval": 0.9,
-          "route": 1,
-          "at": 0
-        },
-        {
-          "enemy": "runner",
-          "count": 8,
-          "interval": 0.9,
-          "route": 2,
-          "at": 3
         }
       ]
     },
@@ -274,7 +255,7 @@
       "groups": [
         {
           "enemy": "swarm",
-          "count": 22,
+          "count": 21,
           "interval": 0.35,
           "route": 0,
           "at": 0
@@ -285,6 +266,44 @@
           "interval": 1.1,
           "route": 2,
           "at": 2
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "flyer",
+          "count": 10,
+          "interval": 0.9,
+          "route": 1,
+          "at": 0
+        },
+        {
+          "enemy": "runner",
+          "count": 8,
+          "interval": 0.9,
+          "route": 2,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 11,
+          "interval": 0.8,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "grunt_elite",
+          "count": 11,
+          "interval": 0.8,
+          "route": 0,
+          "at": 3
         }
       ]
     },
@@ -318,18 +337,25 @@
       "interval": 8,
       "groups": [
         {
-          "enemy": "runner",
-          "count": 12,
-          "interval": 0.8,
-          "route": 2,
+          "enemy": "swarm",
+          "count": 25,
+          "interval": 0.35,
+          "route": 0,
           "at": 0
         },
         {
           "enemy": "grunt_elite",
-          "count": 12,
+          "count": 11,
           "interval": 0.8,
-          "route": 0,
+          "route": 2,
           "at": 3
+        },
+        {
+          "enemy": "healer",
+          "count": 2,
+          "interval": 3,
+          "route": 2,
+          "at": 4
         }
       ]
     },
@@ -352,36 +378,10 @@
         },
         {
           "enemy": "flyer",
-          "count": 12,
+          "count": 11,
           "interval": 0.8,
           "route": 1,
           "at": 3
-        }
-      ]
-    },
-    {
-      "interval": 8,
-      "groups": [
-        {
-          "enemy": "swarm",
-          "count": 26,
-          "interval": 0.35,
-          "route": 0,
-          "at": 0
-        },
-        {
-          "enemy": "grunt_elite",
-          "count": 12,
-          "interval": 0.8,
-          "route": 2,
-          "at": 3
-        },
-        {
-          "enemy": "healer",
-          "count": 2,
-          "interval": 3,
-          "route": 2,
-          "at": 4
         }
       ]
     },
@@ -404,7 +404,7 @@
         },
         {
           "enemy": "grunt_elite",
-          "count": 14,
+          "count": 13,
           "interval": 0.8,
           "route": 2,
           "at": 3

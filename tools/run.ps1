@@ -95,4 +95,8 @@ $sfxOutput = & python -X utf8 (Join-Path $PSScriptRoot 'check_sfx.py') 2>&1
 $sfxResult = $LASTEXITCODE
 $sfxOutput | Tee-Object -FilePath (Join-Path $resultsDir 'sfx-assets.log')
 if ($sfxResult -ne 0) { throw 'Falha nos efeitos sonoros.' }
+$curveOutput = & python -X utf8 (Join-Path $PSScriptRoot 'wave_curve.py') 2>&1
+$curveResult = $LASTEXITCODE
+$curveOutput | Tee-Object -FilePath (Join-Path $resultsDir 'wave-curve.log')
+if ($curveResult -ne 0) { throw 'Falha na progressao das ondas: alguma onda ficou mais fraca que a anterior.' }
 Write-Host 'Importacao, testes unitarios, integracao e laboratorio 3D aprovados.'

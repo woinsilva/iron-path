@@ -43,7 +43,7 @@ func _initialize() -> void:
 			sim.step()
 			sim.consume_events()
 		check(sim.state == BattleSimV2.State.VICTORY and sim.wave_index == 16, "Canyon formation %d completes all sixteen automatic waves" % variant)
-		check(sim.coins >= 0 and sim.kills + sim.leaks == sim.spawned and sim.spawned == 312, "Canyon formation %d resolves every enemy and currency once" % variant)
+		check(sim.coins >= 0 and sim.kills + sim.leaks == sim.spawned and sim.spawned == StageSessionV2.authored_enemy_count(stage), "Canyon formation %d resolves every enemy and currency once" % variant)
 		check(sim.tower_on_pad(7).level == 4 and sim.tower_on_pad(7).branch == ("A" if variant == 0 else "B"), "Canyon formation %d earns and completes its distinct level-four branch" % variant)
 		print("CANYON_VARIANT ", variant, " ", sim.summary())
 	print("P7 stage05: %d checks; %d failures" % [checks, failures])

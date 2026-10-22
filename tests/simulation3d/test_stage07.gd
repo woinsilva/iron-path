@@ -51,7 +51,7 @@ func _initialize() -> void:
 			sim.step()
 			sim.consume_events()
 		check(sim.state == BattleSimV2.State.VICTORY and sim.wave_index == 18, "Fortress formation %d completes its eighteen automatic waves" % variant)
-		check(sim.coins >= 0 and sim.kills + sim.leaks == sim.spawned and sim.spawned == 299, "Fortress formation %d resolves all shield units and economy" % variant)
+		check(sim.coins >= 0 and sim.kills + sim.leaks == sim.spawned and sim.spawned == StageSessionV2.authored_enemy_count(stage), "Fortress formation %d resolves all shield units and economy" % variant)
 		check(sim.tower_on_pad(7).level == 4 and sim.tower_on_pad(13).level == 4, "Fortress formation %d completes its real specialization choices" % variant)
 		print("FORTRESS_VARIANT ", variant, " ", sim.summary())
 	print("P7 stage07: %d checks; %d failures" % [checks, failures])
