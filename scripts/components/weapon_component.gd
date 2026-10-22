@@ -24,6 +24,8 @@ func fire(target: Node2D) -> void:
 	if not projectile_scene:
 		return
 		
+	if get_parent().has_method("play_attack"):
+		get_parent().play_attack()
 	var proj = projectile_scene.instantiate() as Projectile
 	var root = get_tree().get_first_node_in_group("projectile_root")
 	if root:

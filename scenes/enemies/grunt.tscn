@@ -1,20 +1,43 @@
-[gd_scene load_steps=6 format=3 uid="uid://cxgrunt123"]
+[gd_scene load_steps=11 format=3 uid="uid://cxgrunt123"]
+
+[ext_resource type="Texture2D" path="res://art/sprites/enemy_grunt_walk.png" id="placeholder_visual"]
 
 [ext_resource type="Script" path="res://scripts/battle/enemy.gd" id="1_enemy"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="2_health"]
 [ext_resource type="Script" path="res://scripts/components/movement_component.gd" id="3_move"]
 [ext_resource type="Script" path="res://scripts/components/status_component.gd" id="4_status"]
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_sprite"]
-size = Vector2(40, 40)
+
+[ext_resource type="Script" path="res://scripts/visuals/enemy_visual.gd" id="enemy_visual"]
+[ext_resource type="Script" path="res://scripts/visuals/ground_shadow.gd" id="ground_shadow"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_col"]
 radius = 20.0
+
+[sub_resource type="StyleBoxFlat" id="HealthBackground"]
+bg_color = Color(0.08, 0.11, 0.14, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.08, 0.11, 0.14, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[sub_resource type="StyleBoxFlat" id="HealthFill"]
+bg_color = Color(0.35, 0.84, 0.35, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
 
 [node name="Grunt" type="PathFollow2D" groups=["enemies"]]
 rotates = false
 loop = false
 script = ExtResource("1_enemy")
+leak_damage = 4
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("2_health")
@@ -26,11 +49,30 @@ script = ExtResource("3_move")
 [node name="StatusComponent" type="Node" parent="."]
 script = ExtResource("4_status")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(0.8, 0.2, 0.2, 1)
-texture = SubResource("PlaceholderTexture2D_sprite")
+[node name="Shadow" type="Node2D" parent="."]
+position = Vector2(0, 8)
+script = ExtResource("ground_shadow")
+radius = Vector2(22, 8)
+
+[node name="Sprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -24)
+scale = Vector2(0.125, 0.125)
+script = ExtResource("enemy_visual")
+walk_texture = ExtResource("placeholder_visual")
 
 [node name="Hitbox" type="Area2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
 shape = SubResource("CircleShape2D_col")
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+z_index = 10
+offset_left = -30.0
+offset_top = -76.0
+offset_right = 30.0
+offset_bottom = -66.0
+mouse_filter = 2
+theme_override_styles/background = SubResource("HealthBackground")
+theme_override_styles/fill = SubResource("HealthFill")
+value = 100.0
+show_percentage = false

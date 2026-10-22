@@ -1,18 +1,28 @@
-[gd_scene load_steps=5 format=3 uid="uid://archer123"]
+[gd_scene load_steps=7 format=3 uid="uid://archer123"]
+
+[ext_resource type="Texture2D" path="res://art/sprites/tower_archer_l1.png" id="placeholder_visual"]
 
 [ext_resource type="Script" path="res://scripts/components/targeting_component.gd" id="1_tgt"]
 [ext_resource type="Script" path="res://scripts/components/weapon_component.gd" id="2_wpn"]
 [ext_resource type="PackedScene" path="res://scenes/projectiles/arrow.tscn" id="3_arrow"]
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_sprite"]
-size = Vector2(48, 64)
+
+[ext_resource type="Script" path="res://scripts/visuals/tower_visual.gd" id="tower_visual"]
+[ext_resource type="Script" path="res://scripts/visuals/ground_shadow.gd" id="shadow"]
 
 [node name="ArcherTower" type="Node2D"]
+script = ExtResource("tower_visual")
+
+[node name="Shadow" type="Node2D" parent="."]
+position = Vector2(0, 28)
+script = ExtResource("shadow")
+radius = Vector2(39, 13)
+
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(0.2, 0.8, 0.2, 1)
+scale = Vector2(0.11, 0.11)
 position = Vector2(0, -32)
-texture = SubResource("PlaceholderTexture2D_sprite")
+texture = ExtResource("placeholder_visual")
 
 [node name="TargetingComponent" type="Area2D" parent="."]
 script = ExtResource("1_tgt")

@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/battle_hud.tscn" id="7_hud"]
 
 [node name="Battle" type="Node"]
+physics_interpolation_mode = 2
 script = ExtResource("1_battle")
 
 [node name="WaveManager" type="Node" parent="."]

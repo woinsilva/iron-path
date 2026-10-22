@@ -5,7 +5,7 @@ enum Priority { FIRST, LAST, STRONGEST, WEAKEST }
 
 @export var range_radius: float = 150.0
 @export var target_layer: TargetLayer = TargetLayer.BOTH
-@export var priority: Priority = Priority.FIRST
+@export var target_priority: Priority = Priority.FIRST
 
 var enemies_in_range: Array[Node2D] = []
 
@@ -52,7 +52,7 @@ func get_target() -> Node2D:
 		var e = enemy as Enemy
 		var best = best_target as Enemy
 		
-		match priority:
+		match target_priority:
 			Priority.FIRST:
 				if e.progress > best.progress:
 					best_target = e

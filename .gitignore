@@ -10,3 +10,10 @@ Thumbs.db
 # IDE
 .vscode/
 *.code-workspace
+
+# Local validation artifacts
+test-results/
+
+# Generated distribution builds
+builds/
+__pycache__/

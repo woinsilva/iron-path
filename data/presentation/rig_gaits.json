@@ -1,0 +1,9 @@
+{
+  "rig": "KayKit_Rig_Medium",
+  "walk_stance_speed": 0.675,
+  "run_stance_speed": 2.985,
+  "walk_lab_speed": 0.6,
+  "run_lab_speed": 2.5,
+  "max_walk_rate": 2.5,
+  "measurement": "Mean longitudinal foot velocity during low-height stance samples; tools/measure_gait.gd, 2026-10-19. World speed must also account for actor scale."
+}

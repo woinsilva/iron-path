@@ -1,0 +1,103 @@
+{
+  "characters": [
+    {
+      "file": "goblin.glb",
+      "joints": 23,
+      "clips": [
+        "walk",
+        "run",
+        "idle",
+        "hit",
+        "death"
+      ]
+    },
+    {
+      "file": "ranger.glb",
+      "joints": 23,
+      "clips": [
+        "walk",
+        "run",
+        "idle",
+        "hit",
+        "death",
+        "draw",
+        "release",
+        "aim"
+      ]
+    },
+    {
+      "file": "guardian.glb",
+      "joints": 23,
+      "clips": [
+        "walk",
+        "run",
+        "idle",
+        "hit",
+        "death"
+      ]
+    },
+    {
+      "file": "captain.glb",
+      "joints": 23,
+      "clips": [
+        "walk",
+        "run",
+        "idle",
+        "hit",
+        "death",
+        "rally"
+      ]
+    },
+    {
+      "file": "shaman.glb",
+      "joints": 23,
+      "clips": [
+        "walk",
+        "run",
+        "idle",
+        "hit",
+        "death"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://kaylousberg.itch.io/kaykit-adventurers",
+      "file": "Free 2.0",
+      "sha256": "abe48f4763fba0896bab486ee9e6d08ca6b5b3884b9601f235c8847ae94dc479"
+    },
+    {
+      "url": "https://kaylousberg.itch.io/kaykit-character-animations",
+      "file": "Free 1.1",
+      "sha256": "65882f31f905ad2e953819648a59287cdeab8f623908d5ef701971d3758be20f"
+    },
+    {
+      "url": "https://kaylousberg.itch.io/kaykit-forest",
+      "file": "Free",
+      "sha256": "2ee83e63bb7695f2d884ec27ddf6fce020789a452e7d5c5b0bbdfc4f6ea1fc8c"
+    }
+  ],
+  "files": {
+    "arrow_bow.glb": "b6e27812a43a77c7a907788c1cb5c2141ce18301cef6436bfe12e6748701e301",
+    "axe_1handed.glb": "6d7e38fcb00a55208f50346ac786ade99196eef6dccc199e8c01e5ffa32ef646",
+    "bow_withString.glb": "7a4843515fb2d9513b14b257536f3f84cb10fd1fb480bb5548c3e37e86bcab45",
+    "Bush_1_A_Color1.glb": "fc839ee47ee211cf3f416d2cd35c149e8dc95ad838da5857ffbe5d518b59a9e3",
+    "Bush_2_C_Color1.glb": "e25e84f0ec8ac395dd086afb9fc783506fa9eb57c008c118c1d1e3a9b6dd1151",
+    "captain.glb": "67c557c0bfb08c3206605b6f8ca1f1d4309da14ab1660b75e0fad07b045e4d84",
+    "goblin.glb": "3c621161b52e375bca2c47fc7a2da13d918363278aae67f666c0233f0f9a114a",
+    "Grass_1_A_Color1.glb": "9882d591964b9b01e084e16d432f1d41e2cf2ef83ec2313e1e87f9a58cf183fa",
+    "guardian.glb": "29f266774180bb7c64d9bac2de7300009f20df3cfd340a25670e4b1f52d05eb4",
+    "quiver.glb": "7d5b1edaa45df165285c483cd44ab7a87ac0c57686c48a488f6d91a4e0b4d6dc",
+    "ranger.glb": "34f86cbea62b2a697d7eb0c6531432ee475e4062b0241df1aa408bff9d296bd4",
+    "Rock_1_A_Color1.glb": "ef52f8f37cbe1b4efc2306ba194abc81b5dd93cdc6d695a4af4fd4189f673785",
+    "Rock_2_A_Color1.glb": "bfbdfff3355d793aeea44c9a9882945a865163926145b39e89c6ee91aad20762",
+    "shaman.glb": "45cf14b4259a76fb6a4a2127230788b25454631c6e12eaec88d8177605649d6f",
+    "shield_round_color.glb": "1c3e57f4ec64e452144e067a9b4b7bd68fcd53d82c511098e93a9cafbe2c7548",
+    "shield_square_color.glb": "985956996d0ff5b34b6dceb3afbf0ae28783dfe39d78e9f65da9973b01825570",
+    "staff.glb": "bdc7228da87783ed96ef5f26d523291276e98821d16f5337dae092aed983f8fa",
+    "sword_1handed.glb": "98974a657986a634b858e7214b8361cfbcae7fd56728c805076594df6c6dbb2e",
+    "Tree_1_A_Color1.glb": "5de57ae96b9a99f3f5a151ac260c0a6c5ba95fb10796b39b01a0f25019590ca2",
+    "Tree_2_B_Color1.glb": "81c030e6ac07b7c332e4b35ca7e8b3511b218d0a1b9adf54005f03cbb5074faa",
+    "Tree_3_A_Color1.glb": "0126169a95da747c136ff696bce83dcb11ff6de588afa0b2a8c94117c84082bf"
+  }
+}

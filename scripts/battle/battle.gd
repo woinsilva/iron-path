@@ -39,24 +39,28 @@ func add_coins(amount: int) -> void:
 func take_leak_damage(amount: int) -> void:
 	if wave_manager.current_state in [WaveManager.State.VICTORY, WaveManager.State.DEFEAT]:
 		return
-	lives -= amount
+	lives = maxi(0, lives - amount)
 	emit_stats()
 	if lives <= 0:
 		lives = 0
 		_on_defeat()
 
 func _on_pad_selected(pad: BuildPad) -> void:
-	# Custo fixo de 50 para o MVP
-	var cost = 50
+	if get_tree().paused or wave_manager.current_state in [WaveManager.State.VICTORY, WaveManager.State.DEFEAT]:
+		return
+	var cost: int = build_manager.tower_cost
 	if build_manager.can_build(pad, cost, coins):
+		if not build_manager.build_tower(pad, "archer"):
+			return
 		coins -= cost
-		build_manager.build_tower(pad, "archer")
 		emit_stats()
 
 func _on_victory() -> void:
 	wave_manager.current_state = WaveManager.State.VICTORY
 	game_over.emit(true)
+	get_tree().paused = true
 
 func _on_defeat() -> void:
 	wave_manager.current_state = WaveManager.State.DEFEAT
 	game_over.emit(false)
+	get_tree().paused = true

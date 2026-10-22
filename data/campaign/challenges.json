@@ -1,0 +1,26 @@
+{
+  "schema": 2,
+  "challenges": [
+    {
+      "id": "vale_perfect",
+      "name": "Vale sem brechas",
+      "stage": 4,
+      "description": "Proteja o Portão da Guarda sem perder vidas.",
+      "stars": 3
+    },
+    {
+      "id": "canyon_perfect",
+      "name": "Forja inexpugnável",
+      "stage": 8,
+      "description": "Derrote o Colosso sem deixar inimigos passarem.",
+      "stars": 3
+    },
+    {
+      "id": "swamp_perfect",
+      "name": "Ruína silenciada",
+      "stage": 12,
+      "description": "Conclua o Coração da Ruína sem perder vidas.",
+      "stars": 3
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+{
+  "schema": 2,
+  "id": "arsenal_lab",
+  "index": 0,
+  "name": "Laboratório do Arsenal",
+  "biome": "vale",
+  "starting_coins": 18000,
+  "lives": 100,
+  "max_level": 5,
+  "allowed_towers": [
+    "archer",
+    "cannon",
+    "frost",
+    "venom",
+    "anti_air",
+    "bleed",
+    "arcane",
+    "banner"
+  ],
+  "pads": [
+    [
+      -12,
+      0,
+      0
+    ],
+    [
+      -9,
+      0,
+      0
+    ],
+    [
+      -6,
+      0,
+      0
+    ],
+    [
+      -3,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      3,
+      0,
+      0
+    ],
+    [
+      6,
+      0,
+      0
+    ],
+    [
+      9,
+      0,
+      0
+    ],
+    [
+      12,
+      0,
+      0
+    ]
+  ],
+  "waves": [
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "dummy_armored",
+          "count": 1,
+          "interval": 1,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 18,
+          "interval": 0.35,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "flyer",
+          "count": 12,
+          "interval": 0.9,
+          "route": 1
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "dummy_resistant",
+          "count": 2,
+          "interval": 2,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "dummy_brute",
+          "count": 2,
+          "interval": 3,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "dummy_armored",
+          "count": 3,
+          "interval": 2,
+          "route": 0
+        },
+        {
+          "enemy": "grunt",
+          "count": 12,
+          "interval": 0.4,
+          "route": 0
+        },
+        {
+          "enemy": "flyer",
+          "count": 8,
+          "interval": 1,
+          "route": 1
+        }
+      ]
+    }
+  ],
+  "route_points": [
+    [
+      -18,
+      0,
+      -3
+    ],
+    [
+      0,
+      0,
+      -3
+    ],
+    [
+      17,
+      0,
+      -3
+    ],
+    [
+      17,
+      0,
+      3
+    ],
+    [
+      0,
+      0,
+      3
+    ],
+    [
+      -18,
+      0,
+      3
+    ]
+  ],
+  "air_route_points": [
+    [
+      -18,
+      2.2,
+      -3
+    ],
+    [
+      0,
+      2.2,
+      -3
+    ],
+    [
+      17,
+      2.2,
+      -3
+    ]
+  ]
+}

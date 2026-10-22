@@ -1,0 +1,20 @@
+{
+  "title": "Caminhos do Vale",
+  "author": "Iron Path original project composition",
+  "source": "tools/assets/compose_vale.py",
+  "third_party_samples": false,
+  "seed": 19731,
+  "sample_rate": 44100,
+  "music_seconds": 42.666666666666664,
+  "music_peak": 0.6200000047683716,
+  "music_rms": 0.15583603084087372,
+  "loop_boundary_step": 0.0013868361711502075,
+  "files": {
+    "vale_ambience.ogg": "338018a3bfd7a0d05b465a868b033b1fcbfbb37cd7447cb53dd51861cb01dfaa",
+    "vale_theme.ogg": "7462900e80b2eab1dbc53477a165fc7c7d037678367dcbd4e42cb3ae99a1e6da"
+  },
+  "source_wav_files": {
+    "vale_ambience.wav": "4770f3f747a13d496dc8c17c0ac8c2d9213ea2fc827764fc247ccb1c23e930b5",
+    "vale_theme.wav": "30a0df2563ec7bd163699504bb454be98fe34bc8b6c544e985c8e9ccc8079be4"
+  }
+}

@@ -1,0 +1,580 @@
+{
+  "schema": 2,
+  "id": "stage_05",
+  "index": 5,
+  "name": "Pontes Gêmeas",
+  "biome": "canyon",
+  "starting_coins": 800,
+  "lives": 20,
+  "max_level": 4,
+  "allowed_towers": [
+    "archer",
+    "cannon",
+    "frost",
+    "venom",
+    "anti_air",
+    "bleed",
+    "arcane"
+  ],
+  "pads": [
+    [
+      -13,
+      0,
+      -4
+    ],
+    [
+      -7,
+      0,
+      -8
+    ],
+    [
+      2.6,
+      0,
+      -8
+    ],
+    [
+      7,
+      0,
+      -6
+    ],
+    [
+      10,
+      0,
+      2
+    ],
+    [
+      5,
+      0,
+      4.7
+    ],
+    [
+      -2.6,
+      0,
+      3
+    ],
+    [
+      -5,
+      0,
+      -2.5
+    ],
+    [
+      -12.4,
+      0,
+      0
+    ],
+    [
+      14,
+      0,
+      -3
+    ],
+    [
+      -4,
+      0,
+      9
+    ],
+    [
+      -15.5,
+      0,
+      4
+    ]
+  ],
+  "waves": [
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 8,
+          "interval": 1,
+          "route": 0,
+          "at": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 8,
+          "interval": 1,
+          "route": 2,
+          "at": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 10,
+          "interval": 0.9,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "runner",
+          "count": 3,
+          "interval": 1.2,
+          "route": 2,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "healer",
+          "count": 1,
+          "interval": 1,
+          "route": 0,
+          "at": 2
+        },
+        {
+          "enemy": "grunt",
+          "count": 10,
+          "interval": 0.7,
+          "route": 0,
+          "at": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "swarm",
+          "count": 16,
+          "interval": 0.45,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "healer",
+          "count": 1,
+          "interval": 1,
+          "route": 2,
+          "at": 1
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "flyer",
+          "count": 7,
+          "interval": 1.2,
+          "route": 1,
+          "at": 0
+        },
+        {
+          "enemy": "grunt",
+          "count": 8,
+          "interval": 0.8,
+          "route": 0,
+          "at": 2
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 4,
+          "interval": 1.7,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "healer",
+          "count": 1,
+          "interval": 1,
+          "route": 0,
+          "at": 1
+        },
+        {
+          "enemy": "runner",
+          "count": 6,
+          "interval": 1,
+          "route": 2,
+          "at": 4
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "grunt_elite",
+          "count": 8,
+          "interval": 1,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "swarm",
+          "count": 12,
+          "interval": 0.4,
+          "route": 0,
+          "at": 4
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "flyer",
+          "count": 10,
+          "interval": 0.9,
+          "route": 1,
+          "at": 0
+        },
+        {
+          "enemy": "runner",
+          "count": 8,
+          "interval": 0.9,
+          "route": 2,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 6,
+          "interval": 1.5,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "healer",
+          "count": 2,
+          "interval": 3,
+          "route": 2,
+          "at": 2
+        },
+        {
+          "enemy": "grunt",
+          "count": 10,
+          "interval": 0.7,
+          "route": 0,
+          "at": 5
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "swarm",
+          "count": 22,
+          "interval": 0.35,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "grunt_elite",
+          "count": 8,
+          "interval": 1.1,
+          "route": 2,
+          "at": 2
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "healer",
+          "count": 2,
+          "interval": 3,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "armored",
+          "count": 8,
+          "interval": 1.3,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "flyer",
+          "count": 8,
+          "interval": 1,
+          "route": 1,
+          "at": 4
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 12,
+          "interval": 0.8,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "grunt_elite",
+          "count": 12,
+          "interval": 0.8,
+          "route": 0,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 10,
+          "interval": 1.2,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "healer",
+          "count": 2,
+          "interval": 3,
+          "route": 2,
+          "at": 2
+        },
+        {
+          "enemy": "flyer",
+          "count": 12,
+          "interval": 0.8,
+          "route": 1,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "swarm",
+          "count": 26,
+          "interval": 0.35,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "grunt_elite",
+          "count": 12,
+          "interval": 0.8,
+          "route": 2,
+          "at": 3
+        },
+        {
+          "enemy": "healer",
+          "count": 2,
+          "interval": 3,
+          "route": 2,
+          "at": 4
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "armored",
+          "count": 10,
+          "interval": 1.2,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "healer",
+          "count": 3,
+          "interval": 2.5,
+          "route": 0,
+          "at": 1
+        },
+        {
+          "enemy": "grunt_elite",
+          "count": 14,
+          "interval": 0.8,
+          "route": 2,
+          "at": 3
+        },
+        {
+          "enemy": "flyer",
+          "count": 10,
+          "interval": 0.9,
+          "route": 1,
+          "at": 5
+        }
+      ]
+    }
+  ],
+  "route_points": [
+    [
+      -19,
+      0,
+      -7
+    ],
+    [
+      -11,
+      0,
+      -7
+    ],
+    [
+      -5,
+      0,
+      -5
+    ],
+    [
+      2,
+      0,
+      -5
+    ],
+    [
+      10,
+      0,
+      -2
+    ],
+    [
+      14,
+      0,
+      4
+    ],
+    [
+      8,
+      0,
+      7
+    ],
+    [
+      0,
+      0,
+      7
+    ],
+    [
+      -7,
+      0,
+      5
+    ],
+    [
+      -9,
+      0,
+      0
+    ],
+    [
+      -3,
+      0,
+      0
+    ]
+  ],
+  "air_route_points": [
+    [
+      -19,
+      0,
+      -9
+    ],
+    [
+      -8,
+      0,
+      -8
+    ],
+    [
+      2,
+      0,
+      -2
+    ],
+    [
+      -3,
+      0,
+      0
+    ]
+  ],
+  "extra_route_points": [
+    [
+      [
+        -19,
+        0,
+        7
+      ],
+      [
+        -18,
+        0,
+        3
+      ],
+      [
+        -18,
+        0,
+        -2
+      ],
+      [
+        -17,
+        0,
+        -7
+      ],
+      [
+        -11,
+        0,
+        -7
+      ],
+      [
+        -5,
+        0,
+        -5
+      ],
+      [
+        2,
+        0,
+        -5
+      ],
+      [
+        10,
+        0,
+        -2
+      ],
+      [
+        14,
+        0,
+        4
+      ],
+      [
+        8,
+        0,
+        7
+      ],
+      [
+        0,
+        0,
+        7
+      ],
+      [
+        -7,
+        0,
+        5
+      ],
+      [
+        -9,
+        0,
+        0
+      ],
+      [
+        -3,
+        0,
+        0
+      ]
+    ]
+  ],
+  "route_labels": [
+    "Ponte Norte",
+    "Trilha aérea",
+    "Ponte Sul"
+  ]
+}

@@ -1,0 +1,1220 @@
+{
+  "schema": 2,
+  "enemies": {
+    "grunt": {
+      "name": "Saqueador",
+      "hp": 70,
+      "speed": 1.4,
+      "armor": 0,
+      "reward": 6,
+      "leak": 1,
+      "layer": "ground",
+      "scale": 0.85,
+      "description": "Inimigo terrestre de referência. Boa cobertura e cadência resolvem grupos pequenos."
+    },
+    "runner": {
+      "name": "Corredor",
+      "hp": 48,
+      "speed": 2.3,
+      "armor": 0,
+      "reward": 7,
+      "leak": 1,
+      "layer": "ground",
+      "scale": 0.76,
+      "description": "Corre mais rápido e tem menos vida. Combine dano rápido e controle antes da saída."
+    },
+    "swarm": {
+      "name": "Rastejante",
+      "hp": 30,
+      "speed": 1.7,
+      "armor": 0,
+      "reward": 4,
+      "leak": 1,
+      "layer": "ground",
+      "scale": 0.85,
+      "description": "Pouca vida, mas aparece em grupos compactos. O Canhão consegue atingir vários de uma vez."
+    },
+    "flyer": {
+      "name": "Vespa",
+      "hp": 65,
+      "speed": 1.9,
+      "armor": 0,
+      "reward": 8,
+      "leak": 1,
+      "layer": "air",
+      "scale": 0.8,
+      "description": "Segue a trilha aérea dourada, mais curta. Arqueira, Cristal e Farol podem atingi-la; Canhão e Alquimista não.",
+      "flight_height": 2.2
+    },
+    "dummy_armored": {
+      "name": "Alvo Blindado",
+      "description": "Alvo de ensaio do laboratório; sem recompensa.",
+      "hp": 800,
+      "speed": 0.8,
+      "armor": 18,
+      "magic_resistance": 0,
+      "reward": 0,
+      "leak": 1,
+      "layer": "ground",
+      "scale": 1.2,
+      "lab_only": true
+    },
+    "dummy_resistant": {
+      "name": "Alvo Rúnico",
+      "description": "Alvo de ensaio do laboratório; sem recompensa.",
+      "hp": 800,
+      "speed": 1,
+      "armor": 2,
+      "magic_resistance": 0.6,
+      "reward": 0,
+      "leak": 1,
+      "layer": "ground",
+      "scale": 1.2,
+      "lab_only": true
+    },
+    "dummy_brute": {
+      "name": "Alvo Pesado",
+      "description": "Alvo de ensaio do laboratório; sem recompensa.",
+      "hp": 2000,
+      "speed": 0.6,
+      "armor": 4,
+      "magic_resistance": 0,
+      "reward": 0,
+      "leak": 1,
+      "layer": "ground",
+      "scale": 1.2,
+      "lab_only": true
+    },
+    "armored": {
+      "name": "Guardião",
+      "description": "Armadura física alta e marcha lenta. Magia, sangramento e cobertura concentrada ajudam a quebrar sua defesa.",
+      "hp": 170,
+      "speed": 1.05,
+      "armor": 12,
+      "reward": 11,
+      "leak": 2,
+      "layer": "ground",
+      "scale": 0.9,
+      "model": "guardian",
+      "equipment": [
+        {
+          "slot": "handslot.r",
+          "model": "sword_1handed"
+        },
+        {
+          "slot": "handslot.l",
+          "model": "shield_square_color"
+        }
+      ]
+    },
+    "grunt_elite": {
+      "name": "Saqueador de Elite",
+      "description": "Saqueador mais resistente, com proteção visível. Não tem habilidade surpresa; deixa duas vidas passarem.",
+      "hp": 145,
+      "speed": 1.3,
+      "armor": 2,
+      "reward": 12,
+      "leak": 2,
+      "layer": "ground",
+      "scale": 1.0,
+      "model": "goblin"
+    },
+    "boss_captain": {
+      "name": "Capitão dos Saqueadores",
+      "description": "Chefe do Vale. Prepara o Brado por 1,8 s: acelera a escolta em 25% por 4 s num raio de 3,5 m. Focar a escolta ou o Capitão encerra a pressão.",
+      "hp": 2400,
+      "speed": 0.7,
+      "armor": 8,
+      "reward": 60,
+      "leak": 6,
+      "layer": "ground",
+      "scale": 1.3,
+      "model": "captain",
+      "boss": true,
+      "equipment": [
+        {
+          "slot": "handslot.r",
+          "model": "axe_1handed"
+        }
+      ],
+      "ability": {
+        "kind": "rally",
+        "initial_delay": 3,
+        "windup": 1.8,
+        "duration": 4,
+        "cooldown": 12,
+        "radius": 3.5,
+        "speed_bonus": 0.25
+      }
+    },
+    "healer": {
+      "name": "Xamã",
+      "description": "Cura até três aliados feridos próximos a cada 4 s, até seis vezes. Não cura a si mesmo nem ressuscita. Separe o grupo ou concentre o fogo no Xamã.",
+      "hp": 120,
+      "speed": 1.1,
+      "armor": 1,
+      "reward": 13,
+      "leak": 2,
+      "layer": "ground",
+      "scale": 0.9,
+      "model": "shaman",
+      "equipment": [
+        {
+          "slot": "handslot.r",
+          "model": "staff"
+        }
+      ],
+      "support": {
+        "kind": "heal",
+        "period": 4,
+        "casts": 6,
+        "radius": 3.5,
+        "targets": 3,
+        "amount": 10
+      }
+    },
+    "brute": {
+      "name": "Bruto",
+      "description": "Muito resistente e lento; vaza três vidas. Dano contínuo, foco arcano e cadência sob Estandarte aproveitam a longa exposição.",
+      "hp": 420,
+      "speed": 0.8,
+      "armor": 4,
+      "reward": 28,
+      "leak": 3,
+      "layer": "ground",
+      "scale": 1.35,
+      "model": "captain",
+      "equipment": [
+        {
+          "slot": "handslot.r",
+          "model": "axe_1handed"
+        }
+      ]
+    },
+    "runner_veteran": {
+      "name": "Corredor Veterano",
+      "description": "Mais resistente que o Corredor, com proteção leve e duas vidas de vazamento. Controle e cobertura de saída evitam fugas.",
+      "hp": 100,
+      "speed": 2.5,
+      "armor": 2,
+      "reward": 12,
+      "leak": 2,
+      "layer": "ground",
+      "scale": 0.86,
+      "model": "goblin"
+    },
+    "shieldbearer": {
+      "name": "Portador de Escudo",
+      "description": "Escudo de 80 pontos antes da vida. Recarrega uma única vez após 5 s sem receber dano, depois de quebrado. Foco e dano contínuo impedem a recarga.",
+      "hp": 190,
+      "speed": 1.05,
+      "armor": 6,
+      "reward": 17,
+      "leak": 2,
+      "layer": "ground",
+      "scale": 1,
+      "model": "guardian",
+      "equipment": [
+        {
+          "slot": "handslot.r",
+          "model": "sword_1handed"
+        },
+        {
+          "slot": "handslot.l",
+          "model": "shield_round_color"
+        }
+      ],
+      "shield": {
+        "amount": 80,
+        "delay": 5,
+        "recharges": 1
+      }
+    },
+    "standardbearer": {
+      "name": "Porta-Estandarte",
+      "description": "Acelera aliados próximos em 20%. Auras iguais não acumulam; o portador não acelera a si nem chefes. Derrube o suporte para retirar a aura.",
+      "hp": 220,
+      "speed": 1.15,
+      "armor": 3,
+      "reward": 18,
+      "leak": 2,
+      "layer": "ground",
+      "scale": 1,
+      "model": "guardian",
+      "equipment": [
+        {
+          "slot": "handslot.r",
+          "model": "sword_1handed"
+        }
+      ],
+      "support": {
+        "kind": "speed_aura",
+        "radius": 3.5,
+        "speed_bonus": 0.2
+      }
+    },
+    "flyer_heavy": {
+      "name": "Vespa Couraçada",
+      "description": "Mais lenta e resistente que a Vespa, com carapaça metálica. Foco antiaéreo e magia; segue a rota aérea anunciada.",
+      "hp": 190,
+      "speed": 1.45,
+      "armor": 5,
+      "reward": 16,
+      "leak": 2,
+      "layer": "air",
+      "scale": 1,
+      "model": "goblin",
+      "flight_height": 2.2
+    },
+    "boss_colossus": {
+      "name": "Colosso da Forja",
+      "description": "Alterna uma barreira de 300 pontos por 4 s e reforços, sempre avisando por 2 s. Até duas barreiras e seis crias, no máximo quatro simultâneas; crias não dão moedas.",
+      "hp": 3800,
+      "speed": 0.65,
+      "armor": 10,
+      "reward": 100,
+      "leak": 8,
+      "layer": "ground",
+      "scale": 1.9,
+      "model": "guardian",
+      "boss": true,
+      "ability": {
+        "kind": "forge_cycle",
+        "initial_delay": 4,
+        "windup": 2,
+        "duration": 4,
+        "cooldown": 12,
+        "radius": 3.5,
+        "shield_casts": 2,
+        "shield_amount": 300,
+        "summon_limit": 6,
+        "active_cap": 4,
+        "summon_count": 2,
+        "summon_enemy": "swarm"
+      }
+    },
+    "resistant": {
+      "name": "Sentinela Rúnica",
+      "description": "O halo violeta reduz dano mágico em 55%. Canhões, flechas e sangramento atravessam essa resistência; a armadura física é leve.",
+      "hp": 240,
+      "speed": 1.05,
+      "armor": 4,
+      "magic_resistance": 0.55,
+      "reward": 18,
+      "leak": 2,
+      "layer": "ground",
+      "scale": 1.05,
+      "model": "guardian",
+      "equipment": [
+        {
+          "slot": "handslot.r",
+          "model": "sword_1handed"
+        }
+      ]
+    },
+    "burrower": {
+      "name": "Escavador",
+      "description": "Avança sob a terra até o marco de emergência visível, a 12 metros da entrada. Depois emerge e qualquer torre terrestre pode atingi-lo. Não exige detector.",
+      "hp": 160,
+      "speed": 1.4,
+      "burrow_distance": 12,
+      "burrow_speed": 2.6,
+      "armor": 3,
+      "reward": 14,
+      "leak": 2,
+      "layer": "ground",
+      "scale": 1.05
+    },
+    "summoner": {
+      "name": "Invocador",
+      "description": "Prepara reforços por 2 segundos. Invoca até seis rastejantes no total, no máximo quatro vivos; as crias têm selo pálido e não concedem moedas. Priorize a fonte.",
+      "hp": 180,
+      "speed": 1,
+      "armor": 2,
+      "reward": 20,
+      "leak": 2,
+      "layer": "ground",
+      "scale": 1,
+      "model": "shaman",
+      "equipment": [
+        {
+          "slot": "handslot.r",
+          "model": "staff"
+        }
+      ],
+      "ability": {
+        "kind": "summon_limited",
+        "initial_delay": 4,
+        "windup": 2,
+        "duration": 1,
+        "cooldown": 10,
+        "radius": 2.5,
+        "shield_casts": 0,
+        "summon_limit": 6,
+        "active_cap": 4,
+        "summon_count": 2,
+        "summon_enemy": "swarm"
+      }
+    },
+    "armored_elite": {
+      "name": "Guardião de Elite",
+      "description": "A proteção dourada absorve 18 pontos de dano físico por golpe. Magia, corrosão e sangramento ajudam a atravessá-la.",
+      "hp": 360,
+      "speed": 1.1,
+      "armor": 18,
+      "reward": 24,
+      "leak": 3,
+      "layer": "ground",
+      "scale": 1.2,
+      "model": "guardian",
+      "equipment": [
+        {
+          "slot": "handslot.r",
+          "model": "sword_1handed"
+        },
+        {
+          "slot": "handslot.l",
+          "model": "shield_square_color"
+        }
+      ]
+    },
+    "boss_ruin": {
+      "name": "Guardião da Ruína",
+      "description": "Avisa cada habilidade por 2 s. Acima de 2/3 de vida: postura com +12 de armadura por 5 s. No trecho central: aura de 20% ou reforços. Abaixo de 1/3: postura com 60% de resistência mágica alternada com reforços. Até oito crias, quatro vivas, sem recompensa. Nunca cura nem se torna invulnerável.",
+      "hp": 7000,
+      "speed": 0.6,
+      "armor": 8,
+      "magic_resistance": 0.2,
+      "reward": 180,
+      "leak": 12,
+      "layer": "ground",
+      "scale": 2.05,
+      "model": "guardian",
+      "boss": true,
+      "ability": {
+        "kind": "ruin_cycle",
+        "initial_delay": 4,
+        "windup": 2,
+        "duration": 5,
+        "cooldown": 12,
+        "radius": 4,
+        "speed_bonus": 0.2,
+        "posture_armor": 12,
+        "posture_resistance": 0.6,
+        "shield_casts": 0,
+        "summon_limit": 8,
+        "active_cap": 4,
+        "summon_count": 2,
+        "summon_enemy": "swarm"
+      }
+    }
+  },
+  "towers": {
+    "archer": {
+      "name": "Arqueira",
+      "layer": "both",
+      "damage_type": "physical",
+      "projectile": 13,
+      "windup": 0.3,
+      "splash": 0,
+      "levels": [
+        {
+          "cost": 70,
+          "build": 3,
+          "damage": 12,
+          "rate": 1.25,
+          "range": 4.2
+        },
+        {
+          "cost": 95,
+          "build": 5,
+          "damage": 22,
+          "rate": 1.4,
+          "range": 4.5
+        },
+        {
+          "cost": 145,
+          "build": 7,
+          "damage": 34,
+          "rate": 1.5,
+          "range": 4.8
+        }
+      ],
+      "description": "Alvo único em terra e ar. Cadência alta; perde eficiência contra armadura.",
+      "branches": {
+        "A": {
+          "name": "Atiradora",
+          "description": "Um alvo; crítico previsível a cada quatro tiros em L4 e três em L5.",
+          "levels": [
+            {
+              "cost": 230,
+              "build": 10,
+              "damage": 56,
+              "rate": 1.4,
+              "range": 5.1,
+              "crit_every": 4,
+              "crit_multiplier": 2
+            },
+            {
+              "cost": 340,
+              "build": 14,
+              "damage": 88,
+              "rate": 1.45,
+              "range": 5.4,
+              "crit_every": 3,
+              "crit_multiplier": 2
+            }
+          ]
+        },
+        "B": {
+          "name": "Rajada",
+          "description": "Até três inimigos diferentes por ataque, com dano individual menor.",
+          "levels": [
+            {
+              "cost": 220,
+              "build": 10,
+              "damage": 30,
+              "rate": 1.8,
+              "range": 4.9,
+              "multishot": 3
+            },
+            {
+              "cost": 330,
+              "build": 14,
+              "damage": 44,
+              "rate": 2,
+              "range": 5.2,
+              "multishot": 3
+            }
+          ]
+        }
+      }
+    },
+    "cannon": {
+      "name": "Canhão",
+      "layer": "ground",
+      "damage_type": "physical",
+      "projectile": 10,
+      "windup": 0.55,
+      "splash": 1.2,
+      "levels": [
+        {
+          "cost": 110,
+          "build": 6,
+          "damage": 36,
+          "rate": 0.55,
+          "range": 3.8
+        },
+        {
+          "cost": 155,
+          "build": 9,
+          "damage": 65,
+          "rate": 0.58,
+          "range": 4.1
+        },
+        {
+          "cost": 210,
+          "build": 11,
+          "damage": 98,
+          "rate": 0.62,
+          "range": 4.4
+        }
+      ],
+      "description": "Explosão física no chão. Excelente contra grupos juntos; não atinge voadores.",
+      "branches": {
+        "A": {
+          "name": "Morteiro",
+          "description": "Impacto em posição marcada. Área grande; inimigos rápidos podem sair da explosão.",
+          "levels": [
+            {
+              "cost": 300,
+              "build": 13,
+              "damage": 125,
+              "rate": 0.55,
+              "range": 5.1,
+              "splash": 2.2,
+              "projectile": 7,
+              "ground_target": true
+            },
+            {
+              "cost": 420,
+              "build": 16,
+              "damage": 185,
+              "rate": 0.58,
+              "range": 5.5,
+              "splash": 2.8,
+              "projectile": 6.5,
+              "ground_target": true
+            }
+          ]
+        },
+        "B": {
+          "name": "Demolidor",
+          "description": "Área menor e perfuração parcial de armadura física.",
+          "levels": [
+            {
+              "cost": 300,
+              "build": 13,
+              "damage": 160,
+              "rate": 0.65,
+              "range": 4.4,
+              "splash": 0.9,
+              "penetration": 0.4
+            },
+            {
+              "cost": 420,
+              "build": 16,
+              "damage": 240,
+              "rate": 0.7,
+              "range": 4.7,
+              "splash": 1,
+              "penetration": 0.55
+            }
+          ]
+        }
+      }
+    },
+    "frost": {
+      "name": "Cristal Gélido",
+      "layer": "both",
+      "damage_type": "magical",
+      "projectile": 11,
+      "windup": 0.35,
+      "splash": 0,
+      "levels": [
+        {
+          "cost": 90,
+          "build": 5,
+          "damage": 7,
+          "rate": 0.8,
+          "range": 3.7,
+          "effects": [
+            {
+              "kind": "slow",
+              "power": 0.2,
+              "duration": 1.5
+            }
+          ]
+        },
+        {
+          "cost": 125,
+          "build": 6,
+          "damage": 11,
+          "rate": 0.85,
+          "range": 4,
+          "effects": [
+            {
+              "kind": "slow",
+              "power": 0.25,
+              "duration": 1.8
+            }
+          ]
+        },
+        {
+          "cost": 175,
+          "build": 8,
+          "damage": 16,
+          "rate": 0.9,
+          "range": 4.3,
+          "effects": [
+            {
+              "kind": "slow",
+              "power": 0.3,
+              "duration": 2
+            }
+          ]
+        }
+      ],
+      "description": "Dano mágico baixo e lentidão. Apenas a lentidão mais forte vale; não acumula.",
+      "branches": {
+        "A": {
+          "name": "Geada",
+          "description": "Deixa um campo breve de lentidão. Campos da mesma fonte não acumulam intensidade.",
+          "levels": [
+            {
+              "cost": 260,
+              "build": 10,
+              "damage": 18,
+              "rate": 0.9,
+              "range": 4.4,
+              "splash": 0.9,
+              "field": {
+                "radius": 1.4,
+                "duration": 2,
+                "slow": 0.3
+              }
+            },
+            {
+              "cost": 350,
+              "build": 14,
+              "damage": 24,
+              "rate": 1,
+              "range": 4.7,
+              "splash": 1.1,
+              "field": {
+                "radius": 1.7,
+                "duration": 3,
+                "slow": 0.35
+              }
+            }
+          ]
+        },
+        "B": {
+          "name": "Agulha Glacial",
+          "description": "Lentidão individual intensa. Respeita o piso de movimento e limite dos chefes.",
+          "levels": [
+            {
+              "cost": 250,
+              "build": 10,
+              "damage": 30,
+              "rate": 0.9,
+              "range": 4.5,
+              "effects": [
+                {
+                  "kind": "slow",
+                  "power": 0.5,
+                  "duration": 2.2
+                }
+              ]
+            },
+            {
+              "cost": 340,
+              "build": 14,
+              "damage": 45,
+              "rate": 1,
+              "range": 4.7,
+              "effects": [
+                {
+                  "kind": "slow",
+                  "power": 0.6,
+                  "duration": 2.5
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "venom": {
+      "name": "Alquimista",
+      "layer": "ground",
+      "damage_type": "magical",
+      "projectile": 11,
+      "windup": 0.45,
+      "splash": 0,
+      "levels": [
+        {
+          "cost": 100,
+          "build": 5,
+          "damage": 5,
+          "rate": 0.7,
+          "range": 3.6,
+          "effects": [
+            {
+              "kind": "venom",
+              "power": 4,
+              "duration": 3
+            }
+          ]
+        },
+        {
+          "cost": 135,
+          "build": 7,
+          "damage": 8,
+          "rate": 0.8,
+          "range": 3.9,
+          "effects": [
+            {
+              "kind": "venom",
+              "power": 7,
+              "duration": 3.5
+            }
+          ]
+        },
+        {
+          "cost": 190,
+          "build": 9,
+          "damage": 12,
+          "rate": 0.85,
+          "range": 4.1,
+          "effects": [
+            {
+              "kind": "venom",
+              "power": 11,
+              "duration": 4
+            }
+          ]
+        }
+      ],
+      "description": "Dano mágico e veneno no chão. O veneno precisa de tempo; construa antes da saída.",
+      "branches": {
+        "A": {
+          "name": "Peste",
+          "description": "Veneno se espalha somente no impacto, até três alvos em L4 e quatro em L5.",
+          "levels": [
+            {
+              "cost": 240,
+              "build": 10,
+              "damage": 14,
+              "rate": 0.85,
+              "range": 4.2,
+              "effects": [
+                {
+                  "kind": "venom",
+                  "power": 14,
+                  "duration": 4
+                }
+              ],
+              "spread_count": 3,
+              "spread_radius": 1.5
+            },
+            {
+              "cost": 340,
+              "build": 14,
+              "damage": 20,
+              "rate": 0.9,
+              "range": 4.5,
+              "effects": [
+                {
+                  "kind": "venom",
+                  "power": 20,
+                  "duration": 4
+                }
+              ],
+              "spread_count": 4,
+              "spread_radius": 1.8
+            }
+          ]
+        },
+        "B": {
+          "name": "Corrosão",
+          "description": "Veneno e redução limitada de armadura; nunca remove mais de metade da defesa.",
+          "levels": [
+            {
+              "cost": 250,
+              "build": 10,
+              "damage": 18,
+              "rate": 0.9,
+              "range": 4.2,
+              "effects": [
+                {
+                  "kind": "venom",
+                  "power": 17,
+                  "duration": 4
+                },
+                {
+                  "kind": "corrosion",
+                  "power": 4,
+                  "duration": 4
+                }
+              ]
+            },
+            {
+              "cost": 350,
+              "build": 14,
+              "damage": 28,
+              "rate": 0.95,
+              "range": 4.4,
+              "effects": [
+                {
+                  "kind": "venom",
+                  "power": 24,
+                  "duration": 4.5
+                },
+                {
+                  "kind": "corrosion",
+                  "power": 6,
+                  "duration": 4.5
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "anti_air": {
+      "name": "Farol Celeste",
+      "layer": "air",
+      "damage_type": "magical",
+      "projectile": 11,
+      "windup": 0.25,
+      "splash": 0,
+      "levels": [
+        {
+          "cost": 85,
+          "build": 4,
+          "damage": 20,
+          "rate": 1.15,
+          "range": 4.9
+        },
+        {
+          "cost": 115,
+          "build": 6,
+          "damage": 31,
+          "rate": 1.25,
+          "range": 5.2
+        },
+        {
+          "cost": 165,
+          "build": 8,
+          "damage": 46,
+          "rate": 1.35,
+          "range": 5.5
+        }
+      ],
+      "description": "Dano mágico exclusivo contra voadores. Não ataca inimigos terrestres.",
+      "branches": {
+        "A": {
+          "name": "Tempestade",
+          "description": "Ricochetes limitados entre voadores, sem repetir alvo e com dano decrescente.",
+          "levels": [
+            {
+              "cost": 230,
+              "build": 10,
+              "damage": 40,
+              "rate": 1.35,
+              "range": 5.5,
+              "chain_count": 3,
+              "chain_radius": 3,
+              "chain_falloff": 0.65
+            },
+            {
+              "cost": 320,
+              "build": 14,
+              "damage": 58,
+              "rate": 1.45,
+              "range": 5.8,
+              "chain_count": 4,
+              "chain_radius": 3,
+              "chain_falloff": 0.65
+            }
+          ]
+        },
+        "B": {
+          "name": "Lança Celeste",
+          "description": "Foco pesado contra ar; cadência menor e nenhum dano terrestre.",
+          "levels": [
+            {
+              "cost": 240,
+              "build": 10,
+              "damage": 112.5,
+              "rate": 0.75,
+              "range": 5.8
+            },
+            {
+              "cost": 340,
+              "build": 14,
+              "damage": 175,
+              "rate": 0.8,
+              "range": 6.2
+            }
+          ]
+        }
+      }
+    },
+    "bleed": {
+      "name": "Balista Serrilhada",
+      "description": "Foco físico e sangramento puro. Cadência baixa; boa contra alvos resistentes.",
+      "layer": "ground",
+      "damage_type": "physical",
+      "projectile": 16,
+      "windup": 0.5,
+      "splash": 0,
+      "levels": [
+        {
+          "cost": 120,
+          "build": 7,
+          "damage": 25,
+          "rate": 0.55,
+          "range": 4.5,
+          "effects": [
+            {
+              "kind": "bleed",
+              "power": 5,
+              "duration": 3
+            }
+          ]
+        },
+        {
+          "cost": 160,
+          "build": 9,
+          "damage": 42,
+          "rate": 0.6,
+          "range": 4.8,
+          "effects": [
+            {
+              "kind": "bleed",
+              "power": 8,
+              "duration": 3
+            }
+          ]
+        },
+        {
+          "cost": 220,
+          "build": 11,
+          "damage": 68,
+          "rate": 0.65,
+          "range": 5,
+          "effects": [
+            {
+              "kind": "bleed",
+              "power": 12,
+              "duration": 3.5
+            }
+          ]
+        }
+      ],
+      "branches": {
+        "A": {
+          "name": "Empaladora",
+          "description": "Atravessa uma linha estreita, até três alvos em L4 e quatro em L5, com perda de dano.",
+          "levels": [
+            {
+              "cost": 290,
+              "build": 13,
+              "damage": 78,
+              "rate": 0.7,
+              "range": 5.2,
+              "effects": [
+                {
+                  "kind": "bleed",
+                  "power": 12,
+                  "duration": 3
+                }
+              ],
+              "pierce_count": 3,
+              "pierce_width": 0.45,
+              "pierce_falloff": 0.85
+            },
+            {
+              "cost": 390,
+              "build": 17,
+              "damage": 115,
+              "rate": 0.75,
+              "range": 5.5,
+              "effects": [
+                {
+                  "kind": "bleed",
+                  "power": 15,
+                  "duration": 3.5
+                }
+              ],
+              "pierce_count": 4,
+              "pierce_width": 0.5,
+              "pierce_falloff": 0.8
+            }
+          ]
+        },
+        "B": {
+          "name": "Caçadora",
+          "description": "Dano e sangramento fortes em um único alvo. Sangramento causa mais dano enquanto ele se move.",
+          "levels": [
+            {
+              "cost": 300,
+              "build": 13,
+              "damage": 125,
+              "rate": 0.65,
+              "range": 5.3,
+              "effects": [
+                {
+                  "kind": "bleed",
+                  "power": 18,
+                  "duration": 4
+                }
+              ]
+            },
+            {
+              "cost": 420,
+              "build": 17,
+              "damage": 185,
+              "rate": 0.7,
+              "range": 5.6,
+              "effects": [
+                {
+                  "kind": "bleed",
+                  "power": 26,
+                  "duration": 4
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "arcane": {
+      "name": "Torre Arcana",
+      "description": "Dano mágico concentrado. Combate armadura; resistência mágica reduz sua eficiência.",
+      "layer": "both",
+      "damage_type": "magical",
+      "projectile": 15,
+      "windup": 0.4,
+      "splash": 0,
+      "levels": [
+        {
+          "cost": 135,
+          "build": 6,
+          "damage": 28,
+          "rate": 0.65,
+          "range": 3.8
+        },
+        {
+          "cost": 180,
+          "build": 9,
+          "damage": 48,
+          "rate": 0.7,
+          "range": 4.1
+        },
+        {
+          "cost": 250,
+          "build": 11,
+          "damage": 76,
+          "rate": 0.75,
+          "range": 4.4
+        }
+      ],
+      "branches": {
+        "A": {
+          "name": "Prisma",
+          "description": "Feixe focado aquece no mesmo alvo. Trocar ou perder o alvo reinicia o bônus.",
+          "levels": [
+            {
+              "cost": 330,
+              "build": 14,
+              "damage": 22,
+              "rate": 2.5,
+              "range": 4.6,
+              "focus_step": 0.15,
+              "focus_cap": 1.75,
+              "windup": 0.12,
+              "projectile": 100
+            },
+            {
+              "cost": 460,
+              "build": 18,
+              "damage": 32,
+              "rate": 3,
+              "range": 4.8,
+              "focus_step": 0.2,
+              "focus_cap": 2,
+              "windup": 0.1,
+              "projectile": 100
+            }
+          ]
+        },
+        "B": {
+          "name": "Conduíte",
+          "description": "Dano mágico em cadeia limitada; menor dano contra um inimigo isolado.",
+          "levels": [
+            {
+              "cost": 320,
+              "build": 14,
+              "damage": 62,
+              "rate": 0.85,
+              "range": 4.6,
+              "chain_count": 3,
+              "chain_radius": 2.8,
+              "chain_falloff": 0.7
+            },
+            {
+              "cost": 440,
+              "build": 17,
+              "damage": 100,
+              "rate": 0.9,
+              "range": 4.9,
+              "chain_count": 4,
+              "chain_radius": 3,
+              "chain_falloff": 0.7
+            }
+          ]
+        }
+      }
+    },
+    "banner": {
+      "name": "Estandarte de Comando",
+      "description": "Fortalece torres próximas. Não causa dano e não fortalece outros estandartes. Bônus iguais não somam.",
+      "layer": "ally",
+      "damage_type": "pure",
+      "projectile": 0,
+      "windup": 0,
+      "splash": 0,
+      "levels": [
+        {
+          "cost": 95,
+          "build": 4,
+          "damage": 0,
+          "rate": 0,
+          "range": 3.2,
+          "haste": 0.1
+        },
+        {
+          "cost": 130,
+          "build": 6,
+          "damage": 0,
+          "rate": 0,
+          "range": 3.5,
+          "haste": 0.12
+        },
+        {
+          "cost": 180,
+          "build": 8,
+          "damage": 0,
+          "rate": 0,
+          "range": 3.8,
+          "haste": 0.15
+        }
+      ],
+      "branches": {
+        "A": {
+          "name": "Comando",
+          "description": "Cadência permanente mais alta. Apenas o maior bônus de estandarte vale.",
+          "levels": [
+            {
+              "cost": 230,
+              "build": 11,
+              "damage": 0,
+              "rate": 0,
+              "range": 4,
+              "haste": 0.2
+            },
+            {
+              "cost": 320,
+              "build": 14,
+              "damage": 0,
+              "rate": 0,
+              "range": 4.2,
+              "haste": 0.25
+            }
+          ]
+        },
+        "B": {
+          "name": "Vigília",
+          "description": "Mais alcance e pulsos breves de cadência. Não afeta estandartes nem cria ciclos.",
+          "levels": [
+            {
+              "cost": 220,
+              "build": 11,
+              "damage": 0,
+              "rate": 0,
+              "range": 4.2,
+              "reach_bonus": 0.12,
+              "pulse_haste": 0.1,
+              "pulse_duration": 2,
+              "pulse_period": 8
+            },
+            {
+              "cost": 310,
+              "build": 14,
+              "damage": 0,
+              "rate": 0,
+              "range": 4.5,
+              "reach_bonus": 0.15,
+              "pulse_haste": 0.12,
+              "pulse_duration": 3,
+              "pulse_period": 8
+            }
+          ]
+        }
+      }
+    }
+  }
+}

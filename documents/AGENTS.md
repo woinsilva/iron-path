@@ -1,10 +1,10 @@
 # Iron Path — instruções obrigatórias do projeto
 
-Você está construindo um tower defense 2D mobile em Godot 4. Leia todos os arquivos Markdown deste diretório antes de implementar. `GAME_SPEC.md` define comportamento; `CONTENT_BALANCE.md` define números; `TECHNICAL_SPEC.md` define arquitetura; `ART_AND_AUDIO.md` define assets; `IMPLEMENTATION_PLAN.md` define a ordem.
+Você está construindo um tower defense com modelos realmente 3D, câmera fixa ortográfica e leitura 2D, em Godot 4 para mobile. Leia os documentos V2 antes de implementar: `VISION_3D_V2.md` define qualidade e pipeline; `GAME_DESIGN_V2.md` define regras; `CONTENT_PLAN_V2.md` define o catálogo proposto; `ROADMAP_V2.md` define as etapas P0–P10. A especificação V1 permanece como histórico do protótipo; em conflitos prevalece a V2. Não declarar a migração pronta enquanto o runtime ainda for 2D.
 
 ## Regras de execução
 
-- Implemente um marco por vez e não antecipe sistemas de marcos futuros.
+- Implemente um marco P0–P10 por vez e não antecipe sistemas de marcos futuros. A arena de qualidade 3D de P1 é uma prova pequena; a produção em massa depende de sua validação.
 - Antes de editar, declare o marco atual e liste os arquivos que pretende alterar.
 - Ao terminar uma fatia, execute os testes relevantes e abra o projeto em modo headless sempre que possível.
 - Nunca declare sucesso sem evidência de execução, teste ou inspeção da cena.

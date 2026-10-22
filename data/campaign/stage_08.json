@@ -1,0 +1,688 @@
+{
+  "schema": 2,
+  "id": "stage_08",
+  "index": 8,
+  "name": "Forja do Colosso",
+  "biome": "canyon",
+  "starting_coins": 1400,
+  "lives": 20,
+  "max_level": 4,
+  "allowed_towers": [
+    "archer",
+    "cannon",
+    "frost",
+    "venom",
+    "anti_air",
+    "bleed",
+    "arcane",
+    "banner"
+  ],
+  "pads": [
+    [
+      -13,
+      0,
+      4
+    ],
+    [
+      -7,
+      0,
+      8
+    ],
+    [
+      2.6,
+      0,
+      8
+    ],
+    [
+      7,
+      0,
+      6
+    ],
+    [
+      10,
+      0,
+      -2
+    ],
+    [
+      5,
+      0,
+      -4.7
+    ],
+    [
+      -2.6,
+      0,
+      -3
+    ],
+    [
+      -5,
+      0,
+      2.5
+    ],
+    [
+      -12.4,
+      0,
+      0
+    ],
+    [
+      14,
+      0,
+      3
+    ],
+    [
+      -4,
+      0,
+      -9
+    ],
+    [
+      -15.5,
+      0,
+      -4
+    ],
+    [
+      -7.9,
+      0,
+      2.8
+    ],
+    [
+      -2.1,
+      0,
+      2.5
+    ]
+  ],
+  "waves": [
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "standardbearer",
+          "count": 1,
+          "interval": 1,
+          "route": 0,
+          "at": 2
+        },
+        {
+          "enemy": "grunt",
+          "count": 8,
+          "interval": 1,
+          "route": 0,
+          "at": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "grunt_elite",
+          "count": 8,
+          "interval": 1,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "armored",
+          "count": 3,
+          "interval": 2,
+          "route": 2,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "flyer_heavy",
+          "count": 1,
+          "interval": 1,
+          "route": 1,
+          "at": 0
+        },
+        {
+          "enemy": "flyer",
+          "count": 6,
+          "interval": 1,
+          "route": 1,
+          "at": 3
+        },
+        {
+          "enemy": "grunt",
+          "count": 8,
+          "interval": 1,
+          "route": 0,
+          "at": 2
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "shieldbearer",
+          "count": 4,
+          "interval": 2,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "standardbearer",
+          "count": 1,
+          "interval": 1,
+          "route": 0,
+          "at": 1
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "swarm",
+          "count": 20,
+          "interval": 0.4,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "healer",
+          "count": 1,
+          "interval": 1,
+          "route": 2,
+          "at": 2
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "brute",
+          "count": 3,
+          "interval": 3,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "runner_veteran",
+          "count": 4,
+          "interval": 1.5,
+          "route": 2,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "flyer_heavy",
+          "count": 4,
+          "interval": 2,
+          "route": 1,
+          "at": 0
+        },
+        {
+          "enemy": "grunt_elite",
+          "count": 10,
+          "interval": 1,
+          "route": 2,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "standardbearer",
+          "count": 2,
+          "interval": 3,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "shieldbearer",
+          "count": 6,
+          "interval": 1.8,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "healer",
+          "count": 1,
+          "interval": 1,
+          "route": 0,
+          "at": 2
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "swarm",
+          "count": 24,
+          "interval": 0.35,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "brute",
+          "count": 3,
+          "interval": 3,
+          "route": 0,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "runner_veteran",
+          "count": 8,
+          "interval": 1.3,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "flyer",
+          "count": 10,
+          "interval": 1,
+          "route": 1,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "shieldbearer",
+          "count": 8,
+          "interval": 1.7,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "healer",
+          "count": 2,
+          "interval": 3,
+          "route": 0,
+          "at": 2
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "flyer_heavy",
+          "count": 6,
+          "interval": 2,
+          "route": 1,
+          "at": 0
+        },
+        {
+          "enemy": "standardbearer",
+          "count": 2,
+          "interval": 3,
+          "route": 2,
+          "at": 2
+        },
+        {
+          "enemy": "grunt_elite",
+          "count": 12,
+          "interval": 0.9,
+          "route": 2,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "brute",
+          "count": 5,
+          "interval": 3,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "swarm",
+          "count": 24,
+          "interval": 0.35,
+          "route": 2,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "runner_veteran",
+          "count": 10,
+          "interval": 1.2,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "shieldbearer",
+          "count": 8,
+          "interval": 1.7,
+          "route": 2,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "standardbearer",
+          "count": 2,
+          "interval": 3,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "healer",
+          "count": 2,
+          "interval": 3,
+          "route": 2,
+          "at": 2
+        },
+        {
+          "enemy": "brute",
+          "count": 5,
+          "interval": 3,
+          "route": 2,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "flyer_heavy",
+          "count": 8,
+          "interval": 1.8,
+          "route": 1,
+          "at": 0
+        },
+        {
+          "enemy": "shieldbearer",
+          "count": 8,
+          "interval": 1.6,
+          "route": 0,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "swarm",
+          "count": 28,
+          "interval": 0.3,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "grunt_elite",
+          "count": 14,
+          "interval": 0.8,
+          "route": 2,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "brute",
+          "count": 6,
+          "interval": 2.8,
+          "route": 2,
+          "at": 0
+        },
+        {
+          "enemy": "healer",
+          "count": 2,
+          "interval": 3,
+          "route": 2,
+          "at": 2
+        },
+        {
+          "enemy": "runner_veteran",
+          "count": 10,
+          "interval": 1.2,
+          "route": 0,
+          "at": 3
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "shieldbearer",
+          "count": 10,
+          "interval": 1.5,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "flyer_heavy",
+          "count": 6,
+          "interval": 1.8,
+          "route": 1,
+          "at": 3
+        },
+        {
+          "enemy": "standardbearer",
+          "count": 2,
+          "interval": 3,
+          "route": 0,
+          "at": 2
+        }
+      ]
+    },
+    {
+      "interval": 12,
+      "groups": [
+        {
+          "enemy": "boss_colossus",
+          "count": 1,
+          "interval": 1,
+          "route": 0,
+          "at": 0
+        },
+        {
+          "enemy": "standardbearer",
+          "count": 2,
+          "interval": 3,
+          "route": 0,
+          "at": 4
+        },
+        {
+          "enemy": "shieldbearer",
+          "count": 6,
+          "interval": 1.8,
+          "route": 0,
+          "at": 6
+        },
+        {
+          "enemy": "swarm",
+          "count": 20,
+          "interval": 0.4,
+          "route": 2,
+          "at": 8
+        }
+      ]
+    }
+  ],
+  "route_points": [
+    [
+      -19,
+      0,
+      7
+    ],
+    [
+      -11,
+      0,
+      7
+    ],
+    [
+      -5,
+      0,
+      5
+    ],
+    [
+      2,
+      0,
+      5
+    ],
+    [
+      10,
+      0,
+      2
+    ],
+    [
+      14,
+      0,
+      -4
+    ],
+    [
+      8,
+      0,
+      -7
+    ],
+    [
+      0,
+      0,
+      -7
+    ],
+    [
+      -7,
+      0,
+      -5
+    ],
+    [
+      -9,
+      0,
+      0
+    ],
+    [
+      -3,
+      0,
+      0
+    ]
+  ],
+  "air_route_points": [
+    [
+      -19,
+      0,
+      9
+    ],
+    [
+      -8,
+      0,
+      8
+    ],
+    [
+      2,
+      0,
+      2
+    ],
+    [
+      -3,
+      0,
+      0
+    ]
+  ],
+  "route_labels": [
+    "Forja Sul",
+    "Trilha aérea",
+    "Forja Norte"
+  ],
+  "extra_route_points": [
+    [
+      [
+        -19,
+        0,
+        -7
+      ],
+      [
+        -18,
+        0,
+        -3
+      ],
+      [
+        -18,
+        0,
+        2
+      ],
+      [
+        -17,
+        0,
+        7
+      ],
+      [
+        -11,
+        0,
+        7
+      ],
+      [
+        -5,
+        0,
+        5
+      ],
+      [
+        2,
+        0,
+        5
+      ],
+      [
+        10,
+        0,
+        2
+      ],
+      [
+        14,
+        0,
+        -4
+      ],
+      [
+        8,
+        0,
+        -7
+      ],
+      [
+        0,
+        0,
+        -7
+      ],
+      [
+        -7,
+        0,
+        -5
+      ],
+      [
+        -9,
+        0,
+        0
+      ],
+      [
+        -3,
+        0,
+        0
+      ]
+    ]
+  ]
+}

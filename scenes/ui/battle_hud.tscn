@@ -1,11 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://hud12345"]
+[gd_scene load_steps=3 format=3 uid="uid://hud12345"]
 
 [ext_resource type="Script" path="res://scripts/ui/battle_hud.gd" id="1_hud"]
+
+[sub_resource type="StyleBoxFlat" id="HudBackground"]
+bg_color = Color(0.055, 0.085, 0.075, 0.94)
 
 [node name="BattleHUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
 
 [node name="Panel" type="Panel" parent="."]
+theme_override_styles/panel = SubResource("HudBackground")
 custom_minimum_size = Vector2(0, 80)
 anchors_preset = 10
 anchor_right = 1.0
@@ -84,3 +88,36 @@ visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 120
 text = "VITÓRIA!"
+
+[node name="PauseButton" type="Button" parent="Panel"]
+offset_left = 1240.0
+offset_top = 90.0
+offset_right = 1440.0
+offset_bottom = 186.0
+theme_override_font_sizes/font_size = 28
+text = "Pausar"
+
+[node name="RestartButton" type="Button" parent="Panel"]
+offset_left = 1460.0
+offset_top = 90.0
+offset_right = 1660.0
+offset_bottom = 186.0
+theme_override_font_sizes/font_size = 28
+text = "Reiniciar"
+
+[node name="HelpBackground" type="Panel" parent="."]
+offset_top = 922.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("HudBackground")
+
+[node name="HelpLabel" type="Label" parent="."]
+offset_left = 32.0
+offset_top = 940.0
+offset_right = 1880.0
+offset_bottom = 1040.0
+theme_override_font_sizes/font_size = 28
+text = "Protótipo M1 • Clique em uma base de pedra para construir Arqueira (50 moedas / 3 s).
+Construa antes de iniciar a onda. Defenda o final da estrada!"
+mouse_filter = 2

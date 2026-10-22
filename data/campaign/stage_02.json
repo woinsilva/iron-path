@@ -1,0 +1,284 @@
+{
+  "schema": 2,
+  "id": "stage_02",
+  "index": 2,
+  "name": "Pomar Cercado",
+  "biome": "vale",
+  "starting_coins": 230,
+  "lives": 20,
+  "max_level": 2,
+  "allowed_towers": [
+    "archer",
+    "cannon",
+    "frost",
+    "anti_air"
+  ],
+  "pads": [
+    [
+      -13,
+      0,
+      -4
+    ],
+    [
+      -7,
+      0,
+      -4
+    ],
+    [
+      1,
+      0,
+      -4.5
+    ],
+    [
+      10,
+      0,
+      -4
+    ],
+    [
+      5,
+      0,
+      5
+    ],
+    [
+      -3,
+      0,
+      5
+    ],
+    [
+      -10,
+      0,
+      4
+    ],
+    [
+      15,
+      0,
+      5
+    ],
+    [
+      0,
+      0,
+      1.5
+    ]
+  ],
+  "waves": [
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 6,
+          "interval": 1.1,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "swarm",
+          "count": 12,
+          "interval": 0.55,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 10,
+          "interval": 1,
+          "route": 0
+        },
+        {
+          "enemy": "swarm",
+          "count": 8,
+          "interval": 0.5,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 8,
+          "interval": 1,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "swarm",
+          "count": 20,
+          "interval": 0.4,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 16,
+          "interval": 0.8,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 10,
+          "interval": 0.8,
+          "route": 0
+        },
+        {
+          "enemy": "swarm",
+          "count": 12,
+          "interval": 0.4,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "swarm",
+          "count": 24,
+          "interval": 0.35,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 18,
+          "interval": 0.7,
+          "route": 0
+        },
+        {
+          "enemy": "runner",
+          "count": 8,
+          "interval": 0.9,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "swarm",
+          "count": 28,
+          "interval": 0.35,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "runner",
+          "count": 15,
+          "interval": 0.7,
+          "route": 0
+        }
+      ]
+    },
+    {
+      "interval": 8,
+      "groups": [
+        {
+          "enemy": "grunt",
+          "count": 20,
+          "interval": 0.65,
+          "route": 0
+        },
+        {
+          "enemy": "swarm",
+          "count": 22,
+          "interval": 0.35,
+          "route": 0
+        },
+        {
+          "enemy": "runner",
+          "count": 10,
+          "interval": 0.8,
+          "route": 0
+        }
+      ]
+    }
+  ],
+  "route_points": [
+    [
+      -19,
+      0,
+      -7
+    ],
+    [
+      -7,
+      0,
+      -7
+    ],
+    [
+      12,
+      0,
+      -7
+    ],
+    [
+      14,
+      0,
+      0
+    ],
+    [
+      8,
+      0,
+      -1.5
+    ],
+    [
+      -8,
+      0,
+      -1.5
+    ],
+    [
+      -14,
+      0,
+      5
+    ],
+    [
+      -5,
+      0,
+      8
+    ],
+    [
+      10,
+      0,
+      7
+    ],
+    [
+      12,
+      0,
+      3
+    ],
+    [
+      3,
+      0,
+      2
+    ]
+  ]
+}

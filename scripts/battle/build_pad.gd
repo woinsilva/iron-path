@@ -23,6 +23,7 @@ func has_tower() -> bool:
 	return is_occupied
 
 func _process(delta: float) -> void:
+	queue_redraw()
 	if state == PadState.BUILDING:
 		current_build_time += delta
 		if current_build_time >= build_time:
@@ -58,3 +59,9 @@ func clear_tower() -> void:
 	state = PadState.EMPTY
 	total_investment = 0
 	tower_type_id = ""
+
+func _draw() -> void:
+	if state == PadState.BUILDING:
+		draw_rect(Rect2(-34, 36, 68, 10), Color("202832"))
+		var ratio: float = clampf(current_build_time / maxf(build_time, 0.001), 0.0, 1.0)
+		draw_rect(Rect2(-32, 38, 64 * ratio, 6), Color("f29e4c"))

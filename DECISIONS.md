@@ -36,3 +36,23 @@ Registro de decisões técnicas e de design. Uma decisão marcada como **congela
 **Contexto:** `AGENTS.md` exige que valores monetários sejam inteiros e nunca negativos.
 **Decisão:** Todos os campos de custo, recompensa e moedas são `int`. Operações de venda usam `floor()`.
 **Consequência:** Sem acumulação de erros de ponto flutuante. Arredondamento sempre para baixo em vendas.
+
+## D006 — Direção 3D real com leitura 2D (Solicitada pelo usuário; implementação pendente)
+
+**Data:** 2026-10-19.
+**Contexto:** a caminhada por atlas de imagens não atingiu a naturalidade desejada. O usuário pediu personagens realmente 3D, vistos com leitura 2D, e qualidade visual elevada.
+**Direção:** planejar mundo, torres e personagens 3D com câmera fixa ortográfica, rig e animação esquelética. Referência em `documents/VISION_3D_V2.md`.
+**Impacto:** substitui a premissa artística/estrutural V1 de jogo apresentado por sprites 2D. O protótipo atual é preservado. Godot, renderer Mobile, UI base, moedas inteiras e autoloads aprovados permanecem; o stretch 2D existente não define a escala do novo mundo 3D. A implementação precisa validar o novo enquadramento.
+
+## D007 — Sequência automática de ondas (Solicitada pelo usuário; implementação pendente)
+
+**Data:** 2026-10-19.
+**Direção:** a primeira onda começa por ação do jogador; após cada onda resolvida há intervalo contado e início automático da seguinte. Antecipar é opcional. Sem sobreposição na campanha normal; pausa preserva o estado e o tempo restante.
+**Referência:** contrato de estados e casos de borda em `documents/GAME_DESIGN_V2.md`.
+
+## D008 — Campanha e produção V2 (Proposta de planejamento)
+
+**Data:** 2026-10-19.
+**Proposta:** 12 fases em 3 biomas, 8 famílias de torres com níveis L1–L5 e dois ramos exclusivos a partir de L4; 12 arquétipos e 4 variantes de elite, 3 chefes e 212 ondas. Construir por etapas P0–P10, começando por qualidade de animação e uma única fase divertida.
+**Estado:** quantidades, custos, nomes, estatísticas e durações são metas iniciais editáveis, ainda sem validação de balanceamento. Não implicam conteúdo implementado nem orçamento de aquisição aprovado.
+**Referências:** `documents/CONTENT_PLAN_V2.md` e `documents/ROADMAP_V2.md`.

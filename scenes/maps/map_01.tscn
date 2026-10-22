@@ -1,6 +1,10 @@
 [gd_scene load_steps=5 format=3 uid="uid://map01uid12345"]
 
+[ext_resource type="Texture2D" path="res://art/maps/vale_verde_terrain.png" id="placeholder_visual"]
+
 [ext_resource type="PackedScene" path="res://scenes/battle/build_pad.tscn" id="1_pad"]
+
+[ext_resource type="Script" path="res://scripts/visuals/map_presentation.gd" id="map_visual"]
 
 [sub_resource type="Curve2D" id="Curve2D_enemy_path"]
 _data = {
@@ -8,15 +12,15 @@ _data = {
 }
 point_count = 5
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_bg"]
-size = Vector2(1920, 1080)
 
 [node name="Map01" type="Node2D"]
+script = ExtResource("map_visual")
 
 [node name="Background" type="Sprite2D" parent="."]
-modulate = Color(0.18, 0.22, 0.18, 1)
+z_index = -2
+scale = Vector2(1.14832536, 1.14771520)
 position = Vector2(960, 540)
-texture = SubResource("PlaceholderTexture2D_bg")
+texture = ExtResource("placeholder_visual")
 
 [node name="EnemyPath" type="Path2D" parent="."]
 curve = SubResource("Curve2D_enemy_path")
@@ -24,10 +28,10 @@ curve = SubResource("Curve2D_enemy_path")
 [node name="Pads" type="Node2D" parent="."]
 
 [node name="BuildPad1" parent="Pads" instance=ExtResource("1_pad")]
-position = Vector2(500, 120)
+position = Vector2(500, 330)
 
 [node name="BuildPad2" parent="Pads" instance=ExtResource("1_pad")]
-position = Vector2(1000, 120)
+position = Vector2(1000, 330)
 
 [node name="BuildPad3" parent="Pads" instance=ExtResource("1_pad")]
-position = Vector2(1000, 280)
+position = Vector2(1300, 330)

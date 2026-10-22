@@ -1,3 +1,5 @@
+> **Referência V1 / histórico do protótipo.** Para o próximo desenvolvimento, prevalecem [ROADMAP_V2.md](ROADMAP_V2.md), [VISION_3D_V2.md](VISION_3D_V2.md), [GAME_DESIGN_V2.md](GAME_DESIGN_V2.md) e [CONTENT_PLAN_V2.md](CONTENT_PLAN_V2.md). Os marcos novos ainda estão pendentes.
+
 # Conteúdo e balanceamento inicial
 
 Todos os valores são ponto de partida e devem viver em dados editáveis. Alcance está em unidades de jogo; cadência é disparos/s; tempo está em segundos.

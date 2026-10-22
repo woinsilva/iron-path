@@ -1,3 +1,5 @@
+> **Referência V1 / histórico do protótipo.** Para o próximo desenvolvimento, prevalecem [ROADMAP_V2.md](ROADMAP_V2.md), [VISION_3D_V2.md](VISION_3D_V2.md), [GAME_DESIGN_V2.md](GAME_DESIGN_V2.md) e [CONTENT_PLAN_V2.md](CONTENT_PLAN_V2.md). Os marcos novos ainda estão pendentes.
+
 # Prompt inicial para o Codex
 
 Copie o texto abaixo para uma tarefa do Codex aberta na pasta onde o jogo será criado.

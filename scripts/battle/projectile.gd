@@ -11,6 +11,7 @@ var effect_power: float = 0.0
 var effect_duration: float = 0.0
 var splash_radius: float = 0.0
 var tower_id: int = 0
+var impacted: bool = false
 
 func setup(_target: Node2D, _damage: float, _damage_type: int, _effect: Array = [], _splash: float = 0.0, _source_id: int = 0) -> void:
 	target = _target
@@ -29,20 +30,29 @@ func setup(_target: Node2D, _damage: float, _damage_type: int, _effect: Array = 
 	area_entered.connect(_on_area_entered)
 
 func _process(delta: float) -> void:
-	if is_instance_valid(target):
-		direction = (target.global_position - global_position).normalized()
-	
+	if not is_instance_valid(target) or target.is_queued_for_deletion():
+		queue_free()
+		return
+	direction = (target.global_position - global_position).normalized()
+	if global_position.distance_to(target.global_position) <= speed * delta:
+		explode(target)
+		return
+	# Placeholder arrow art points northeast in local space.
+	rotation = direction.angle() + PI / 4.0
 	position += direction * speed * delta
 
 func _on_area_entered(area: Area2D) -> void:
 	if is_instance_valid(target) and area.get_parent() == target:
-		apply_damage(target)
+		explode(target)
 
 func _on_body_entered(body: Node2D) -> void:
 	if is_instance_valid(target) and body == target:
 		explode(target)
 
 func explode(initial_target: Node2D) -> void:
+	if impacted:
+		return
+	impacted = true
 	if splash_radius > 0:
 		var enemies = get_tree().get_nodes_in_group("enemies")
 		for enemy in enemies:

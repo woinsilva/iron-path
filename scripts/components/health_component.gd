@@ -12,6 +12,8 @@ func _ready() -> void:
 	current_health = max_health
 
 func take_damage(amount: float, damage_type: int = 0) -> void:
+	if current_health <= 0.0:
+		return
 	# Dano físico (0) sofre armadura integral, Mágico (1) ignora 50%, Puro (2) ignora 100%
 	var effective_armor = armor
 	if damage_type == 1:

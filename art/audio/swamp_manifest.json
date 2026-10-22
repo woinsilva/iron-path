@@ -1,0 +1,22 @@
+{
+  "license": "Original project synthesis; no sampled recordings",
+  "generator": "tools/assets/compose_swamp.py",
+  "seed": 20912,
+  "bpm": 72,
+  "files": {
+    "swamp_theme.ogg": {
+      "sha256": "8953ccf576d4e03a688cfd7181d4c3eeb9807f94935cef52a21476c11c1148c7",
+      "source": "source_assets\\audio\\swamp_theme.wav",
+      "peak": 0.5799999833106995,
+      "seconds": 40.0,
+      "loop_step": 2.50103730650153e-05
+    },
+    "swamp_ambience.ogg": {
+      "sha256": "dda9229d91fa3aa91ebcf3de9e0aa3e6118e03cf28afdbe53e5ee5770e89c3f1",
+      "source": "source_assets\\audio\\swamp_ambience.wav",
+      "peak": 0.028476141393184662,
+      "seconds": 12.0,
+      "loop_step": 1.2970995157957077e-06
+    }
+  }
+}

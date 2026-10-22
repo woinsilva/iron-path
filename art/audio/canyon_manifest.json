@@ -1,0 +1,22 @@
+{
+  "license": "Original project synthesis; no sampled recordings",
+  "generator": "tools/assets/compose_canyon.py",
+  "seed": 20506,
+  "bpm": 80,
+  "files": {
+    "canyon_theme.ogg": {
+      "sha256": "7412ba2ce91724a450e7dace0030d5d2c3fe9b8284157a30060d7f6832cf0f4f",
+      "source": "source_assets\\audio\\canyon_theme.wav",
+      "peak": 0.5800000429153442,
+      "seconds": 48.0,
+      "loop_step": 0.0005202479660511017
+    },
+    "canyon_ambience.ogg": {
+      "sha256": "2d3cfa5da05b173d0e7ecde55a01c9132505c2e4aee79826b4c83654bce3c2e8",
+      "source": "source_assets\\audio\\canyon_ambience.wav",
+      "peak": 0.0195339135825634,
+      "seconds": 12.0,
+      "loop_step": 1.0495772585272789e-05
+    }
+  }
+}

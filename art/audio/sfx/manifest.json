@@ -1,0 +1,77 @@
+{
+  "generator": "tools/assets/compose_sfx.py",
+  "origin": "Original analytic synthesis; no recordings or external samples",
+  "seed": 20708,
+  "files": {
+    "ui.wav": {
+      "sha256": "2dd07354f341974d4015581d114596af4368b243f589f37be5562272929acd75",
+      "seconds": 0.08,
+      "peak": 0.42
+    },
+    "archer.wav": {
+      "sha256": "ddd9284f3816d8ba7d4eba32e78510aa5a5d6ac0f6c845a63241c48daf5d2ba3",
+      "seconds": 0.18,
+      "peak": 0.42
+    },
+    "cannon.wav": {
+      "sha256": "1627be833ee1cb486213d7473f7fb21bcc44859409c5831cd53622dba090bfcf",
+      "seconds": 0.48,
+      "peak": 0.42
+    },
+    "frost.wav": {
+      "sha256": "0b5e95e77e7e81c23e093554ce695b16e7d50a226c209816e94296ba3f666a42",
+      "seconds": 0.3,
+      "peak": 0.42000000000000004
+    },
+    "venom.wav": {
+      "sha256": "e65466c1b8a388f9844d481e268ccd74a318406c7c3c4f88a1952db6992ed450",
+      "seconds": 0.28,
+      "peak": 0.42000000000000004
+    },
+    "anti_air.wav": {
+      "sha256": "b265ecad697840bb453fa14c94b0bb2fa9c53cd2888b5c79c4959e0e8698c6fb",
+      "seconds": 0.18,
+      "peak": 0.42
+    },
+    "bleed.wav": {
+      "sha256": "cf841fd60dd14c4399568f224b354b5ab4e529ffa914763bde9f316a5a33b321",
+      "seconds": 0.25,
+      "peak": 0.42
+    },
+    "arcane.wav": {
+      "sha256": "709fdc0e72c74863eb8f2a5d59d751f81a3813bc090672f545e5c71802948fb1",
+      "seconds": 0.28,
+      "peak": 0.42
+    },
+    "banner.wav": {
+      "sha256": "fc847449dc3d3dc4a1a181a29dbe8557da7b8eb9215d95a102901ea59e310537",
+      "seconds": 0.28,
+      "peak": 0.41999999999999993
+    },
+    "impact.wav": {
+      "sha256": "b83b1824e7029a8edb891e4c7f7b0e852007cf6872fb3d454f9397d2e2a1294d",
+      "seconds": 0.1,
+      "peak": 0.42
+    },
+    "heal.wav": {
+      "sha256": "2ccf5a40cdddbadbae1dd8e4bf1b174c078e7a8148a82a171ddd39939803aed4",
+      "seconds": 0.35,
+      "peak": 0.42
+    },
+    "rally.wav": {
+      "sha256": "bcd4f7df6c7967493a926e721e5a47258ef95f84396f9c7281625ae0d14849dc",
+      "seconds": 0.6,
+      "peak": 0.41999999999999993
+    },
+    "shield_break.wav": {
+      "sha256": "e1532bf322aedd740eed16d46e2cf17ef064c4a49e0ce85efb1215c9bc9eea2b",
+      "seconds": 0.4,
+      "peak": 0.42
+    },
+    "summon.wav": {
+      "sha256": "d6aa214072e1654e89650f3f263695c8871a7714c61f511776c32bc7fae6945c",
+      "seconds": 0.4,
+      "peak": 0.41999999999999993
+    }
+  }
+}

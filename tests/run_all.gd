@@ -74,7 +74,7 @@ func _run_test_script(script_path: String) -> Dictionary:
 	var result: Dictionary = {"passed": 0, "failed": 0, "errors": PackedStringArray()}
 
 	var script: GDScript = load(script_path) as GDScript
-	if script == null:
+	if script == null or not script.can_instantiate():
 		print("  ✗ SKIP: Cannot load %s" % script_path)
 		result.failed += 1
 		result.errors.append("Cannot load %s" % script_path)
