@@ -6,7 +6,7 @@
   "biome": "canyon",
   "starting_coins": 1200,
   "lives": 20,
-  "max_level": 4,
+  "max_level": 5,
   "allowed_towers": [
     "archer",
     "cannon",

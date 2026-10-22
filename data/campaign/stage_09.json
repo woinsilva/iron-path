@@ -6,7 +6,7 @@
   "biome": "swamp",
   "starting_coins": 1500,
   "lives": 20,
-  "max_level": 5,
+  "max_level": 6,
   "allowed_towers": [
     "archer",
     "cannon",

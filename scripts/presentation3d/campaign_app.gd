@@ -619,7 +619,7 @@ func _show_guide() -> void:
 		MenuKitV2.label(info, str(definition.description), 24)
 		for branch: String in definition.get("branches", {}):
 			var specialization: Dictionary = definition.branches[branch]
-			MenuKitV2.label(card, "L4/L5 · %s: %s" % [specialization.name, specialization.description], 22, MUTED)
+			MenuKitV2.label(card, "L4–L6 · %s: %s" % [specialization.name, specialization.description], 22, MUTED)
 	for enemy_id: String in catalog.enemies:
 		var definition: Dictionary = catalog.enemies[enemy_id]
 		if bool(definition.get("lab_only", false)): continue

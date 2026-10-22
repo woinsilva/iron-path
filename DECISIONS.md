@@ -56,3 +56,10 @@ Registro de decisões técnicas e de design. Uma decisão marcada como **congela
 **Proposta:** 12 fases em 3 biomas, 8 famílias de torres com níveis L1–L5 e dois ramos exclusivos a partir de L4; 12 arquétipos e 4 variantes de elite, 3 chefes e 212 ondas. Construir por etapas P0–P10, começando por qualidade de animação e uma única fase divertida.
 **Estado:** quantidades, custos, nomes, estatísticas e durações são metas iniciais editáveis, ainda sem validação de balanceamento. Não implicam conteúdo implementado nem orçamento de aquisição aprovado.
 **Referências:** `documents/CONTENT_PLAN_V2.md` e `documents/ROADMAP_V2.md`.
+
+## D009 — Seis níveis por torre e liberação por bioma (Solicitada pelo usuário)
+
+**Data:** 2026-10-22.
+**Decisão:** cada ramo ganha um L6 lendário. Limite de nível por fase: 3 (fases 1–2), 4 (3–4), 5 (5–8) e 6 (9–12 e Laboratório do Arsenal).
+**Motivo:** o usuário pediu mais de uma evolução por torre e evolução visível; antes as fases 1–4 limitavam a L2–L3. O L6 ficou no último bioma porque, liberado já no segundo, as defesas de referência da fase 8 gastavam o orçamento em L6 e perdiam.
+

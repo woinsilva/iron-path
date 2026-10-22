@@ -19,6 +19,6 @@ func _initialize() -> void:
 	check(is_equal_approx(veteran.catalog.enemies.grunt.speed, 1.428), "Veteran speed increase matches its declared two percent")
 	check(stage == original and normal.catalog.enemies.grunt.hp == 70, "Difficulty creation cannot mutate authored stages or another difficulty session")
 	var later: BattleSimV2 = StageSessionV2.create(StageSessionV2.read_stage("res://data/campaign/stage_09.json"), "veteran")
-	check(later.catalog.towers.cannon.branches.A.levels.size() == 2 and later.coins == 1500, "Veteran retains real campaign level five choices and integer budget")
+	check(later.catalog.towers.cannon.branches.A.levels.size() == 3 and later.coins == 1500, "Veteran retains real campaign legendary level six choices and integer budget")
 	print("P8 difficulties: %d checks; %d failures" % [checks, failures])
 	quit(1 if failures else 0)

@@ -41,7 +41,7 @@ func _initialize() -> void:
 	for definition: Dictionary in catalog.towers.values():
 		configs += definition.levels.size()
 		for branch: Dictionary in definition.branches.values(): configs += branch.levels.size()
-	check(catalog.towers.size() == 8 and configs == 56, "Eight families contain fifty-six explicit configurations")
+	check(catalog.towers.size() == 8 and configs == 72, "Eight families contain seventy-two explicit configurations")
 	var sim: BattleSimV2 = fixture()
 	var archer: SimTowerV2 = tower_at(sim, "archer", 3)
 	var before: int = sim.coins
@@ -57,7 +57,9 @@ func _initialize() -> void:
 	check(not sim.upgrade(0, "A") and sim.coins == before, "Completed specialization cannot switch to the opposite branch")
 	check(sim.upgrade(0), "L4 upgrades within its existing branch")
 	tick(sim, archer.work_ticks)
-	check(archer.level == 5 and archer.branch == "B" and not sim.upgrade(0), "L5 is terminal within the chosen branch")
+	check(archer.level == 5 and archer.branch == "B" and sim.upgrade(0), "L5 continues to the legendary L6 of the same branch")
+	tick(sim, archer.work_ticks)
+	check(archer.level == 6 and archer.branch == "B" and not sim.upgrade(0), "L6 is terminal within the chosen branch")
 	var refund: int = int(floor(archer.investment * 0.6))
 	before = sim.coins
 	sim.sell(0)

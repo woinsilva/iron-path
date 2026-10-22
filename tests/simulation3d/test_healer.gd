@@ -10,7 +10,7 @@ func check(value: bool, message: String) -> void:
 func _initialize() -> void:
 	var stage: Dictionary = StageSessionV2.read_stage("res://data/campaign/stage_05.json")
 	var sim: BattleSimV2 = StageSessionV2.create(stage)
-	check(sim.routes.size() == 3 and sim.catalog.towers.has("arcane") and sim.catalog.towers.arcane.branches.A.levels.size() == 1, "Twin bridges expose two ground routes, air and Arcane level four")
+	check(sim.routes.size() == 3 and sim.catalog.towers.has("arcane") and sim.catalog.towers.arcane.branches.A.levels.size() == 2, "Twin bridges expose two ground routes, air and Arcane level five")
 	var healer: SimEnemyV2 = sim.spawn_enemy("healer")
 	var allies: Array[SimEnemyV2] = []
 	for index in range(4):

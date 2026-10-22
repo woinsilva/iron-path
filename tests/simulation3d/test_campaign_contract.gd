@@ -20,7 +20,7 @@ func _initialize() -> void:
 		var stage: Dictionary = StageSessionV2.read_stage("res://data/campaign/stage_%02d.json" % index)
 		var sim: BattleSimV2 = StageSessionV2.create(stage)
 		total += stage.waves.size()
-		level_limits = level_limits and int(stage.max_level) == (2 if index <= 2 else (3 if index <= 4 else (4 if index <= 8 else 5)))
+		level_limits = level_limits and int(stage.max_level) == (3 if index <= 2 else (4 if index <= 4 else (5 if index <= 8 else 6)))
 		utf8 = utf8 and not str(stage.name).contains("�") and not str(stage.name).contains("Ã")
 		for wave: Dictionary in stage.waves:
 			for group: Dictionary in wave.groups:

@@ -6,7 +6,7 @@
   "biome": "vale",
   "starting_coins": 400,
   "lives": 20,
-  "max_level": 3,
+  "max_level": 4,
   "allowed_towers": [
     "archer",
     "cannon",

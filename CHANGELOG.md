@@ -5,6 +5,12 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Unreleased] — 2026-10-19
 
+### Fase 5 — torres: alcance, L6 lendário e visual por nível (2026-10-22)
+- Alcance cresce de verdade com a evolução: do L1 ao L5 +35% a +45% nas torres de longa distância e +20% a +30% nas de área curta e suporte (ex.: Arqueira 4,2 → 6,0 m; Antiaérea 4,9 → 7,0 m). L1 ficou igual.
+- Novo nível L6 lendário em cada ramo (16 configurações novas): +35% de dano, alcance extra e +1 alvo/encadeamento/projétil onde se aplica, por 1,5× o custo do L5.
+- Evolução liberada mais cedo: L3 nas fases 1–2, L4 nas 3–4, L5 nas 5–8 e L6 nas 9–12 e no Laboratório.
+- Visual: losangos dourados sobre a torre, um por nível (violeta no L6); coroa dourada e gemas no L5; auréola de runas girando e partículas no L6; animação de "mola" com onda de poeira ao concluir uma evolução; anel dourado mostra o alcance que a próxima evolução compra.
+
 ### Fase 4 — inimigos sem atravessar uns aos outros (2026-10-22)
 - A estrada tem três faixas (0,6 m entre elas, dentro dos 2,1 m de largura). Quem alcança alguém mais lento desvia para uma faixa livre e ultrapassa pelo lado; com todas ocupadas, espera atrás sem andar para trás. Voadores formam fila própria.
 - Regras de alcance, área e vazamento continuam usando a linha central da estrada, então nenhuma torre perde alcance por causa das faixas; só o corpo desenhado se desloca (`BattleSimV2.display_position`).
@@ -13,7 +19,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 ### Fase 3 — progressão consistente das ondas (2026-10-22)
 - Nota de ameaça por onda (vida efetiva com armadura, resistência, escudo e suporte, velocidade, voo e densidade), com pesos em `data/campaign/wave_curve.json`.
 - `tools/wave_curve.py` reorganizou as 12 fases: ondas vizinhas trocam de lugar (no máximo duas posições, sem antecipar a estreia de nenhum inimigo) e as contagens foram reescaladas para que nenhuma onda seja mais fraca que a anterior. Antes havia 79 quedas.
-- A ameaça total de cada fase ficou igual à escrita, exceto nas fases 3 (76%), 4 (96%), 8 (88%, reajustada com as faixas da Fase 4) e 9 (84%), suavizadas até as defesas de referência voltarem a vencer.
+- A ameaça total de cada fase ficou igual à escrita, exceto nas fases 3 (76%), 4 (96%), 8 (84%, reajustada com as faixas da Fase 4 e os níveis da Fase 5) e 9 (84%), suavizadas até as defesas de referência voltarem a vencer.
 - A verificação da curva entrou em `run.ps1`; os testes das fases leem o total de inimigos dos dados (`StageSessionV2.authored_enemy_count`) em vez de números fixos.
 
 ### Fase 2 — menus no estilo de app de celular (2026-10-22)

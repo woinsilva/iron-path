@@ -221,6 +221,8 @@ func _handle_events(batch: Array[Dictionary]) -> void:
 					(tower_views[int(event.id)] as Node3D).visible = true
 					var upgraded: SimTowerV2 = simulation.towers[int(event.id)]
 					TowerUpgradeDecorV2.apply(tower_views[int(event.id)], upgraded.level, upgraded.type_id, upgraded.branch)
+					if upgraded.level > 1: _celebrate_upgrade(tower_views[int(event.id)] as Node3D, upgraded.level)
+					if simulation.tower_on_pad(_selected_pad) == upgraded: _update_ring()
 				if _sites.has(int(event.id)):
 					(_sites[int(event.id)] as Node3D).visible = false
 			"upgrade_started":
@@ -534,22 +536,52 @@ func _update_ring() -> void:
 	var tower: SimTowerV2 = simulation.tower_on_pad(_selected_pad)
 	var radius: float = simulation.effective_range(tower) if tower != null else 4.2
 	_range_radius = radius
+	_range_ring = SceneCraft3D.mesh(self, _ring_mesh(radius, 0.055), simulation.pads[_selected_pad] + Vector3(0, 0.15, 0), _ring_material(Color("8bd0c4")))
+	_range_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Gold ring: the reach the next upgrade buys, so the player sees the gain before paying for it.
+	if tower == null or tower.state != SimTowerV2.State.READY or tower.level == 3: return
+	var next: Dictionary = simulation.next_upgrade(tower)
+	if next.is_empty() or not next.has("range"): return
+	var reach: float = radius * float(next.range) / maxf(0.01, float(simulation.stats(tower).range))
+	if reach <= radius + 0.01: return
+	var preview: MeshInstance3D = SceneCraft3D.mesh(_range_ring, _ring_mesh(reach, 0.035), Vector3(0, 0.01, 0), _ring_material(Color("f2d07a")))
+	preview.name = "NextRangeRing"
+	preview.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+## Upgrade feedback: the tower springs up from a squash, with a dust ring and, at L6, a golden flash.
+func _celebrate_upgrade(display: Node3D, level: int) -> void:
+	var pop: Tween = display.create_tween()
+	display.scale = Vector3(1.15, 0.7, 1.15)
+	pop.tween_property(display, "scale", Vector3(0.92, 1.12, 0.92), 0.12).set_trans(Tween.TRANS_QUAD)
+	pop.tween_property(display, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	var dust: MeshInstance3D = SceneCraft3D.mesh(self, _ring_mesh(0.6, 0.18), display.position + Vector3(0, 0.12, 0), _ring_material(Color(0.93, 0.86, 0.7, 0.85) if level < 6 else Color("ffd36a")))
+	(dust.material_override as StandardMaterial3D).transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	dust.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var spread: Tween = dust.create_tween().set_parallel()
+	spread.tween_property(dust, "scale", Vector3.ONE * (3.2 if level < 6 else 4.5), 0.55).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	spread.tween_property(dust.material_override, "albedo_color:a", 0.0, 0.55)
+	spread.chain().tween_callback(dust.queue_free)
+	_sound("ui")
+
+func _ring_mesh(radius: float, half_width: float) -> ArrayMesh:
 	var surface: SurfaceTool = SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for index in range(96):
 		var a: float = TAU * index / 96.0
 		var b: float = TAU * (index + 1) / 96.0
-		var inner_a: Vector3 = Vector3(cos(a), 0, sin(a)) * (radius - 0.055)
-		var inner_b: Vector3 = Vector3(cos(b), 0, sin(b)) * (radius - 0.055)
-		var outer_a: Vector3 = Vector3(cos(a), 0, sin(a)) * (radius + 0.055)
-		var outer_b: Vector3 = Vector3(cos(b), 0, sin(b)) * (radius + 0.055)
+		var inner_a: Vector3 = Vector3(cos(a), 0, sin(a)) * (radius - half_width)
+		var inner_b: Vector3 = Vector3(cos(b), 0, sin(b)) * (radius - half_width)
+		var outer_a: Vector3 = Vector3(cos(a), 0, sin(a)) * (radius + half_width)
+		var outer_b: Vector3 = Vector3(cos(b), 0, sin(b)) * (radius + half_width)
 		for vertex: Vector3 in [inner_a, inner_b, outer_a, outer_a, inner_b, outer_b]:
 			surface.add_vertex(vertex)
-	var material: StandardMaterial3D = SceneCraft3D.material(Color("8bd0c4"))
+	return surface.commit()
+
+func _ring_material(color: Color) -> StandardMaterial3D:
+	var material: StandardMaterial3D = SceneCraft3D.material(color)
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	_range_ring = SceneCraft3D.mesh(self, surface.commit(), simulation.pads[_selected_pad] + Vector3(0, 0.15, 0), material)
-	_range_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return material
 
 func _toggle_pause() -> void:
 	if simulation._terminal():
