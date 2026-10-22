@@ -5,6 +5,13 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Unreleased] — 2026-10-19
 
+### Fase 2 — menus no estilo de app de celular (2026-10-22)
+- Tela inicial com o Vale ao fundo em movimento lento, logo grande, botão JOGAR e ícones redondos para Guia, Ajustes e Créditos.
+- Mapa da campanha com os três biomas lado a lado (arrastar para navegar), fases como círculos ligados por trilha, estrelas, cadeado nas bloqueadas e destaque pulsante na próxima fase. Desafios opcionais aparecem como selo dourado no bioma.
+- Cartão da fase (estrelas, ondas, famílias, nível máximo, melhor tempo, chefe e aviso de voadores) antes da formação; ajustes em janela com seletor de gráficos e volumes.
+- Formação com cartas ilustradas das torres e contador de escolhas; guia com abas Torres/Inimigos/Efeitos e retratos.
+- Botões grossos que afundam ao toque, transições de entrada, margens de safe area e ícones próprios (`scripts/ui/menu_kit.gd`, `art/ui/`). Batalhas voltam direto ao mapa; Voltar no mapa leva à tela inicial.
+
 ### Fase 1 — intro inteira e mais baixa (2026-10-22)
 - Áudio da intro normalizado (pico −9,6 dB, média −24,6 dB; antes chegava a 0 dB) e tocado 4 dB abaixo no barramento de música.
 - O vídeo original termina de repente com o logo na tela: a versão do jogo segura o último quadro por 1,6 s com o som saindo em fade (5,6 s no total).

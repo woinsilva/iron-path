@@ -9,11 +9,14 @@ var menu: CanvasLayer
 var difficulty: String = "normal"
 var selected_stage_path: String = "res://data/campaign/stage_01.json"
 var _status: Label
-var _theme: Theme
-var _bold_font: FontVariation
 var _intro: Control
-const GOLD: Color = Color("ecd49a")
-const MUTED: Color = Color("b0c6c5")
+## "home" (title screen) or "map" (campaign); battles return to the map.
+var _screen: String = "home"
+const GOLD: Color = MenuKitV2.GOLD
+const MUTED: Color = MenuKitV2.MUTED
+const BIOMES: Array = [["vale", "VALE VERDE", 1], ["canyon", "GARGANTA RUBRA", 5], ["swamp", "PÂNTANO SOMBRIO", 9]]
+const STAGES_PER_BIOME: int = 4
+const BIOME_WIDTH: float = 1560.0
 const INTRO_VIDEO: String = "res://art/branding/intro_logo.ogv"
 ## Safety net in case the video never reports completion; the clip itself runs 5.6 s.
 const INTRO_TIMEOUT: float = 12.0
@@ -94,146 +97,465 @@ func _show_menu() -> void:
 	if is_instance_valid(menu):
 		menu.queue_free()
 	menu = CanvasLayer.new()
+	menu.name = "Menu"
 	add_child(menu)
-	var root: Control = _backdrop(menu)
+	var root: Control = _screen_root(menu)
+	if _screen == "map": _build_map(root)
+	else: _build_home(root)
+	_status = MenuKitV2.label(root, "", 26, GOLD)
+	_status.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_status.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_status.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_status.offset_bottom = -24
+	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.modulate.a = 0.0
-	create_tween().tween_property(root, "modulate:a", 1.0, 0.3)
-	var margin: MarginContainer = _margin(root, 56)
-	var scroll: ScrollContainer = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	margin.add_child(scroll)
-	var gutter: MarginContainer = MarginContainer.new()
-	gutter.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	gutter.add_theme_constant_override("margin_right", 28)
-	scroll.add_child(gutter)
+	create_tween().tween_property(root, "modulate:a", 1.0, 0.25)
+func _open_screen(screen: String) -> void:
+	_screen = screen
+	_show_menu()
+func _return_to_map() -> void:
+	_screen = "map"
+	_show_menu()
+func _screen_root(layer: CanvasLayer) -> Control:
+	var root: Control = Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.theme = MenuKitV2.theme()
+	layer.add_child(root)
+	return root
+## Opaque full-screen sheet over the menu, used by guide, formation and credits.
+func _full_layer(layer_name: String, depth: int, art: String = "res://art/ui/backdrop_vale.jpg") -> VBoxContainer:
+	var layer: CanvasLayer = CanvasLayer.new()
+	layer.name = layer_name
+	layer.layer = depth
+	add_child(layer)
+	var root: Control = _screen_root(layer)
+	MenuKitV2.cover(root, art)
+	MenuKitV2.shade(root, 0.82, 0.95)
 	var column: VBoxContainer = VBoxContainer.new()
-	column.add_theme_constant_override("separation", 28)
-	gutter.add_child(column)
-	var header: HBoxContainer = HBoxContainer.new()
-	header.add_theme_constant_override("separation", 32)
-	column.add_child(header)
+	column.add_theme_constant_override("separation", 24)
+	MenuKitV2.safe_margin(root, 40).add_child(column)
+	root.modulate.a = 0.0
+	root.position.y = 40
+	var tween: Tween = create_tween().set_parallel()
+	tween.tween_property(root, "modulate:a", 1.0, 0.2)
+	tween.tween_property(root, "position:y", 0.0, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	return column
+## Dimmed overlay with a centered card; tapping outside the card closes it.
+func _modal(layer_name: String, accent: Color, width: float) -> VBoxContainer:
+	var layer: CanvasLayer = CanvasLayer.new()
+	layer.name = layer_name
+	layer.layer = 15
+	add_child(layer)
+	var root: Control = _screen_root(layer)
+	var dim: ColorRect = ColorRect.new()
+	dim.color = Color(0.01, 0.04, 0.05, 0.72)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.gui_input.connect(func(event: InputEvent) -> void:
+		if (event is InputEventMouseButton or event is InputEventScreenTouch) and event.is_pressed(): layer.queue_free()
+	)
+	root.add_child(dim)
+	var center: CenterContainer = CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(center)
+	var card: VBoxContainer = MenuKitV2.panel(center, accent, 36)
+	card.custom_minimum_size = Vector2(width, 0)
+	var holder: Control = card.get_parent() as Control
+	holder.resized.connect(func() -> void: holder.pivot_offset = holder.size / 2)
+	holder.scale = Vector2(0.9, 0.9)
+	holder.modulate.a = 0.0
+	var tween: Tween = create_tween().set_parallel()
+	tween.tween_property(holder, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(holder, "modulate:a", 1.0, 0.15)
+	return card
+func _top_bar(parent: Node, title: String, back: Callable) -> HBoxContainer:
+	var bar: HBoxContainer = HBoxContainer.new()
+	bar.add_theme_constant_override("separation", 24)
+	parent.add_child(bar)
+	_wire(MenuKitV2.icon_button(bar, "back", "Voltar"), back)
+	var heading: Label = MenuKitV2.label(bar, title, 52, GOLD, true)
+	heading.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.clip_text = true
+	return bar
+func _text(parent: Node, content: String, size: int, color: Color = Color.WHITE) -> Label:
+	return MenuKitV2.label(parent, content, size, color)
+func _button(parent: Node, content: String, action: Callable) -> Button:
+	var button: Button = Button.new()
+	button.text = content
+	button.custom_minimum_size = Vector2(240, 96)
+	button.add_theme_font_size_override("font_size", 32)
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	parent.add_child(button)
+	MenuKitV2.feedback(button)
+	_wire(button, action)
+	return button
+func _wire(button: Button, action: Callable) -> void:
+	button.pressed.connect(func() -> void: _audio.play_event("ui", AudioServiceNode.BUS_UI); action.call())
+func _total_stars() -> int:
+	var total: int = 0
+	for index in range(1, 13):
+		total += int(progress.progress.campaign.get("stage_%02d:" % index + difficulty, {}).get("stars", 0))
+	return total
+func _star_chip(parent: Node) -> PanelContainer:
+	var chip: PanelContainer = PanelContainer.new()
+	chip.add_theme_stylebox_override("panel", MenuKitV2.box(Color(0.03, 0.1, 0.11, 0.85), Color(GOLD, 0.6), 40, 2, 12))
+	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	parent.add_child(chip)
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	chip.add_child(row)
+	var star: TextureRect = TextureRect.new()
+	star.texture = MenuKitV2.icon("star")
+	star.modulate = GOLD
+	star.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	star.custom_minimum_size = Vector2(44, 44)
+	row.add_child(star)
+	MenuKitV2.label(row, "%d / 36" % _total_stars(), 32, Color("fff6dc")).size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return chip
+func _build_home(root: Control) -> void:
+	var art: TextureRect = MenuKitV2.cover(root, "res://art/ui/backdrop_vale.jpg")
+	art.resized.connect(func() -> void: art.pivot_offset = art.size / 2)
+	var drift: Tween = art.create_tween().set_loops()
+	drift.tween_property(art, "scale", Vector2(1.08, 1.08), 16.0).set_trans(Tween.TRANS_SINE)
+	drift.tween_property(art, "scale", Vector2.ONE, 16.0).set_trans(Tween.TRANS_SINE)
+	MenuKitV2.shade(root, 0.45, 0.88)
+	var frame: Control = Control.new()
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	MenuKitV2.safe_margin(root, 44).add_child(frame)
+	var center: CenterContainer = CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(center)
+	var column: VBoxContainer = VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 26)
+	center.add_child(column)
 	var emblem: TextureRect = TextureRect.new()
 	emblem.texture = load("res://art/branding/icon.png") as Texture2D
-	emblem.custom_minimum_size = Vector2(150, 150)
+	emblem.custom_minimum_size = Vector2(200, 200)
 	emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	emblem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	header.add_child(emblem)
-	var titles: VBoxContainer = VBoxContainer.new()
-	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	titles.alignment = BoxContainer.ALIGNMENT_CENTER
-	titles.add_theme_constant_override("separation", 2)
-	header.add_child(titles)
-	var title: Label = _text(titles, "IRON PATH", 84, GOLD)
-	title.add_theme_font_override("font", _heading_font())
-	title.add_theme_constant_override("outline_size", 10)
-	title.add_theme_color_override("font_outline_color", Color("06161a"))
-	title.add_theme_constant_override("shadow_offset_y", 6)
-	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.45))
-	_text(titles, "Guardiões do caminho", 34, Color("d9e4dc"))
-	_text(column, "Construa, evolua e combine sua defesa. A primeira onda é sua escolha; as demais chegam sozinhas.", 26, MUTED)
+	emblem.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	column.add_child(emblem)
+	var title: Label = MenuKitV2.label(column, "IRON PATH", 132, GOLD, true)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_constant_override("shadow_offset_y", 8)
+	title.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.5))
+	var subtitle: Label = MenuKitV2.label(column, "Guardiões do caminho", 40, Color("e3ece5"))
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var gap: Control = Control.new()
+	gap.custom_minimum_size = Vector2(0, 18)
+	column.add_child(gap)
+	var play: Button = _button(column, "JOGAR", func() -> void: _open_screen("map"))
+	play.name = "PlayButton"
+	play.icon = MenuKitV2.icon("play")
+	play.expand_icon = false
+	play.add_theme_constant_override("icon_max_width", 56)
+	play.custom_minimum_size = Vector2(560, 140)
+	play.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	play.add_theme_font_size_override("font_size", 56)
+	MenuKitV2.primary(play)
+	play.resized.connect(func() -> void: play.pivot_offset = play.size / 2)
+	var pulse: Tween = play.create_tween().set_loops()
+	pulse.tween_property(play, "modulate", Color(1.12, 1.12, 1.12), 0.9).set_trans(Tween.TRANS_SINE)
+	pulse.tween_property(play, "modulate", Color.WHITE, 0.9).set_trans(Tween.TRANS_SINE)
+	var lab: Button = _button(column, "Laboratório do Arsenal", func() -> void: _prepare_stage("res://data/campaign/arsenal_lab.json"))
+	lab.icon = MenuKitV2.icon("flask")
+	lab.add_theme_constant_override("icon_max_width", 40)
+	lab.custom_minimum_size = Vector2(560, 96)
+	lab.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	lab.add_theme_font_size_override("font_size", 30)
+	var corner: HBoxContainer = HBoxContainer.new()
+	corner.add_theme_constant_override("separation", 20)
+	frame.add_child(corner)
+	corner.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	corner.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_wire(MenuKitV2.icon_button(corner, "book", "Guia de torres e inimigos"), _show_guide)
+	_wire(MenuKitV2.icon_button(corner, "gear", "Ajustes"), _show_settings)
+	_wire(MenuKitV2.icon_button(corner, "info", "Créditos e licenças"), _show_credits)
+	var stars: PanelContainer = _star_chip(frame)
+	stars.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	var version: Label = MenuKitV2.label(frame, "Versão 0.9.0-rc1", 22, Color("8ba4a4"))
+	version.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	version.grow_vertical = Control.GROW_DIRECTION_BEGIN
+func _build_map(root: Control) -> void:
+	var backdrop: ColorRect = ColorRect.new()
+	backdrop.color = Color("0a1c20")
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_child(backdrop)
+	var column: VBoxContainer = VBoxContainer.new()
+	column.add_theme_constant_override("separation", 22)
+	MenuKitV2.safe_margin(root, 32).add_child(column)
+	var bar: HBoxContainer = _top_bar(column, "CAMPANHA", func() -> void: _open_screen("home"))
+	_star_chip(bar)
 	var choices: HBoxContainer = HBoxContainer.new()
-	choices.add_theme_constant_override("separation", 18)
-	column.add_child(choices)
-	_text(choices, "Dificuldade", 28, MUTED).size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	choices.add_theme_constant_override("separation", 8)
+	bar.add_child(choices)
 	for pair: Array in [["adventure", "Aventura"], ["normal", "Normal"], ["veteran", "Veterano"]]:
 		var key: String = pair[0]
-		var button: Button = _button(choices, str(pair[1]) + ("  ✓" if difficulty == key else ""), func() -> void: difficulty = key; _show_menu())
+		var button: Button = _button(choices, str(pair[1]), func() -> void: difficulty = key; _show_menu())
+		button.name = "Difficulty_" + key
 		button.toggle_mode = true
 		button.set_pressed_no_signal(difficulty == key)
-		button.custom_minimum_size = Vector2(260, 80)
+		button.custom_minimum_size = Vector2(190, 96)
+		button.add_theme_font_size_override("font_size", 28)
 		button.tooltip_text = "Mais recursos e tempo" if key == "adventure" else ("Inimigos com 8% mais vida e 2% mais velocidade; intervalos de 6 s" if key == "veteran" else "Dificuldade de referência")
-	var outcome: String = ""
-	var outcome_body: String = ""
-	if stage_unlocked(13):
-		outcome = "OS TRÊS CAMINHOS PROTEGIDOS"
-		outcome_body = "O Guardião da Ruína caiu. Experimente outras formações ou uma dificuldade maior."
-	elif stage_unlocked(9):
-		outcome = "GARGANTA RUBRA PROTEGIDA"
-		outcome_body = "A Forja silenciou. As ruínas do Pântano Sombrio guardam o último caminho."
-	elif stage_unlocked(5):
-		outcome = "VALE VERDE PROTEGIDO"
-		outcome_body = "O Capitão caiu. Além do portão, as pontes da Garganta Rubra exigirão novas combinações e especializações."
-	if not outcome.is_empty():
-		var banner: VBoxContainer = _card(column, GOLD)
-		_text(banner, outcome, 34, GOLD).add_theme_font_override("font", _heading_font())
-		_text(banner, outcome_body, 26)
-	for biome: Array in [["VALE VERDE", Color("a8c3ac"), 1], ["GARGANTA RUBRA", Color("ce9b75"), 5], ["PÂNTANO SOMBRIO", Color("b6a0ce"), 9]]:
-		var accent: Color = biome[1]
-		var region: VBoxContainer = _card(column, accent)
-		_text(region, str(biome[0]), 34, accent).add_theme_font_override("font", _heading_font())
-		var grid: GridContainer = GridContainer.new()
-		grid.columns = 4
-		grid.add_theme_constant_override("h_separation", 18)
-		grid.add_theme_constant_override("v_separation", 18)
-		region.add_child(grid)
-		for index in range(int(biome[2]), int(biome[2]) + 4):
-			var path: String = "res://data/campaign/stage_%02d.json" % index
-			var stage: Dictionary = StageSessionV2.read_stage(path)
-			var best: Dictionary = progress.progress.campaign.get(str(stage.id) + ":" + difficulty, {})
-			var stars: int = int(best.get("stars", 0))
-			var available: bool = stage_unlocked(index)
-			var cell: VBoxContainer = VBoxContainer.new()
-			cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			cell.add_theme_constant_override("separation", 6)
-			grid.add_child(cell)
-			var stage_button: Button = _button(cell, "%02d   %s\n%s" % [index, str(stage.name), "★".repeat(stars) + "☆".repeat(3 - stars) if available else "Bloqueada"], func() -> void: _prepare_stage(path))
-			stage_button.name = "Stage_%02d" % index
-			stage_button.custom_minimum_size = Vector2(0, 124)
-			stage_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			stage_button.disabled = not available
-			stage_button.tooltip_text = "Conclua a fase anterior em uma dificuldade para abrir este caminho." if not available else ""
-			if stars > 0: stage_button.add_theme_color_override("font_color", Color("f6e3ad"))
-			_text(cell, "%d ondas • %d famílias • Nível %d" % [stage.waves.size(), stage.allowed_towers.size(), int(stage.max_level)], 21, MUTED)
-	_text(column, "Toque numa base de pedra e confirme a torre. Amplie a cobertura e melhore sua defesa durante os intervalos.", 25, MUTED)
-	var optional: Array = StageSessionV2.read_stage("res://data/campaign/challenges.json").challenges
-	var challenge_card: VBoxContainer = null
-	for challenge: Dictionary in optional:
-		var challenge_stage: int = int(challenge.stage)
-		if not stage_unlocked(challenge_stage + 1): continue
-		if challenge_card == null:
-			challenge_card = _card(column, GOLD)
-			_text(challenge_card, "DESAFIOS OPCIONAIS", 32, GOLD).add_theme_font_override("font", _heading_font())
-			_text(challenge_card, "Revisite os finais dos biomas. Os desafios usam as regras da fase e seus recordes; não são necessários para avançar.", 25, MUTED)
-		var completed: bool = challenge_completed(challenge)
-		var replay_path: String = "res://data/campaign/stage_%02d.json" % challenge_stage
-		var replay: Button = _button(challenge_card, str(challenge.name) + ("  ✓" if completed else ""), func() -> void: _prepare_stage(replay_path))
-		replay.name = "Challenge_" + str(challenge.id)
-		_text(challenge_card, str(challenge.description), 24)
-	var extras: HBoxContainer = HBoxContainer.new()
-	extras.add_theme_constant_override("separation", 18)
-	column.add_child(extras)
-	_button(extras, "Laboratório do Arsenal", func() -> void: _prepare_stage("res://data/campaign/arsenal_lab.json")).size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_button(extras, "Guia de torres e inimigos", _show_guide).size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var settings: VBoxContainer = _card(column, Color("6f9a9c"))
-	_text(settings, "AJUSTES", 32, Color("a8c3ac")).add_theme_font_override("font", _heading_font())
-	var graphics: OptionButton = OptionButton.new()
-	graphics.custom_minimum_size = Vector2(300, 88)
-	graphics.add_theme_font_size_override("font_size", 30)
-	for label: String in ["Gráficos: Economia", "Gráficos: Equilibrado", "Gráficos: Qualidade"]: graphics.add_item(label)
-	var profiles: Array[String] = ["economy", "balanced", "quality"]
-	graphics.select(profiles.find(str(progress.settings.get("graphics_profile", "balanced"))))
-	graphics.item_selected.connect(func(index: int) -> void:
-		progress.settings.graphics_profile = profiles[index]
-		if not _save.save_game(progress): _status.text = "Não foi possível salvar a preferência gráfica."
+	_wire(MenuKitV2.icon_button(bar, "flask", "Laboratório do Arsenal"), func() -> void: _prepare_stage("res://data/campaign/arsenal_lab.json"))
+	_wire(MenuKitV2.icon_button(bar, "book", "Guia de torres e inimigos"), _show_guide)
+	_wire(MenuKitV2.icon_button(bar, "gear", "Ajustes"), _show_settings)
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.name = "CampaignScroll"
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	column.add_child(scroll)
+	var strip: HBoxContainer = HBoxContainer.new()
+	strip.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	strip.add_theme_constant_override("separation", 32)
+	scroll.add_child(strip)
+	var focus: int = 0
+	for biome_index in range(BIOMES.size()):
+		_biome_panel(strip, BIOMES[biome_index])
+		if stage_unlocked(int(BIOMES[biome_index][2])): focus = biome_index
+	var hint: String = "Arraste para os lados para ver os biomas · toque numa fase para ver os detalhes"
+	if stage_unlocked(13): hint = "Os três caminhos estão protegidos. Experimente outras formações ou uma dificuldade maior."
+	MenuKitV2.label(column, hint, 24, MUTED).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_focus_biome(scroll, focus)
+## Waits for the strip to be laid out, then centers the newest unlocked biome.
+func _focus_biome(scroll: ScrollContainer, focus: int) -> void:
+	for _frame: int in range(2): await get_tree().process_frame
+	if is_instance_valid(scroll): scroll.scroll_horizontal = int(focus * (BIOME_WIDTH + 32) - (scroll.size.x - BIOME_WIDTH) / 2)
+func _biome_panel(parent: Node, biome: Array) -> void:
+	var key: String = biome[0]
+	var first: int = int(biome[2])
+	var accent: Color = MenuKitV2.BIOME_COLORS[key]
+	var area: Control = Control.new()
+	area.name = "Biome_" + key
+	area.custom_minimum_size = Vector2(BIOME_WIDTH, 0)
+	area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	area.clip_contents = true
+	parent.add_child(area)
+	MenuKitV2.cover(area, "res://art/ui/backdrop_%s.jpg" % key)
+	MenuKitV2.shade(area, 0.2, 0.62)
+	var points: Array[Vector2] = [Vector2(0.13, 0.66), Vector2(0.37, 0.36), Vector2(0.63, 0.66), Vector2(0.87, 0.36)]
+	var trail: Control = Control.new()
+	trail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	trail.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	area.add_child(trail)
+	trail.resized.connect(trail.queue_redraw)
+	trail.draw.connect(func() -> void:
+		for index in range(points.size() - 1):
+			var from: Vector2 = points[index] * trail.size
+			var to: Vector2 = points[index + 1] * trail.size
+			trail.draw_line(from, to, Color(0, 0, 0, 0.45), 18, true)
+			trail.draw_dashed_line(from, to, Color("f3e3b6") if stage_unlocked(first + index + 1) else Color(1, 1, 1, 0.35), 10, 26, true, true)
 	)
-	settings.add_child(graphics)
+	var title: Label = MenuKitV2.label(area, str(biome[1]), 56, accent, true)
+	title.position = Vector2(44, 30)
+	var subtitle: Label = MenuKitV2.label(area, "Fases %d a %d" % [first, first + STAGES_PER_BIOME - 1], 26, Color("e3ece5"))
+	subtitle.position = Vector2(48, 104)
+	for offset in range(STAGES_PER_BIOME):
+		_stage_node(area, first + offset, points[offset], accent)
+	for challenge: Dictionary in StageSessionV2.read_stage("res://data/campaign/challenges.json").challenges:
+		var challenge_stage: int = int(challenge.stage)
+		if challenge_stage < first or challenge_stage >= first + STAGES_PER_BIOME or not stage_unlocked(challenge_stage + 1): continue
+		var replay_path: String = "res://data/campaign/stage_%02d.json" % challenge_stage
+		var replay: Button = _button(area, str(challenge.name) + ("  ✓" if challenge_completed(challenge) else ""), func() -> void: _prepare_stage(replay_path))
+		replay.name = "Challenge_" + str(challenge.id)
+		replay.icon = MenuKitV2.icon("trophy")
+		replay.add_theme_constant_override("icon_max_width", 40)
+		replay.add_theme_font_size_override("font_size", 26)
+		replay.tooltip_text = "Desafio opcional: " + str(challenge.description)
+		replay.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+		replay.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+		replay.offset_right = -32
+		replay.offset_top = 32
+		MenuKitV2.primary(replay)
+	var border: Panel = Panel.new()
+	border.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	border.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	border.add_theme_stylebox_override("panel", MenuKitV2.box(Color(0, 0, 0, 0), Color(accent, 0.7), 28, 4))
+	area.add_child(border)
+	if not stage_unlocked(first):
+		var veil: ColorRect = ColorRect.new()
+		veil.color = Color(0.02, 0.05, 0.06, 0.55)
+		veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		area.add_child(veil)
+		var notice: Label = MenuKitV2.label(area, "Conclua a fase %d para abrir este bioma" % (first - 1), 30, Color("e3ece5"))
+		notice.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+		notice.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		notice.grow_vertical = Control.GROW_DIRECTION_BEGIN
+		notice.offset_bottom = -40
+		notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+func _stage_node(area: Control, index: int, at: Vector2, accent: Color) -> void:
+	var path: String = "res://data/campaign/stage_%02d.json" % index
+	var stage: Dictionary = StageSessionV2.read_stage(path)
+	var stars: int = int(progress.progress.campaign.get(str(stage.id) + ":" + difficulty, {}).get("stars", 0))
+	var available: bool = stage_unlocked(index)
+	var holder: VBoxContainer = VBoxContainer.new()
+	holder.add_theme_constant_override("separation", 6)
+	holder.custom_minimum_size = Vector2(300, 0)
+	area.add_child(holder)
+	holder.anchor_left = at.x
+	holder.anchor_right = at.x
+	holder.anchor_top = at.y
+	holder.anchor_bottom = at.y
+	holder.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	holder.offset_left = -150
+	holder.offset_right = 150
+	holder.offset_top = -82
+	var button: Button = Button.new()
+	button.name = "Stage_%02d" % index
+	button.custom_minimum_size = Vector2(164, 164)
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.add_theme_font_override("font", MenuKitV2.heading_font())
+	button.add_theme_font_size_override("font_size", 64)
+	button.add_theme_constant_override("outline_size", 8)
+	button.add_theme_color_override("font_outline_color", MenuKitV2.INK)
+	var fill: Color = Color("e3bf6c") if stars > 0 else (accent.darkened(0.25) if available else Color("3d4a4c"))
+	for state: String in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+		var style: StyleBoxFlat = MenuKitV2.box(fill.lightened(0.12) if state == "hover" else fill, Color("fff6dc") if available else Color("6b7a7b"), 82, 6, 0)
+		style.border_width_bottom = 12
+		style.shadow_color = Color(0, 0, 0, 0.5)
+		style.shadow_size = 12
+		style.shadow_offset = Vector2(0, 6)
+		button.add_theme_stylebox_override(state, style)
+	if available: button.text = str(index)
+	else:
+		button.icon = MenuKitV2.icon("lock")
+		button.expand_icon = true
+		button.add_theme_constant_override("icon_max_width", 64)
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	button.tooltip_text = str(stage.name) if available else "Conclua a fase anterior em uma dificuldade para abrir este caminho."
+	holder.add_child(button)
+	MenuKitV2.feedback(button)
+	_wire(button, func() -> void: _show_stage_sheet(index))
+	if available and stars == 0:
+		button.resized.connect(func() -> void: button.pivot_offset = button.size / 2)
+		var beat: Tween = button.create_tween().set_loops()
+		beat.tween_property(button, "modulate", Color(1.25, 1.2, 1.05), 0.7).set_trans(Tween.TRANS_SINE)
+		beat.tween_property(button, "modulate", Color.WHITE, 0.7).set_trans(Tween.TRANS_SINE)
+	var row: HBoxContainer = HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 4)
+	holder.add_child(row)
+	for slot in range(3):
+		var star: TextureRect = TextureRect.new()
+		star.texture = MenuKitV2.icon("star")
+		star.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		star.custom_minimum_size = Vector2(42, 42)
+		star.modulate = GOLD if slot < stars else Color(0.1, 0.16, 0.17, 0.85)
+		row.add_child(star)
+	var caption: Label = MenuKitV2.label(holder, str(stage.name), 28, Color("fff6dc") if available else Color("a9b6b6"), true)
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+func _show_stage_sheet(index: int) -> void:
+	if has_node("StageSheet"): return
+	var path: String = "res://data/campaign/stage_%02d.json" % index
+	var stage: Dictionary = StageSessionV2.read_stage(path)
+	var accent: Color = MenuKitV2.BIOME_COLORS.get(str(stage.get("biome", "vale")), GOLD)
+	var best: Dictionary = progress.progress.campaign.get(str(stage.id) + ":" + difficulty, {})
+	var stars: int = int(best.get("stars", 0))
+	var available: bool = stage_unlocked(index)
+	var card: VBoxContainer = _modal("StageSheet", accent, 980)
+	var layer: Node = get_node("StageSheet")
+	var header: HBoxContainer = HBoxContainer.new()
+	header.add_theme_constant_override("separation", 20)
+	card.add_child(header)
+	var heading: Label = MenuKitV2.label(header, "%d · %s" % [index, str(stage.name)], 48, GOLD, true)
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_wire(MenuKitV2.icon_button(header, "close", "Fechar", 88), func() -> void: layer.queue_free())
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	card.add_child(row)
+	for slot in range(3):
+		var star: TextureRect = TextureRect.new()
+		star.texture = MenuKitV2.icon("star")
+		star.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		star.custom_minimum_size = Vector2(64, 64)
+		star.modulate = GOLD if slot < stars else Color(0.2, 0.28, 0.29)
+		row.add_child(star)
+	var facts: GridContainer = GridContainer.new()
+	facts.columns = 2
+	facts.add_theme_constant_override("h_separation", 16)
+	facts.add_theme_constant_override("v_separation", 16)
+	card.add_child(facts)
+	var record: String = "—"
+	if best.has("best_ticks"):
+		var seconds: int = int(best.best_ticks) / BattleSimV2.TICK_RATE
+		record = "%d:%02d" % [seconds / 60, seconds % 60]
+	for fact: Array in [["Ondas", str(stage.waves.size())], ["Famílias de torres", str(stage.allowed_towers.size())], ["Evolução até", "Nível %d" % int(stage.max_level)], ["Melhor tempo", record]]:
+		var chip: VBoxContainer = MenuKitV2.panel(facts, Color(accent, 0.5), 16, Color(1, 1, 1, 0.05))
+		(chip.get_parent() as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		chip.add_theme_constant_override("separation", 2)
+		MenuKitV2.label(chip, str(fact[0]), 22, MUTED)
+		MenuKitV2.label(chip, str(fact[1]), 34, Color("fff6dc"))
+	var catalog: Dictionary = BattleSimV2.load_catalog()
+	for wave: Dictionary in stage.waves:
+		for group: Dictionary in wave.groups:
+			var definition: Dictionary = catalog.enemies[str(group.enemy)]
+			if bool(definition.get("boss", false)) and not card.has_node("BossNotice"):
+				MenuKitV2.label(card, "Chefe: " + str(definition.name), 28, Color("e7a982")).name = "BossNotice"
+	if stage.has("air_route_points"): MenuKitV2.label(card, "Voadores chegam pela trilha dourada: leve cobertura aérea.", 26, GOLD)
+	var actions: HBoxContainer = HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 20)
+	card.add_child(actions)
+	_button(actions, "Fechar", func() -> void: layer.queue_free())
+	var play: Button = _button(actions, "Jogar" if available else "Bloqueada", func() -> void:
+		layer.queue_free()
+		_prepare_stage(path)
+	)
+	play.name = "StagePlay"
+	play.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	play.disabled = not available
+	if available:
+		play.icon = MenuKitV2.icon("play")
+		play.add_theme_constant_override("icon_max_width", 40)
+		MenuKitV2.primary(play)
+func _show_settings() -> void:
+	if has_node("SettingsLayer"): return
+	var card: VBoxContainer = _modal("SettingsLayer", Color("6f9a9c"), 1000)
+	var layer: Node = get_node("SettingsLayer")
+	var header: HBoxContainer = HBoxContainer.new()
+	card.add_child(header)
+	var heading: Label = MenuKitV2.label(header, "AJUSTES", 46, GOLD, true)
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_wire(MenuKitV2.icon_button(header, "close", "Fechar", 88), func() -> void: layer.queue_free())
+	MenuKitV2.label(card, "Gráficos", 28, MUTED)
+	var profiles: Array[String] = ["economy", "balanced", "quality"]
+	var graphics: HBoxContainer = HBoxContainer.new()
+	graphics.add_theme_constant_override("separation", 12)
+	card.add_child(graphics)
+	var choices: Array[Button] = []
+	for entry: Array in [["economy", "Economia"], ["balanced", "Equilibrado"], ["quality", "Qualidade"]]:
+		var profile: String = entry[0]
+		var option: Button = _button(graphics, str(entry[1]), func() -> void:
+			progress.settings.graphics_profile = profile
+			for other: Button in choices: other.set_pressed_no_signal(other.name == "Graphics_" + profile)
+			if not _save.save_game(progress) and is_instance_valid(_status): _status.text = "Não foi possível salvar a preferência gráfica."
+		)
+		option.name = "Graphics_" + profile
+		option.toggle_mode = true
+		option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		option.set_pressed_no_signal(str(progress.settings.get("graphics_profile", "balanced")) == profile)
+		choices.append(option)
 	for entry: Array in [["music_volume", "Música e ambiente"], ["sfx_volume", "Efeitos e interface"]]:
 		var setting: String = entry[0]
 		var row: HBoxContainer = HBoxContainer.new()
 		row.add_theme_constant_override("separation", 24)
-		settings.add_child(row)
-		var caption: Label = _text(row, str(entry[1]), 26, Color("a8c3ac"))
-		caption.custom_minimum_size = Vector2(340, 0)
+		card.add_child(row)
+		MenuKitV2.label(row, str(entry[1]), 28, MUTED).custom_minimum_size = Vector2(300, 0)
 		var slider: HSlider = HSlider.new()
-		slider.custom_minimum_size = Vector2(400, 64)
+		slider.custom_minimum_size = Vector2(400, 80)
 		slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		slider.min_value = 0
 		slider.max_value = 100
 		slider.step = 1
 		slider.value = int(progress.settings.get(setting, 100))
 		row.add_child(slider)
-		var readout: Label = _text(row, "%d%%" % int(slider.value), 26)
+		var readout: Label = MenuKitV2.label(row, "%d%%" % int(slider.value), 28)
 		readout.custom_minimum_size = Vector2(90, 0)
 		slider.value_changed.connect(func(value: float) -> void:
 			progress.settings[setting] = int(value)
@@ -241,144 +563,186 @@ func _show_menu() -> void:
 			_audio.apply_settings(progress.settings)
 			_audio_save_timer.start()
 		)
-	_status = _text(column, "", 25, GOLD)
-	var footer: HBoxContainer = HBoxContainer.new()
-	footer.add_theme_constant_override("separation", 24)
-	column.add_child(footer)
-	_button(footer, "Créditos e licenças", _show_credits)
-	var version: Label = _text(footer, "Versão 0.9.0-rc1 · Candidata para validação", 22, Color("8ba4a4"))
-	version.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	version.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-func _text(parent: Node, content: String, size: int, color: Color = Color.WHITE) -> Label:
-	var label: Label = Label.new()
-	label.text = content
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", color)
-	label.autowrap_mode = TextServer.AUTOWRAP_OFF if parent is HBoxContainer else TextServer.AUTOWRAP_WORD_SMART
-	parent.add_child(label)
-	return label
-func _button(parent: Node, content: String, action: Callable) -> Button:
-	var button: Button = Button.new()
-	button.text = content
-	button.custom_minimum_size = Vector2(300, 96)
-	button.add_theme_font_size_override("font_size", 32)
-	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	button.pressed.connect(func() -> void: _audio.play_event("ui", AudioServiceNode.BUS_UI); action.call())
-	parent.add_child(button)
-	return button
-## Full-screen themed root with the shared gradient backdrop; every menu layer builds on it.
-func _backdrop(layer: CanvasLayer) -> Control:
-	var root: Control = Control.new()
-	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.theme = _menu_theme()
-	layer.add_child(root)
-	var gradient: Gradient = Gradient.new()
-	gradient.set_color(0, Color("17383e"))
-	gradient.set_color(1, Color("081619"))
-	var texture: GradientTexture2D = GradientTexture2D.new()
-	texture.gradient = gradient
-	texture.fill = GradientTexture2D.FILL_RADIAL
-	texture.fill_from = Vector2(0.3, 0.0)
-	texture.fill_to = Vector2(1.1, 1.2)
-	var background: TextureRect = TextureRect.new()
-	background.texture = texture
-	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	background.stretch_mode = TextureRect.STRETCH_SCALE
-	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.add_child(background)
-	return root
-func _primary(button: Button) -> void:
-	for state: String in ["normal", "hover", "pressed", "focus"]:
-		var style: StyleBoxFlat = _box(Color("e0bf72") if state != "hover" else Color("f2d38a"), Color("fff0c2"), 14, 2 if state != "focus" else 4)
-		button.add_theme_stylebox_override(state, style)
-	for color: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-		button.add_theme_color_override(color, Color("1b2a22"))
-func _margin(parent: Control, size: int) -> MarginContainer:
-	var margin: MarginContainer = MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for edge: String in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + edge, size)
-	parent.add_child(margin)
-	return margin
-## Rounded panel with a colored top accent; returns the inner column for content.
-func _card(parent: Node, accent: Color) -> VBoxContainer:
-	var panel: PanelContainer = PanelContainer.new()
-	var style: StyleBoxFlat = _box(Color(0.06, 0.15, 0.17, 0.82), Color(accent, 0.55), 18, 2)
-	style.border_width_top = 5
-	style.border_color = accent
-	style.set_content_margin_all(28)
-	style.shadow_color = Color(0, 0, 0, 0.3)
-	style.shadow_size = 10
-	style.shadow_offset = Vector2(0, 4)
-	panel.add_theme_stylebox_override("panel", style)
-	parent.add_child(panel)
-	var inner: VBoxContainer = VBoxContainer.new()
-	inner.add_theme_constant_override("separation", 16)
-	panel.add_child(inner)
-	return inner
-func _box(fill: Color, border: Color, radius: int, width: int) -> StyleBoxFlat:
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = fill
-	style.border_color = border
-	style.set_border_width_all(width)
-	style.set_corner_radius_all(radius)
-	style.set_content_margin_all(18)
-	style.content_margin_left = 26
-	style.content_margin_right = 26
-	style.anti_aliasing = true
-	return style
-func _heading_font() -> FontVariation:
-	if _bold_font == null:
-		_bold_font = FontVariation.new()
-		_bold_font.base_font = ThemeDB.fallback_font
-		_bold_font.variation_embolden = 0.7
-		_bold_font.spacing_glyph = 2
-	return _bold_font
-func _menu_theme() -> Theme:
-	if _theme != null: return _theme
-	_theme = Theme.new()
-	var bold: FontVariation = FontVariation.new()
-	bold.base_font = ThemeDB.fallback_font
-	bold.variation_embolden = 0.35
-	for type_name: String in ["Button", "OptionButton"]:
-		_theme.set_stylebox("normal", type_name, _box(Color("183b41"), Color("2f5d60"), 14, 2))
-		_theme.set_stylebox("hover", type_name, _box(Color("21515a"), Color("ecd49a"), 14, 2))
-		_theme.set_stylebox("pressed", type_name, _box(Color("5a4a22"), GOLD, 14, 3))
-		_theme.set_stylebox("hover_pressed", type_name, _box(Color("6a5728"), Color("fff0c2"), 14, 3))
-		_theme.set_stylebox("disabled", type_name, _box(Color(0.08, 0.17, 0.19, 0.6), Color(0.2, 0.3, 0.32, 0.5), 14, 2))
-		_theme.set_stylebox("focus", type_name, _box(Color(0, 0, 0, 0), Color("ecd49a"), 14, 3))
-		_theme.set_color("font_color", type_name, Color("eef2ea"))
-		_theme.set_color("font_hover_color", type_name, Color("fff6dc"))
-		_theme.set_color("font_pressed_color", type_name, Color("fff6dc"))
-		_theme.set_color("font_hover_pressed_color", type_name, Color("fff6dc"))
-		_theme.set_color("font_focus_color", type_name, Color("fff6dc"))
-		_theme.set_color("font_disabled_color", type_name, Color("6d8484"))
-		_theme.set_font("font", type_name, bold)
-	var track: StyleBoxFlat = _box(Color("0c2125"), Color("2f5d60"), 8, 1)
-	track.set_content_margin_all(5)
-	_theme.set_stylebox("slider", "HSlider", track)
-	var filled: StyleBoxFlat = _box(Color("c9a75e"), Color("ecd49a"), 8, 1)
-	filled.set_content_margin_all(5)
-	_theme.set_stylebox("grabber_area", "HSlider", filled)
-	_theme.set_stylebox("grabber_area_highlight", "HSlider", filled)
-	for scrollbar: String in ["VScrollBar", "HScrollBar"]:
-		for entry: Array in [["scroll", Color(0, 0, 0, 0.18)], ["grabber", Color("2f5d60")], ["grabber_highlight", Color("4b8084")], ["grabber_pressed", Color("ecd49a")]]:
-			var bar: StyleBoxFlat = _box(entry[1], Color(0, 0, 0, 0), 6, 0)
-			bar.set_content_margin_all(6)
-			_theme.set_stylebox(str(entry[0]), scrollbar, bar)
-	var tooltip: StyleBoxFlat = _box(Color("0b1d21"), Color("ecd49a"), 10, 1)
-	tooltip.set_content_margin_all(12)
-	_theme.set_stylebox("panel", "TooltipPanel", tooltip)
-	_theme.set_font_size("font_size", "TooltipLabel", 24)
-	_theme.set_color("font_color", "TooltipLabel", Color("eef2ea"))
-	return _theme
+func _show_guide() -> void:
+	if has_node("GuideLayer"): return
+	var column: VBoxContainer = _full_layer("GuideLayer", 20)
+	var layer: Node = get_node("GuideLayer")
+	var bar: HBoxContainer = _top_bar(column, "GUIA", func() -> void: layer.queue_free())
+	var pages: Dictionary = {}
+	var tabs: Array[Button] = []
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	column.add_child(scroll)
+	var stack: VBoxContainer = VBoxContainer.new()
+	stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(stack)
+	for entry: Array in [["towers", "Torres"], ["enemies", "Inimigos"], ["effects", "Efeitos"]]:
+		var page_key: String = entry[0]
+		var tab: Button = _button(bar, str(entry[1]), func() -> void:
+			for key: String in pages: (pages[key] as Control).visible = key == page_key
+			for other: Button in tabs: other.set_pressed_no_signal(other.name == "Tab_" + page_key)
+			scroll.scroll_vertical = 0
+		)
+		tab.name = "Tab_" + page_key
+		tab.toggle_mode = true
+		tab.custom_minimum_size = Vector2(200, 96)
+		tab.set_pressed_no_signal(page_key == "towers")
+		tabs.append(tab)
+		var page: GridContainer = GridContainer.new()
+		page.columns = 2
+		page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		page.add_theme_constant_override("h_separation", 22)
+		page.add_theme_constant_override("v_separation", 22)
+		page.visible = page_key == "towers"
+		stack.add_child(page)
+		pages[page_key] = page
+	var catalog: Dictionary = BattleSimV2.load_catalog()
+	for type_id: String in catalog.towers:
+		var definition: Dictionary = catalog.towers[type_id]
+		var first: Dictionary = definition.levels[0]
+		var card: VBoxContainer = MenuKitV2.panel(pages.towers, Color("a8c3ac"), 22)
+		(card.get_parent() as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var line: HBoxContainer = HBoxContainer.new()
+		line.add_theme_constant_override("separation", 20)
+		card.add_child(line)
+		var portrait: TextureRect = TextureRect.new()
+		portrait.texture = load("res://art/ui/tower_%s.jpg" % type_id) as Texture2D
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.custom_minimum_size = Vector2(150, 150)
+		line.add_child(portrait)
+		var info: VBoxContainer = VBoxContainer.new()
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		line.add_child(info)
+		MenuKitV2.label(info, str(definition.name), 34, Color("fff6dc"), true)
+		MenuKitV2.label(info, "%s · %d moedas · alcance %.1f m" % [_layer_text(str(definition.layer)), int(first.cost), float(first.range)], 24, Color("a8c3ac"))
+		MenuKitV2.label(info, str(definition.description), 24)
+		for branch: String in definition.get("branches", {}):
+			var specialization: Dictionary = definition.branches[branch]
+			MenuKitV2.label(card, "L4/L5 · %s: %s" % [specialization.name, specialization.description], 22, MUTED)
+	for enemy_id: String in catalog.enemies:
+		var definition: Dictionary = catalog.enemies[enemy_id]
+		if bool(definition.get("lab_only", false)): continue
+		var boss: bool = bool(definition.get("boss", false))
+		var card: VBoxContainer = MenuKitV2.panel(pages.enemies, Color("e7a982") if boss else Color("ce9b75"), 22)
+		(card.get_parent() as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var heading: Label = MenuKitV2.label(card, str(definition.name) + ("  · CHEFE" if boss else ""), 32, Color("e7a982") if boss else Color("fff6dc"), true)
+		heading.name = "EnemyGuide_" + enemy_id
+		MenuKitV2.label(card, "%d vida · %d moedas · vazamento %d" % [int(definition.hp), int(definition.reward), int(definition.leak)], 24, Color("a8c3ac"))
+		MenuKitV2.label(card, "%s · %.2f m/s · armadura %d · resistência mágica %d%%" % ["Aéreo" if str(definition.layer) == "air" else "Terrestre", float(definition.speed), int(definition.get("armor", 0)), roundi(float(definition.get("magic_resistance", 0)) * 100)], 22, MUTED)
+		MenuKitV2.label(card, str(definition.description), 24)
+	pages.effects.columns = 1
+	var effects: VBoxContainer = MenuKitV2.panel(pages.effects, GOLD, 28)
+	MenuKitV2.label(effects, "CONTROLE E VENENO", 34, GOLD, true)
+	MenuKitV2.label(effects, "Lentidão: vale a maior fonte, com movimento mínimo de 35% da base. Chefes aceitam até 40% de lentidão. Veneno: até três fontes diferentes; a mesma torre renova o efeito. Dano a cada 0,5 s; chefes recebem metade da duração. Pausar congela tudo. Estrela azul: lentidão; triângulo verde: veneno; losango vermelho: sangramento; contorno âmbar: corrosão. As formas acima da vida distinguem os efeitos mesmo sem cor.", 28)
+func _layer_text(layer: String) -> String:
+	return "Terra e ar" if layer == "both" else ("Somente ar" if layer == "air" else ("Suporte de torres" if layer == "ally" else "Somente terra"))
+func _prepare_stage(path: String) -> void:
+	if has_node("FormationLayer"): return
+	var stage: Dictionary = StageSessionV2.read_stage(path)
+	var required: int = mini(5, stage.allowed_towers.size())
+	var selected: Array[String] = []
+	for key: String in progress.progress.get("formations", {}).get(str(stage.id), []):
+		if key in stage.allowed_towers and selected.size() < required: selected.append(key)
+	if selected.is_empty():
+		for key: String in (stage.allowed_towers as Array).slice(0, required): selected.append(key)
+	var biome: String = str(stage.get("biome", "vale"))
+	var column: VBoxContainer = _full_layer("FormationLayer", 10, "res://art/ui/backdrop_%s.jpg" % (biome if biome in MenuKitV2.BIOME_COLORS else "vale"))
+	var layer: Node = get_node("FormationLayer")
+	_top_bar(column, str(stage.name), func() -> void: layer.queue_free())
+	MenuKitV2.label(column, "Escolha %d famílias para esta defesa. A formação fica salva para sua próxima tentativa." % required, 28)
+	if stage.has("air_route_points"):
+		MenuKitV2.label(column, "Atenção: voadores chegam pela trilha dourada. Garanta cobertura aérea; Canhão e Alquimista atingem apenas o chão.", 26, GOLD)
+	var catalog: Dictionary = BattleSimV2.load_catalog()
+	var boss_shown: bool = false
+	for wave: Dictionary in stage.waves:
+		for group: Dictionary in wave.groups:
+			var definition: Dictionary = catalog.enemies[str(group.enemy)]
+			if bool(definition.get("boss", false)) and not boss_shown:
+				MenuKitV2.label(column, "Chefe: " + str(definition.name) + ". " + str(definition.description), 25, Color("e7a982"))
+				boss_shown = true
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	column.add_child(scroll)
+	var grid: GridContainer = GridContainer.new()
+	grid.columns = 4
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 22)
+	grid.add_theme_constant_override("v_separation", 22)
+	scroll.add_child(grid)
+	var confirm: Button = Button.new()
+	confirm.name = "FormationConfirm"
+	confirm.text = "Entrar na fase"
+	confirm.icon = MenuKitV2.icon("play")
+	confirm.add_theme_constant_override("icon_max_width", 40)
+	confirm.custom_minimum_size = Vector2(460, 110)
+	confirm.add_theme_font_size_override("font_size", 36)
+	confirm.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	MenuKitV2.primary(confirm)
+	MenuKitV2.feedback(confirm)
+	var counter: Label = Label.new()
+	var buttons: Dictionary = {}
+	for type_id: String in stage.allowed_towers:
+		var key: String = type_id
+		var definition: Dictionary = catalog.towers[key]
+		var button: Button = Button.new()
+		button.name = "Formation_" + key
+		button.custom_minimum_size = Vector2(0, 282)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.toggle_mode = true
+		button.icon = load("res://art/ui/tower_%s.jpg" % key) as Texture2D
+		button.expand_icon = true
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.add_theme_constant_override("icon_max_width", 160)
+		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		button.add_theme_font_size_override("font_size", 26)
+		button.tooltip_text = str(definition.description)
+		grid.add_child(button)
+		MenuKitV2.feedback(button)
+		buttons[key] = button
+		button.pressed.connect(func() -> void:
+			_audio.play_event("ui", AudioServiceNode.BUS_UI)
+			if key in selected: selected.erase(key)
+			elif selected.size() < required: selected.append(key)
+			_refresh_formation(buttons, selected, required, confirm, catalog, counter)
+		)
+	var actions: HBoxContainer = HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 24)
+	column.add_child(actions)
+	counter.add_theme_font_size_override("font_size", 32)
+	counter.add_theme_color_override("font_color", Color("fff6dc"))
+	counter.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	counter.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	actions.add_child(counter)
+	actions.add_child(confirm)
+	_refresh_formation(buttons, selected, required, confirm, catalog, counter)
+	confirm.pressed.connect(func() -> void:
+		_audio.play_event("ui", AudioServiceNode.BUS_UI)
+		if not progress.progress.has("formations"): progress.progress.formations = {}
+		progress.progress.formations[str(stage.id)] = selected.duplicate()
+		var saved: bool = _save.save_game(progress)
+		layer.queue_free()
+		_launch_stage(path)
+		if not saved: battle._hint.text = "Formação aplicada. Não foi possível salvar a preferência no dispositivo."
+	)
+func _refresh_formation(buttons: Dictionary, selected: Array[String], required: int, confirm: Button, catalog: Dictionary, counter: Label = null) -> void:
+	for key: String in buttons:
+		var button: Button = buttons[key]
+		var definition: Dictionary = catalog.towers[key]
+		button.text = ("✓  " if key in selected else "+  ") + str(definition.name) + "\n" + _layer_text(str(definition.layer)) + " · %d moedas" % int(definition.levels[0].cost)
+		button.set_pressed_no_signal(key in selected)
+		button.disabled = key not in selected and selected.size() >= required
+	confirm.disabled = selected.size() != required
+	if counter != null: counter.text = "%d de %d famílias escolhidas" % [selected.size(), required]
 func _launch_stage(path: String = "") -> void:
 	if is_instance_valid(battle) and battle.is_inside_tree(): return
 	if not path.is_empty():
 		selected_stage_path = path
 	if is_instance_valid(menu):
 		menu.queue_free()
+	_screen = "map"
 	battle = BattleViewV2.new()
 	battle.stage_path = selected_stage_path
 	battle.stage = StageSessionV2.read_stage(selected_stage_path)
@@ -393,7 +757,7 @@ func _launch_stage(path: String = "") -> void:
 	battle.difficulty = difficulty
 	battle.tutorial_enabled = not bool(progress.get("tutorial_completed", false))
 	battle.tutorial_finished.connect(_complete_tutorial)
-	battle.exit_requested.connect(_show_menu)
+	battle.exit_requested.connect(_return_to_map)
 	battle.restart_requested.connect(_restart_stage)
 	battle.battle_completed.connect(_record_result)
 	add_child(battle)
@@ -420,144 +784,6 @@ func stage_unlocked(index: int) -> bool:
 		var previous: Dictionary = progress.progress.campaign.get("stage_%02d:" % (index - 1) + mode, {})
 		if int(previous.get("stars", 0)) > 0: return true
 	return false
-
-func _show_guide() -> void:
-	if has_node("GuideLayer"): return
-	var layer: CanvasLayer = CanvasLayer.new()
-	layer.name = "GuideLayer"
-	layer.layer = 20
-	add_child(layer)
-	var margin: MarginContainer = _margin(_backdrop(layer), 50)
-	var outer: VBoxContainer = VBoxContainer.new()
-	outer.add_theme_constant_override("separation", 20)
-	margin.add_child(outer)
-	var top: HBoxContainer = HBoxContainer.new()
-	top.add_theme_constant_override("separation", 28)
-	outer.add_child(top)
-	_button(top, "Voltar ao mapa", func() -> void: layer.queue_free())
-	var guide_title: Label = _text(top, "GUIA DE TORRES E INIMIGOS", 44, GOLD)
-	guide_title.add_theme_font_override("font", _heading_font())
-	guide_title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var scroll: ScrollContainer = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	outer.add_child(scroll)
-	var column: VBoxContainer = VBoxContainer.new()
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	column.add_theme_constant_override("separation", 20)
-	scroll.add_child(column)
-	var catalog: Dictionary = BattleSimV2.load_catalog()
-	_text(column, "TORRES", 42, GOLD).add_theme_font_override("font", _heading_font())
-	for definition: Dictionary in catalog.towers.values():
-		var first: Dictionary = definition.levels[0]
-		var tower_card: VBoxContainer = _card(column, Color("a8c3ac"))
-		_text(tower_card, "%s · %d moedas · %.1f m" % [str(definition.name), int(first.cost), float(first.range)], 32, Color("a8c3ac"))
-		_text(tower_card, str(definition.description), 28)
-		for branch: String in definition.get("branches", {}):
-			var specialization: Dictionary = definition.branches[branch]
-			_text(tower_card, "L4/L5 · %s: %s" % [specialization.name, specialization.description], 25, MUTED)
-	_text(column, "INIMIGOS", 42, GOLD).add_theme_font_override("font", _heading_font())
-	for enemy_id: String in catalog.enemies:
-		var definition: Dictionary = catalog.enemies[enemy_id]
-		if bool(definition.get("lab_only", false)): continue
-		var boss: bool = bool(definition.get("boss", false))
-		var enemy_card: VBoxContainer = _card(column, Color("dba17b") if boss else Color("ce9b75"))
-		var heading: Label = _text(enemy_card, "%s · %d vida · %d moedas · Vazamento %d" % [str(definition.name), int(definition.hp), int(definition.reward), int(definition.leak)], 32, Color("dba17b") if boss else Color("a8c3ac"))
-		heading.name = "EnemyGuide_" + enemy_id
-		_text(enemy_card, "%s · %.2f m/s · Armadura %d · Resistência mágica %d%%" % ["Aéreo" if str(definition.layer) == "air" else "Terrestre", float(definition.speed), int(definition.get("armor", 0)), roundi(float(definition.get("magic_resistance", 0)) * 100)], 25, MUTED)
-		_text(enemy_card, str(definition.description), 28)
-	_text(column, "CONTROLE E VENENO", 42, GOLD).add_theme_font_override("font", _heading_font())
-	_text(_card(column, GOLD), "Lentidão: vale a maior fonte, com movimento mínimo de 35% da base. Chefes aceitam até 40% de lentidão. Veneno: até três fontes diferentes; a mesma torre renova o efeito. Dano a cada 0,5 s; chefes recebem metade da duração. Pausar congela tudo. Estrela azul: lentidão; triângulo verde: veneno; losango vermelho: sangramento; contorno âmbar: corrosão. As formas acima da vida distinguem os efeitos mesmo sem cor.", 28)
-
-func _prepare_stage(path: String) -> void:
-	if has_node("FormationLayer"): return
-	var stage: Dictionary = StageSessionV2.read_stage(path)
-	var required: int = mini(5, stage.allowed_towers.size())
-	var selected: Array[String] = []
-	for key: String in progress.progress.get("formations", {}).get(str(stage.id), []):
-		if key in stage.allowed_towers and selected.size() < required: selected.append(key)
-	if selected.is_empty():
-		for key: String in (stage.allowed_towers as Array).slice(0, required): selected.append(key)
-	var layer: CanvasLayer = CanvasLayer.new()
-	layer.name = "FormationLayer"
-	layer.layer = 10
-	add_child(layer)
-	var margin: MarginContainer = _margin(_backdrop(layer), 60)
-	var column: VBoxContainer = VBoxContainer.new()
-	column.add_theme_constant_override("separation", 24)
-	margin.add_child(column)
-	_text(column, str(stage.name), 52, GOLD).add_theme_font_override("font", _heading_font())
-	_text(column, "Escolha %d famílias para esta defesa. A formação fica salva para sua próxima tentativa." % required, 28)
-	if stage.has("air_route_points"):
-		_text(column, "Atenção: voadores chegam pela trilha dourada. Garanta cobertura aérea; Canhão e Alquimista atingem apenas o chão.", 28, Color("ecd49a"))
-	for wave: Dictionary in stage.waves:
-		var revealed: bool = false
-		for group: Dictionary in wave.groups:
-			var definition: Dictionary = BattleSimV2.load_catalog().enemies[str(group.enemy)]
-			if bool(definition.get("boss", false)):
-				_text(column, "Chefe: " + str(definition.name) + ". " + str(definition.description), 25, Color("dba17b"))
-				revealed = true
-				break
-		if revealed: break
-	var grid: GridContainer = GridContainer.new()
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 20)
-	grid.add_theme_constant_override("v_separation", 20)
-	column.add_child(grid)
-	var confirm: Button = Button.new()
-	confirm.name = "FormationConfirm"
-	confirm.text = "Entrar na fase"
-	confirm.custom_minimum_size = Vector2(300, 96)
-	confirm.add_theme_font_size_override("font_size", 32)
-	_primary(confirm)
-	var buttons: Dictionary = {}
-	var catalog: Dictionary = BattleSimV2.load_catalog()
-	for type_id: String in stage.allowed_towers:
-		var key: String = type_id
-		var definition: Dictionary = catalog.towers[key]
-		var button: Button = Button.new()
-		button.name = "Formation_" + key
-		button.custom_minimum_size = Vector2(500, 112)
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.toggle_mode = true
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		button.add_theme_font_size_override("font_size", 28)
-		button.tooltip_text = str(definition.description)
-		grid.add_child(button)
-		buttons[key] = button
-		button.pressed.connect(func() -> void:
-			if key in selected: selected.erase(key)
-			elif selected.size() < required: selected.append(key)
-			_refresh_formation(buttons, selected, required, confirm, catalog)
-		)
-	_refresh_formation(buttons, selected, required, confirm, catalog)
-	var gap: Control = Control.new()
-	gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	column.add_child(gap)
-	var actions: HBoxContainer = HBoxContainer.new()
-	actions.add_theme_constant_override("separation", 20)
-	column.add_child(actions)
-	_button(actions, "Voltar ao mapa", func() -> void: layer.queue_free())
-	confirm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	confirm.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	actions.add_child(confirm)
-	confirm.pressed.connect(func() -> void:
-		if not progress.progress.has("formations"): progress.progress.formations = {}
-		progress.progress.formations[str(stage.id)] = selected.duplicate()
-		var saved: bool = _save.save_game(progress)
-		layer.queue_free()
-		_launch_stage(path)
-		if not saved: battle._hint.text = "Formação aplicada. Não foi possível salvar a preferência no dispositivo."
-	)
-func _refresh_formation(buttons: Dictionary, selected: Array[String], required: int, confirm: Button, catalog: Dictionary) -> void:
-	for key: String in buttons:
-		var button: Button = buttons[key]
-		var definition: Dictionary = catalog.towers[key]
-		button.text = ("✓  " if key in selected else "+  ") + str(definition.name) + "\n" + ("Terra e ar" if str(definition.layer) == "both" else ("Somente ar" if str(definition.layer) == "air" else ("Suporte de torres" if str(definition.layer) == "ally" else "Somente terra"))) + " · %d moedas" % int(definition.levels[0].cost)
-		button.set_pressed_no_signal(key in selected)
-		button.disabled = key not in selected and selected.size() >= required
-	confirm.disabled = selected.size() != required
 
 func _save_audio_preferences() -> void:
 	if not _save.save_game(progress):
@@ -598,11 +824,14 @@ func _handle_back() -> void:
 	if is_instance_valid(battle):
 		battle.handle_back_request()
 		return
-	for layer: String in ["GuideLayer","FormationLayer","CreditsLayer"]:
+	for layer: String in ["StageSheet", "SettingsLayer", "GuideLayer", "FormationLayer", "CreditsLayer"]:
 		var overlay: Node = get_node_or_null(layer)
 		if overlay != null:
 			overlay.queue_free()
 			return
+	if _screen == "map":
+		_open_screen("home")
+		return
 	_request_quit()
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -616,22 +845,24 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _show_credits() -> void:
 	if has_node("CreditsLayer"): return
-	var layer: CanvasLayer = CanvasLayer.new()
-	layer.name = "CreditsLayer"
-	layer.layer = 30
-	add_child(layer)
-	var margin: MarginContainer = _margin(_backdrop(layer), 60)
-	var column: VBoxContainer = VBoxContainer.new()
-	column.add_theme_constant_override("separation",20)
-	margin.add_child(column)
-	_text(column,"IRON PATH · Créditos",42,GOLD).add_theme_font_override("font", _heading_font())
+	var column: VBoxContainer = _full_layer("CreditsLayer", 30)
+	var layer: Node = get_node("CreditsLayer")
+	_top_bar(column, "CRÉDITOS E LICENÇAS", func() -> void: layer.queue_free())
 	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	column.add_child(scroll)
-	var text: String = "Guardiões do caminho\nModelos e animações: Kay Lousberg / KayKit, pacotes Adventurers, Character Animations e Forest Nature (CC0).\nAdaptações, geometria adicional, mapas, interface, identidade visual, música e efeitos sintetizados: criados para este projeto.\nEngine: Godot 4.5.2 (MIT).\n\n"
-	for file: String in ["kaykit-adventurers.txt","kaykit-character-animations.txt","kaykit-forest.txt"]:
-		text += FileAccess.get_file_as_string("res://art/licenses/" + file) + "\n\n"
+	var card: VBoxContainer = MenuKitV2.panel(scroll, GOLD, 32)
+	(card.get_parent() as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	MenuKitV2.label(card, "IRON PATH · Guardiões do caminho", 36, GOLD, true)
+	var text: String = "Modelos e animações: Kay Lousberg / KayKit, pacotes Adventurers, Character Animations e Forest Nature (CC0).
+Adaptações, geometria adicional, mapas, interface, identidade visual, música e efeitos sintetizados: criados para este projeto.
+Engine: Godot 4.5.2 (MIT).
+
+"
+	for file: String in ["kaykit-adventurers.txt", "kaykit-character-animations.txt", "kaykit-forest.txt"]:
+		text += FileAccess.get_file_as_string("res://art/licenses/" + file) + "
+
+"
 	text += FileAccess.get_file_as_string("res://art/licenses/godot-engine.txt")
-	var body: Label = _text(scroll,text,25)
-	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_button(column,"Voltar",func() -> void: layer.queue_free())
+	MenuKitV2.label(card, text, 24).size_flags_horizontal = Control.SIZE_EXPAND_FILL

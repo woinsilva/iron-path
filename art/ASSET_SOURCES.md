@@ -70,3 +70,9 @@ P8: coroas rúnicas, ruínas, solo de emergência e corpo do Guardião da Ruína
 P9/P10: água animada, pedras de margem e monumentos por fase gerados pelo código original; ícone/splash vetoriais originais em art/branding. Sem fontes ou recursos externos adicionais.
 
 P10: splash PNG e ícone PNG rasterizados dos SVG próprios com tools/assets/render_branding.gd. Notices do Godot e dependências exportados pelas APIs Engine.get_license_text/get_copyright_info/get_license_info em tools/assets/export_engine_notices.gd e preservados em art/licenses/godot-engine.txt.
+
+### Interface mobile — 2026-10-22
+- `art/ui/backdrop_vale.jpg`, `backdrop_canyon.jpg`, `backdrop_swamp.jpg`: capturas do próprio jogo (fases 4, 7 e 10 com torres e inimigos posicionados), geradas por `tools/render_menu_art.gd`. Mesma licença dos modelos usados (KayKit CC0 + geometria própria).
+- `art/ui/tower_*.jpg`: retratos das oito famílias em L3, renderizados pelo mesmo script no Laboratório do Arsenal.
+- `art/ui/icons/*.svg`: ícones vetoriais desenhados para o projeto (voltar, fechar, engrenagem, livro, informação, estrela, cadeado, jogar, troféu, frasco).
+- `art/branding/intro_logo.ogv`: conversão para Theora/Vorbis de `animated-logo.mp4` (logo do estúdio fornecido pelo usuário), com áudio normalizado e final estendido.
