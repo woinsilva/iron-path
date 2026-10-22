@@ -15,6 +15,8 @@ var _intro: Control
 const GOLD: Color = Color("ecd49a")
 const MUTED: Color = Color("b0c6c5")
 const INTRO_VIDEO: String = "res://art/branding/intro_logo.ogv"
+## Safety net in case the video never reports completion; the clip itself runs 5.6 s.
+const INTRO_TIMEOUT: float = 12.0
 func _ready() -> void:
 	get_tree().auto_accept_quit = false
 	get_tree().quit_on_go_back = false
@@ -59,22 +61,26 @@ func _play_intro() -> void:
 	player.stream = stream
 	player.expand = true
 	player.bus = AudioServiceNode.BUS_MUSIC
+	player.volume_db = -4.0
 	player.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.add_child(player)
 	player.finished.connect(_finish_intro)
 	_intro.gui_input.connect(func(event: InputEvent) -> void:
 		if (event is InputEventMouseButton or event is InputEventScreenTouch) and event.is_pressed(): _finish_intro()
 	)
-	get_tree().create_timer(12.0).timeout.connect(_finish_intro)
 	_audio.stop_music()
+	# The first frames stall on menu construction and shader warm-up; starting before they are drawn skips the opening.
+	for _frame: int in range(2): await RenderingServer.frame_post_draw
+	if not is_instance_valid(_intro): return
 	player.play()
+	get_tree().create_timer(INTRO_TIMEOUT).timeout.connect(_finish_intro)
 func _finish_intro() -> void:
 	if not is_instance_valid(_intro): return
 	var fading: Control = _intro
 	_intro = null
 	fading.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var tween: Tween = create_tween()
-	tween.tween_property(fading, "modulate:a", 0.0, 0.45)
+	tween.tween_property(fading, "modulate:a", 0.0, 0.6)
 	tween.tween_callback(fading.get_parent().queue_free)
 	_audio.play_vale()
 func _show_menu() -> void:

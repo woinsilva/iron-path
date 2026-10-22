@@ -5,6 +5,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Unreleased] — 2026-10-19
 
+### Fase 1 — intro inteira e mais baixa (2026-10-22)
+- Áudio da intro normalizado (pico −9,6 dB, média −24,6 dB; antes chegava a 0 dB) e tocado 4 dB abaixo no barramento de música.
+- O vídeo original termina de repente com o logo na tela: a versão do jogo segura o último quadro por 1,6 s com o som saindo em fade (5,6 s no total).
+- A reprodução começa só depois de dois quadros desenhados, para o travamento inicial do menu não engolir a abertura; fade final de 0,6 s.
+
 ### Intro do estúdio e menus repaginados (2026-10-21)
 - Abertura toca `art/branding/intro_logo.ogv` (convertido de `animated-logo.mp4` para Theora/Vorbis, formato nativo do Godot) por cima do menu já montado; clique, toque, tecla ou Voltar pulam, com transição suave e retorno da música do Vale. Não roda em modo headless, então os testes não mudam.
 - Tema compartilhado para mapa, formação, guia e créditos: fundo em gradiente, botões arredondados com estados de foco/hover/seleção, sliders e barras de rolagem estilizados.
