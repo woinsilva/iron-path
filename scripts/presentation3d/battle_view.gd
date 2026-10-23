@@ -65,6 +65,8 @@ var _ghost_ring: MeshInstance3D
 var _ghost_valid: bool = false
 var _ghost_overlay: StandardMaterial3D
 var _bases: Dictionary = {}
+## Largest height difference under a tower's footprint (m) that a stone plinth may make up.
+const MAX_FOOTING_DROP: float = 1.1
 
 func _ready() -> void:
 	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
@@ -270,14 +272,22 @@ func _handle_events(batch: Array[Dictionary]) -> void:
 func _create_tower(id: int) -> void:
 	var tower: SimTowerV2 = simulation.towers[id]
 	var display: Node3D = _tower_display(tower.type_id)
-	display.position = tower.position + Vector3(0, 0.1 + diorama.terrain_height(tower.position), 0)
+	var ground: Vector2 = diorama.footprint_heights(tower.position, 1.0)
+	display.position = tower.position + Vector3(0, 0.1 + ground.y, 0)
 	add_child(display)
 	display.visible = false
 	tower_views[id] = display
 	var base: Node3D = Node3D.new()
 	base.position = display.position
 	add_child(base)
+	# On a slope the base becomes a stone plinth reaching down to the lowest ground under it.
+	var drop: float = ground.y - ground.x
+	if drop > 0.05: SceneCraft3D.cylinder(base, 1.04, drop + 0.3, Vector3(0, -(drop + 0.3) / 2.0 + 0.02, 0), SceneCraft3D.material(Color("8f8a76")), 20)
 	SceneCraft3D.cylinder(base, 1.0, 0.16, Vector3(0, 0.08, 0), SceneCraft3D.material(Color("aca58a")), 20)
+	for prop: Node in get_tree().get_nodes_in_group(MapSceneryV2.SCENERY_GROUP):
+		if prop is Node3D and (prop as Node3D).visible and BattleSimV2.distance_xz((prop as Node3D).global_position, tower.position) < 1.7:
+			(prop as Node3D).visible = false
+			prop.set_meta("hidden_by", id)
 	SceneCraft3D.cylinder(base, 0.84, 0.05, Vector3(0, 0.18, 0), SceneCraft3D.material(Color("757f68")), 20)
 	_bases[id] = base
 	var site: Node3D = Node3D.new()
@@ -314,6 +324,10 @@ func _remove_tower(id: int) -> void:
 	if _bases.has(id):
 		(_bases[id] as Node3D).queue_free()
 		_bases.erase(id)
+	for prop: Node in get_tree().get_nodes_in_group(MapSceneryV2.SCENERY_GROUP):
+		if int(prop.get_meta("hidden_by", -1)) == id:
+			(prop as Node3D).visible = true
+			prop.remove_meta("hidden_by")
 	if simulation.tower_on_pad(_selected_pad) == null: _select_pad(-1)
 
 func _sync_enemies(delta: float) -> void:
@@ -583,9 +597,11 @@ func _begin_placement(type_id: String) -> void:
 func _move_ghost(point: Vector3) -> void:
 	if not is_instance_valid(_ghost): return
 	_ghost.visible = true
-	_ghost.position = Vector3(point.x, 0.1 + diorama.terrain_height(point), point.z)
+	_ghost.position = Vector3(point.x, 0.1 + diorama.footprint_heights(point, 1.0).y, point.z)
 	var affordable: bool = simulation.coins >= int(simulation.catalog.towers[_placing].levels[0].cost)
-	_ghost_valid = affordable and simulation.can_build_at(point)
+	var ground: Vector2 = diorama.footprint_heights(point, 1.0)
+	# Very steep ground would need a tall pillar under the tower; the ghost turns red there too.
+	_ghost_valid = affordable and simulation.can_build_at(point) and ground.y - ground.x <= MAX_FOOTING_DROP
 	var tint: Color = Color(0.35, 1.0, 0.45, 0.42) if _ghost_valid else Color(1.0, 0.18, 0.15, 0.55)
 	_ghost_overlay.albedo_color = tint
 	(_ghost_ring.material_override as StandardMaterial3D).albedo_color = Color(tint, 1.0)
@@ -593,7 +609,10 @@ func _move_ghost(point: Vector3) -> void:
 func _confirm_placement() -> void:
 	if not is_instance_valid(_ghost) or not _ghost.visible: return
 	if not _ghost_valid:
-		_hint.text = "Aqui não dá: escolha um ponto fora da rua e da água, com espaço entre as torres." if simulation.coins >= int(simulation.catalog.towers[_placing].levels[0].cost) else "Moedas insuficientes para esta torre."
+		var footing: Vector2 = diorama.footprint_heights(_ghost.position, 1.0)
+		if simulation.coins < int(simulation.catalog.towers[_placing].levels[0].cost): _hint.text = "Moedas insuficientes para esta torre."
+		elif footing.y - footing.x > MAX_FOOTING_DROP: _hint.text = "Terreno inclinado demais aqui: escolha um ponto mais plano."
+		else: _hint.text = "Aqui não dá: escolha um ponto fora da rua e da água, com espaço entre as torres."
 		return
 	var pad: int = simulation.build_at(_ghost.position, _placing)
 	if pad < 0: return

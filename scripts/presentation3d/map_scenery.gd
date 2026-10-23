@@ -5,6 +5,8 @@ class_name MapSceneryV2
 extends RefCounted
 
 const FLAG_SHADER: String = "res://scripts/presentation3d/flag.gdshader"
+## Decorative props that step aside (hide) when a tower is built on top of them.
+const SCENERY_GROUP: StringName = &"scenery_prop"
 
 
 static func build(diorama: Diorama3D, scenery: String) -> void:
@@ -49,6 +51,7 @@ static func _free(diorama: Diorama3D, point: Vector3, road: float, reserved: flo
 static func _prop(diorama: Diorama3D, file: String, point: Vector3, size: float, angle: float, sway: bool = true) -> Node3D:
 	var node: Node3D = (load("res://art/models/%s.glb" % file) as PackedScene).instantiate() as Node3D
 	node.position = Vector3(point.x, point.y + diorama.terrain_height(point), point.z)
+	node.add_to_group(SCENERY_GROUP)
 	node.rotation.y = angle
 	node.scale = Vector3.ONE * size
 	diorama.add_child(node)

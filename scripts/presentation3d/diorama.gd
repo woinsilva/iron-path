@@ -126,6 +126,18 @@ func _build_heights() -> void:
 			var height: float = (descent + roll.get_noise_2d(point.x, point.z) * 0.35 + knoll + ridge * 2.6) * relief
 			_heights[row * HEIGHT_SIZE.x + column] = height * water
 
+## Height a building's floor needs on uneven ground: the highest point under its footprint, so a
+## stone plinth can fill the gap down to the lowest point instead of the base sinking into a slope.
+func footprint_heights(point: Vector3, radius: float) -> Vector2:
+	var low: float = terrain_height(point)
+	var high: float = low
+	for index in range(8):
+		var angle: float = index * TAU / 8.0
+		var sample: float = terrain_height(point + Vector3(cos(angle), 0, sin(angle)) * radius)
+		low = minf(low, sample)
+		high = maxf(high, sample)
+	return Vector2(low, high)
+
 func terrain_height(point: Vector3) -> float:
 	if _heights.is_empty(): return 0.0
 	var gx: float = clampf((point.x - HEIGHT_ORIGIN.x) / HEIGHT_STEP, 0, HEIGHT_SIZE.x - 1.001)
