@@ -4,6 +4,8 @@ uniform vec3 deep_color : source_color = vec3(0.26, 0.36, 0.14);
 uniform vec3 light_color : source_color = vec3(0.43, 0.51, 0.23);
 uniform float grain_scale = 1.0;
 uniform vec3 slope_color : source_color = vec3(0.6, 0.5, 0.33);
+// Optional drifting cloud shadows (relief maps; flat maps use a separate sheet).
+uniform sampler2D clouds : repeat_enable, filter_linear_mipmap, hint_default_black;
 varying vec3 world_position;
 varying vec3 world_normal;
 void vertex() {
@@ -16,6 +18,8 @@ void fragment() {
     vec3 grass = mix(deep_color, light_color, smoothstep(0.12, 0.82, a * 0.88 + b * 0.12));
     // Slopes show bare earth and lit crests read lighter, so the hills are visible from the high camera.
     float slope = smoothstep(0.14, 0.34, 1.0 - world_normal.y);
-    ALBEDO = mix(grass, slope_color * (0.85 + 0.3 * b), slope);
+    vec3 color = mix(grass, slope_color * (0.85 + 0.3 * b), slope);
+    float cloud = texture(clouds, world_position.xz / 32.5 + vec2(TIME * 0.004, TIME * 0.0025)).r;
+    ALBEDO = color * (1.0 - 0.2 * smoothstep(0.62, 0.8, cloud));
     ROUGHNESS = 0.98;
 }

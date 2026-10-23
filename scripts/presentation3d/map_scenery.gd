@@ -42,6 +42,10 @@ static func _frame(diorama: Diorama3D) -> void:
 
 # --- shared pieces -------------------------------------------------------------------------
 
+static func _on_ground(diorama: Diorama3D, point: Vector3) -> Vector3:
+	return Vector3(point.x, point.y + diorama.terrain_height(point), point.z)
+
+
 static func _free(diorama: Diorama3D, point: Vector3, road: float, reserved: float) -> bool:
 	if diorama._distance_from_route(point) < road: return false
 	if diorama._is_reserved(point, reserved): return false
@@ -171,16 +175,8 @@ static func _reeds(diorama: Diorama3D, rng: RandomNumberGenerator, center: Vecto
 
 ## Where raiders come in: a log palisade across the road with an open gate, two watch platforms and a
 ## wrecked cart outside, so the spawn point reads as a breached border instead of the map edge.
-static func _entrance_gate(diorama: Diorama3D, rng: RandomNumberGenerator) -> void:
-	var road: Curve3D = diorama.route
-	var start: Vector3 = road.sample_baked(2.2)
-	var forward: Vector3 = (road.sample_baked(3.2) - road.sample_baked(1.2)).normalized()
-	var side: Vector3 = Vector3(-forward.z, 0, forward.x)
-	var gate: Node3D = Node3D.new()
-	gate.name = "EntranceGate"
-	gate.position = start
-	gate.basis = Basis(side, Vector3.UP, -forward)
-	diorama.add_child(gate)
+static func _entrance_gate(diorama: Diorama3D, rng: RandomNumberGenerator, road: Curve3D = null) -> void:
+	var gate: Node3D = _entrance_frame(diorama, road if road != null else diorama.route, "EntranceGate")
 	var bark: StandardMaterial3D = SceneCraft3D.material(Color("5b4632"), 0.95)
 	var cut: StandardMaterial3D = SceneCraft3D.material(Color("8a6b4a"), 0.9)
 	var plank: StandardMaterial3D = SceneCraft3D.material(Color("6e5338"), 0.92)
@@ -232,6 +228,114 @@ static func _entrance_gate(diorama: Diorama3D, rng: RandomNumberGenerator) -> vo
 	for index in range(3):
 		var crate: MeshInstance3D = SceneCraft3D.box(gate, Vector3(0.5, 0.5, 0.5), Vector3(-2.0 - index * 0.7, 0.25, -3.6 + index * 0.4), plank)
 		crate.rotation.y = rng.randf_range(0, 1.2)
+
+
+## A node standing on the road 2.2 m in, facing along it (local -z points into the map, x across it).
+static func _entrance_frame(diorama: Diorama3D, road: Curve3D, label: String) -> Node3D:
+	var start: Vector3 = road.sample_baked(2.2)
+	var forward: Vector3 = (road.sample_baked(3.2) - road.sample_baked(1.2))
+	forward.y = 0
+	forward = forward.normalized()
+	var side: Vector3 = Vector3(-forward.z, 0, forward.x)
+	var frame: Node3D = Node3D.new()
+	frame.name = label
+	frame.position = Vector3(start.x, diorama.terrain_height(start), start.z)
+	frame.basis = Basis(side, Vector3.UP, -forward)
+	diorama.add_child(frame)
+	return frame
+
+
+## Every ground entrance gets the biome's landmark: palisade gates in the vale, timbered mine mouths in
+## the canyon, ruined rune arches in the swamp. Tunnels (burrowers) have no surface entrance.
+static func _entrances(diorama: Diorama3D, rng: RandomNumberGenerator) -> void:
+	for index in range(diorama.all_ground_routes.size()):
+		if index in diorama.burrow_routes: continue
+		var road: Curve3D = diorama.all_ground_routes[index]
+		match diorama.biome:
+			"canyon": _mine_mouth(diorama, rng, road, index)
+			"swamp": _rune_arch(diorama, rng, road, index)
+			_: _entrance_gate(diorama, rng, road)
+
+
+## A tunnel portal cut into a rock outcrop: dark mouth, timber frame, lanterns and an ore cart on rails.
+static func _mine_mouth(diorama: Diorama3D, rng: RandomNumberGenerator, road: Curve3D, index: int) -> void:
+	var mouth: Node3D = _entrance_frame(diorama, road, "MineEntrance%d" % index)
+	var rock: StandardMaterial3D = SceneCraft3D.material(Color("a5603f"), 0.95)
+	var dark_rock: StandardMaterial3D = SceneCraft3D.material(Color("74402e"), 0.95)
+	var timber: StandardMaterial3D = SceneCraft3D.material(Color("6b4a2e"), 0.92)
+	var shadow: StandardMaterial3D = SceneCraft3D.material(Color("140d0a"), 1.0)
+	var iron: StandardMaterial3D = SceneCraft3D.material(Color("3d3b39"), 0.5, 0.7)
+	# Outcrop: stacked boulders either side and over the mouth, behind the entrance (+z is outside the map).
+	for sign: float in [-1.0, 1.0]:
+		for layer in range(3):
+			var boulder: MeshInstance3D = SceneCraft3D.sphere(mouth, rng.randf_range(1.3, 1.7) - layer * 0.2, Vector3(sign * rng.randf_range(2.6, 3.2), 0.6 + layer * 1.05, 1.6 + layer * 0.2), rock if layer % 2 == 0 else dark_rock)
+			boulder.scale = Vector3(1.3, 0.85, 1.1)
+		var flank: MeshInstance3D = SceneCraft3D.sphere(mouth, 1.6, Vector3(sign * 4.8, 0.4, 2.2), dark_rock)
+		flank.scale = Vector3(1.4, 0.7, 1.2)
+	var crown: MeshInstance3D = SceneCraft3D.sphere(mouth, 2.2, Vector3(0, 3.6, 2.4), rock)
+	crown.scale = Vector3(1.6, 0.6, 1.0)
+	SceneCraft3D.box(mouth, Vector3(3.0, 3.0, 2.2), Vector3(0, 1.5, 1.5), shadow)
+	# Timber portal.
+	for sign: float in [-1.0, 1.0]:
+		SceneCraft3D.box(mouth, Vector3(0.32, 3.1, 0.32), Vector3(sign * 1.55, 1.55, 0.35), timber)
+		var brace: MeshInstance3D = SceneCraft3D.box(mouth, Vector3(0.18, 1.0, 0.18), Vector3(sign * 1.25, 2.75, 0.35), timber)
+		brace.rotation.z = sign * 0.7
+	SceneCraft3D.box(mouth, Vector3(3.8, 0.36, 0.4), Vector3(0, 3.2, 0.35), timber)
+	# Lanterns that glow at the frame.
+	var glow: StandardMaterial3D = SceneCraft3D.material(Color("ffcf7a"))
+	glow.emission_enabled = true
+	glow.emission = Color("ff9f3d")
+	glow.emission_energy_multiplier = 1.6
+	for sign: float in [-1.0, 1.0]: SceneCraft3D.sphere(mouth, 0.14, Vector3(sign * 1.55, 2.45, 0.05), glow)
+	# Rails running out of the mine and a tipped ore cart beside the road.
+	for sign: float in [-1.0, 1.0]: SceneCraft3D.box(mouth, Vector3(0.06, 0.05, 3.0), Vector3(sign * 0.45 - 2.4, 0.04, -0.6), iron)
+	var cart: Node3D = Node3D.new()
+	cart.position = Vector3(-2.4, 0, -1.3)
+	cart.rotation = Vector3(0, 0.2, 0.25)
+	mouth.add_child(cart)
+	SceneCraft3D.box(cart, Vector3(0.9, 0.55, 1.2), Vector3(0, 0.45, 0), iron)
+	for z: float in [-0.4, 0.4]:
+		for sign: float in [-1.0, 1.0]:
+			var wheel: MeshInstance3D = SceneCraft3D.cylinder(cart, 0.16, 0.08, Vector3(sign * 0.45, 0.16, z), timber, 10)
+			wheel.rotation.z = PI / 2
+	for ore in range(4): SceneCraft3D.sphere(cart, 0.16, Vector3(rng.randf_range(-0.2, 0.2), 0.8, rng.randf_range(-0.35, 0.35)), SceneCraft3D.material(Color("c9a45a"), 0.5, 0.4))
+
+
+## Two leaning rune pillars with a cracked lintel, moss and a breath of mist rolling out between them.
+static func _rune_arch(diorama: Diorama3D, rng: RandomNumberGenerator, road: Curve3D, index: int) -> void:
+	var arch: Node3D = _entrance_frame(diorama, road, "RuneArch%d" % index)
+	var stone: StandardMaterial3D = SceneCraft3D.material(Color("6f7d76"), 0.95)
+	var moss: StandardMaterial3D = SceneCraft3D.material(Color("536a40"))
+	var rune: StandardMaterial3D = SceneCraft3D.material(Color("c1aef0"))
+	rune.emission_enabled = true
+	rune.emission = Color("9a7be0")
+	rune.emission_energy_multiplier = 1.3
+	for sign: float in [-1.0, 1.0]:
+		var pillar: Node3D = Node3D.new()
+		pillar.position = Vector3(sign * 1.75, 0, 0.3)
+		pillar.rotation.z = sign * rng.randf_range(0.03, 0.08)
+		arch.add_child(pillar)
+		SceneCraft3D.box(pillar, Vector3(1.0, 0.35, 1.0), Vector3(0, 0.17, 0), stone)
+		for block in range(5): SceneCraft3D.box(pillar, Vector3(0.7 - block * 0.03, 0.62, 0.7 - block * 0.03), Vector3(rng.randf_range(-0.04, 0.04), 0.66 + block * 0.64, 0), stone)
+		SceneCraft3D.box(pillar, Vector3(0.75, 0.12, 0.75), Vector3(0, 3.6, 0), moss)
+		for y: float in [1.2, 2.4]:
+			var glyph: MeshInstance3D = SceneCraft3D.box(pillar, Vector3(0.22, 0.22, 0.05), Vector3(0, y, -0.37), rune)
+			glyph.rotation.z = PI / 4
+		# Rubble at the foot.
+		for chunk in range(3):
+			var piece: MeshInstance3D = SceneCraft3D.box(arch, Vector3(0.45, 0.3, 0.4), Vector3(sign * rng.randf_range(2.6, 3.6), 0.15, rng.randf_range(-0.6, 1.2)), stone)
+			piece.rotation.y = rng.randf_range(0, PI)
+	var lintel: MeshInstance3D = SceneCraft3D.box(arch, Vector3(4.6, 0.55, 0.85), Vector3(0.2, 3.95, 0.3), stone)
+	lintel.rotation.z = -0.06
+	SceneCraft3D.box(arch, Vector3(3.6, 0.12, 0.7), Vector3(0.1, 4.28, 0.3), moss)
+	var keystone: MeshInstance3D = SceneCraft3D.box(arch, Vector3(0.5, 0.5, 0.06), Vector3(0.2, 3.95, -0.14), rune)
+	keystone.rotation.z = PI / 4
+	_smoke(arch, Vector3(0, 0.3, 0.6), Color(0.78, 0.9, 0.84, 0.3))
+	# Dead trees leaning over the arch.
+	for sign: float in [-1.0, 1.0]:
+		var tree: Node3D = _prop(diorama, "Tree_Bare_1_A_Color1", Vector3.ZERO, rng.randf_range(0.8, 1.0), rng.randf_range(-PI, PI), false)
+		tree.global_position = arch.to_global(Vector3(sign * 4.3, 0, 1.4))
+		tree.global_position.y = diorama.terrain_height(tree.global_position)
 
 
 # --- Vale Verde: farm valley with a village, windmill, pond and forest edges ---------------
@@ -331,6 +435,7 @@ static func _sprite_scatter(diorama: Diorama3D, rng: RandomNumberGenerator, name
 static func _canyon_bridges(diorama: Diorama3D) -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 5505
+	_entrances(diorama, rng)
 	var rock: StandardMaterial3D = SceneCraft3D.material(Color("b06a46"))
 	var stratum: StandardMaterial3D = SceneCraft3D.material(Color("7d4836"))
 	var crest: StandardMaterial3D = SceneCraft3D.material(Color("c2804f"))
@@ -344,7 +449,7 @@ static func _canyon_bridges(diorama: Diorama3D) -> void:
 			if diorama._distance_from_route(point) < radius + 1.4 or absf(point.x - diorama.river_x) < diorama.river_width * 0.5 + radius: continue
 			var height: float = rng.randf_range(2.4, 4.6) * (0.65 if edge > 0 else 1.0)
 			var mesa: Node3D = Node3D.new()
-			mesa.position = point
+			mesa.position = _on_ground(diorama, point)
 			mesa.rotation.y = rng.randf_range(0, TAU)
 			diorama.add_child(mesa)
 			for layer in range(4):
@@ -380,9 +485,10 @@ static func _canyon_bridges(diorama: Diorama3D) -> void:
 	_scatter(diorama, rng, ["Rock_1_A_Color1", "Rock_1_D_Color1", "Rock_2_A_Color1", "Rock_3_A_Color1", "Rock_3_C_Color1", "Rock_3_F_Color1"], 40, Rect2(-21, -11, 42, 22), 2.0, Vector2(0.6, 1.3), false)
 	_scatter(diorama, rng, ["Bush_4_A_Color1", "Bush_3_A_Color1"], 20, Rect2(-21, -11, 42, 22), 2.0, Vector2(0.5, 0.8))
 	var exit: Vector3 = diorama.route.sample_baked(diorama.route.get_baked_length())
-	_flag(diorama, exit + Vector3(-1.4, 0.1, -1.4), Color("b8442e"))
-	_flag(diorama, exit + Vector3(1.4, 0.1, -1.4), Color("b8442e"))
-	for camp: Vector3 in [Vector3(15, 0.1, -9.5), Vector3(-17, 0.1, 10.0)]:
+	_flag(diorama, _on_ground(diorama, exit + Vector3(-1.4, 0.1, -1.4)), Color("b8442e"))
+	_flag(diorama, _on_ground(diorama, exit + Vector3(1.4, 0.1, -1.4)), Color("b8442e"))
+	for spot: Vector3 in [Vector3(15, 0.1, -9.5), Vector3(-17, 0.1, 10.0)]:
+		var camp: Vector3 = _on_ground(diorama, spot)
 		if _free(diorama, camp, 2.2, 2.0):
 			SceneCraft3D.cylinder(diorama, 0.45, 0.12, camp, stratum, 10)
 			_smoke(diorama, camp + Vector3(0, 0.3, 0), Color(0.6, 0.55, 0.5, 0.5))
@@ -393,6 +499,7 @@ static func _canyon_bridges(diorama: Diorama3D) -> void:
 static func _swamp_lake(diorama: Diorama3D) -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 9909
+	_entrances(diorama, rng)
 	var lake_center: Vector3 = Vector3(-14, 0, -0.5)
 	_pond(diorama, lake_center, Vector2(3.2, 2.0))
 	_reeds(diorama, rng, lake_center, 3.5, 26)
@@ -413,7 +520,7 @@ static func _swamp_lake(diorama: Diorama3D) -> void:
 		if not _free(diorama, point, 2.6, 2.2): continue
 		var column: Node3D = Node3D.new()
 		column.name = "RunicRuin%d" % index
-		column.position = point
+		column.position = _on_ground(diorama, point)
 		column.rotation.z = rng.randf_range(-0.12, 0.12)
 		diorama.add_child(column)
 		var height: float = rng.randf_range(1.2, 3.0)
@@ -427,5 +534,5 @@ static func _swamp_lake(diorama: Diorama3D) -> void:
 	_scatter(diorama, rng, ["Rock_1_D_Color1", "Rock_3_C_Color1"], 14, Rect2(-21, -11, 42, 22), 2.0, Vector2(0.5, 0.9), false)
 	diorama._build_swamp_hero()
 	var exit: Vector3 = diorama.route.sample_baked(diorama.route.get_baked_length())
-	_flag(diorama, exit + Vector3(-1.3, 0.1, 1.3), Color("6a4f9c"))
-	_smoke(diorama, exit + Vector3(1.6, 0.4, 1.4), Color(0.7, 0.9, 0.75, 0.35))
+	_flag(diorama, _on_ground(diorama, exit + Vector3(-1.3, 0.1, 1.3)), Color("6a4f9c"))
+	_smoke(diorama, _on_ground(diorama, exit + Vector3(1.6, 0.4, 1.4)), Color(0.7, 0.9, 0.75, 0.35))

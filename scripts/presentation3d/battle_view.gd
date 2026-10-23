@@ -79,6 +79,11 @@ func _ready() -> void:
 	diorama.scenery = str(stage.get("scenery", ""))
 	diorama.relief = float(stage.get("relief", 0.0))
 	diorama.photo = bool(stage.get("photo", false))
+	diorama.descent = stage.get("descent", [])
+	diorama.flats = stage.get("flats", [])
+	# Underground routes, counted among the ground roads (the air route sits at simulation id 1).
+	for route_id: int in stage.get("burrow_routes", []):
+		diorama.burrow_routes.append(route_id - (1 if stage.has("air_route_points") else 0))
 	diorama.stage_index = int(stage.index)
 	if int(stage.index) in [6, 7]: diorama.river_x = -20.3
 	if str(stage.id) == "arsenal_lab":

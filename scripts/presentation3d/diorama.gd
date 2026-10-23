@@ -12,6 +12,13 @@ var scenery: String = ""
 var relief: float = 0.0
 ## Photo materials and realistic sprites (kept as an option; the vale went back to the stylised look).
 var photo: bool = false
+## Optional [[x, z] high, [x, z] low]: the land falls from the first point towards the second. Empty keeps
+## the first map's western plateau.
+var descent: Array = []
+## Simulation route ids whose enemies travel underground; they get no entrance building.
+var burrow_routes: Array = []
+## [x, z, radius] areas kept at ground level (lakes, plazas) on relief maps.
+var flats: Array = []
 var _heights: PackedFloat32Array = PackedFloat32Array()
 const HEIGHT_STEP: float = 0.5
 const HEIGHT_ORIGIN: Vector2 = Vector2(-48, -32)
@@ -121,9 +128,19 @@ func _build_heights() -> void:
 			var water: float = smoothstep(river_width * 0.5 + 0.4, river_width * 0.5 + 3.0, absf(point.x - river_x))
 			# The land descends from a high western plateau (where the road enters) to the valley floor in the
 			# east, so the road visibly climbs down; open ground carries flat-topped knolls with steep sides.
-			var descent: float = 2.6 * (1.0 - smoothstep(-20.0, 6.0, point.x))
+			var fall: float = 2.6 * (1.0 - smoothstep(-20.0, 6.0, point.x))
+			if descent.size() == 2:
+				var high: Vector2 = Vector2(float(descent[0][0]), float(descent[0][1]))
+				var low: Vector2 = Vector2(float(descent[1][0]), float(descent[1][1]))
+				var along: float = (Vector2(point.x, point.z) - high).dot(low - high) / (low - high).length_squared()
+				fall = 2.6 * (1.0 - smoothstep(0.0, 1.0, along))
+			# Canyon knolls are steep-sided mesas; elsewhere they are softer rises.
 			var knoll: float = smoothstep(0.12, 0.34, hills.get_noise_2d(point.x, point.z)) * 2.0 * open
-			var height: float = (descent + roll.get_noise_2d(point.x, point.z) * 0.35 + knoll + ridge * 2.6) * relief
+			if biome == "canyon": knoll = smoothstep(0.16, 0.22, hills.get_noise_2d(point.x, point.z)) * 2.4 * open
+			var height: float = (fall +roll.get_noise_2d(point.x, point.z) * 0.35 + knoll + ridge * 2.6) * relief
+			for flat: Array in flats:
+				var reach: float = Vector2(point.x - float(flat[0]), point.z - float(flat[1])).length()
+				height *= smoothstep(float(flat[2]), float(flat[2]) + 3.0, reach)
 			_heights[row * HEIGHT_SIZE.x + column] = height * water
 
 ## Height a building's floor needs on uneven ground: the highest point under its footprint, so a
@@ -163,6 +180,19 @@ func _terrain_mesh() -> ArrayMesh:
 	surface.generate_normals()
 	return surface.commit()
 
+## Drifting cloud shadows painted by the terrain shader itself, so they follow the hills instead of a flat
+## sheet cutting through them.
+func _cloud_texture() -> NoiseTexture2D:
+	var noise: FastNoiseLite = FastNoiseLite.new()
+	noise.frequency = 0.012
+	noise.fractal_octaves = 3
+	var texture: NoiseTexture2D = NoiseTexture2D.new()
+	texture.width = 256
+	texture.height = 256
+	texture.seamless = true
+	texture.noise = noise
+	return texture
+
 func _photo_ground() -> ShaderMaterial:
 	var ground: ShaderMaterial = ShaderMaterial.new()
 	ground.shader = load("res://scripts/presentation3d/ground_pbr.gdshader") as Shader
@@ -199,10 +229,13 @@ func _build_ground() -> void:
 	if biome == "canyon":
 		grass.set_shader_parameter("deep_color", Color("714538"))
 		grass.set_shader_parameter("light_color", Color("b67b50"))
+		grass.set_shader_parameter("slope_color", Color("8a4a35"))
 	if biome == "swamp":
 		grass.set_shader_parameter("grain_scale", 0.06)
 		grass.set_shader_parameter("deep_color", Color("35473e"))
 		grass.set_shader_parameter("light_color", Color("4f6050"))
+		grass.set_shader_parameter("slope_color", Color("4a4436"))
+	if relief > 0.0: grass.set_shader_parameter("clouds", _cloud_texture())
 	var earth: StandardMaterial3D = SceneCraft3D.material(Color("665341"))
 	SceneCraft3D.box(self, Vector3(96, 1.2, 64), Vector3(0, -0.75, 0), earth)
 	if photo or relief > 0.0:
@@ -247,7 +280,7 @@ func _build_route() -> void:
 		var direction: Vector3 = (route.sample_baked(minf(distance + 0.2, route.get_baked_length())) - point).normalized()
 		var normal: Vector3 = Vector3(-direction.z, 0, direction.x)
 		point += normal * rng.randf_range(-0.8, 0.8)
-		var stone: MeshInstance3D = SceneCraft3D.sphere(self, rng.randf_range(0.025, 0.065), point + Vector3(0, 0.085, 0), pebble)
+		var stone: MeshInstance3D = SceneCraft3D.sphere(self, rng.randf_range(0.025, 0.065), point + Vector3(0, 0.085 + terrain_height(point), 0), pebble)
 		stone.scale.y = 0.35
 
 func _build_road_surface(width: float, height: float, color: Color) -> void:
@@ -534,6 +567,7 @@ func _build_swamp_hero() -> void:
 	var hero: Node3D = Node3D.new()
 	hero.name = "SwampLandmark%d" % stage_index
 	hero.position = Vector3(-23,0.1,-1)
+	hero.position.y += terrain_height(hero.position)
 	add_child(hero)
 	var stone: StandardMaterial3D = SceneCraft3D.material(Color("687c70"),0.95)
 	var moss: StandardMaterial3D = SceneCraft3D.material(Color("546a4a"))

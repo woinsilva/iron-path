@@ -29,7 +29,8 @@ func _ready() -> void:
 	var look: Dictionary = palette.get(diorama.biome, palette.vale)
 	if int(look.count) > 0: _scatter(look.blades, int(look.count), _blade_mesh(), 0.9, 1.6)
 	if not (look.flowers as Array).is_empty(): _scatter(look.flowers, 260, _flower_mesh(), 0.8, 1.3)
-	_cloud_shadows()
+	# On relief maps the terrain shader draws the cloud shadows so they follow the hills.
+	if diorama.relief <= 0.0: _cloud_shadows()
 	if diorama.biome == "swamp":
 		_low_fog()
 		_motes(Color("d9ff9a"), 40, 2.5, 0.6)
@@ -63,6 +64,7 @@ func _scatter(colors: Array, count: int, mesh: Mesh, min_scale: float, max_scale
 		attempts += 1
 		var point: Vector3 = Vector3(rng.randf_range(-21, 21), 0.1, rng.randf_range(-12.5, 12.5))
 		if not _open_ground(point): continue
+		point.y += diorama.terrain_height(point)
 		var basis: Basis = Basis(Vector3.UP, rng.randf_range(-PI, PI)).scaled(Vector3.ONE * rng.randf_range(min_scale, max_scale))
 		transforms.append(Transform3D(basis, point))
 		tints.append((colors[rng.randi() % colors.size()] as Color).lightened(rng.randf_range(-0.08, 0.08)))
@@ -177,7 +179,11 @@ func _low_fog() -> void:
 	var sheet: MeshInstance3D = MeshInstance3D.new()
 	sheet.mesh = plane
 	sheet.material_override = _fog
-	sheet.position.y = 0.45
+	# Over relief the mist floats just above the highest ground on the board instead of cutting the hills.
+	var top: float = 0.0
+	for x in range(-21, 22, 2):
+		for z in range(-13, 14, 2): top = maxf(top, diorama.terrain_height(Vector3(x, 0, z)))
+	sheet.position.y = 0.45 + top
 	sheet.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(sheet)
 	sheet.add_to_group(DETAIL_GROUP)

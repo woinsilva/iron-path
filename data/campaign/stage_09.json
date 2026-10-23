@@ -609,6 +609,9 @@
     ]
   ],
   "scenery": "swamp_lake",
+  "relief": 0.6,
+  "descent": [[16.0, -10.0], [-14.0, 0.0]],
+  "flats": [[-14.0, -0.5, 3.6]],
   "blocked_zones": [
     [
       -17.4,

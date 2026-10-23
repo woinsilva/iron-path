@@ -562,6 +562,7 @@
     ]
   ],
   "scenery": "canyon_bridges",
+  "relief": 1.0,
   "route_labels": [
     "Ponte Norte",
     "Trilha aérea",
