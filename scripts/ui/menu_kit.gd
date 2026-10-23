@@ -54,12 +54,14 @@ static func theme() -> Theme:
 	if _theme != null: return _theme
 	_theme = Theme.new()
 	for type_name: String in ["Button", "OptionButton"]:
-		_theme.set_stylebox("normal", type_name, _raised(Color("1d4a52"), Color("2f6a70")))
-		_theme.set_stylebox("hover", type_name, _raised(Color("25606a"), GOLD))
-		_theme.set_stylebox("pressed", type_name, _raised(Color("6b5726"), GOLD))
-		_theme.set_stylebox("hover_pressed", type_name, _raised(Color("7a6430"), Color("fff0c2")))
-		_theme.set_stylebox("disabled", type_name, box(Color(0.08, 0.17, 0.19, 0.72), Color(0.2, 0.3, 0.32, 0.6), 22, 2))
-		_theme.set_stylebox("focus", type_name, box(Color(0, 0, 0, 0), GOLD, 22, 3))
+		_theme.set_stylebox("normal", type_name, skin("teal"))
+		_theme.set_stylebox("hover", type_name, skin("teal", Color(1.15, 1.15, 1.15)))
+		_theme.set_stylebox("pressed", type_name, skin("gold"))
+		_theme.set_stylebox("hover_pressed", type_name, skin("gold", Color(1.08, 1.08, 1.08)))
+		_theme.set_stylebox("disabled", type_name, skin("grey", Color(1, 1, 1, 0.75)))
+		_theme.set_stylebox("focus", type_name, StyleBoxEmpty.new())
+		_theme.set_constant("outline_size", type_name, 6)
+		_theme.set_color("font_outline_color", type_name, Color(0.03, 0.1, 0.12, 0.9))
 		_theme.set_color("font_color", type_name, Color("f3f6ee"))
 		for state: String in ["font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
 			_theme.set_color(state, type_name, Color("fff6dc"))
@@ -83,6 +85,20 @@ static func theme() -> Theme:
 	return _theme
 
 
+## Glossy mobile button skin (art/ui/skins): gradient body, thick outline, highlight band, drop lip.
+static func skin(name: String, tint: Color = Color.WHITE) -> StyleBoxTexture:
+	var style: StyleBoxTexture = StyleBoxTexture.new()
+	style.texture = load("res://art/ui/skins/button_%s.svg" % name) as Texture2D
+	style.set_texture_margin_all(34)
+	style.texture_margin_bottom = 40
+	style.content_margin_left = 26
+	style.content_margin_right = 26
+	style.content_margin_top = 14
+	style.content_margin_bottom = 22
+	style.modulate_color = tint
+	return style
+
+
 ## Chunky mobile button: a darker bottom edge that reads as a pressable surface.
 static func _raised(fill: Color, border: Color) -> StyleBoxFlat:
 	var style: StyleBoxFlat = box(fill, border, 22, 2)
@@ -95,12 +111,14 @@ static func _raised(fill: Color, border: Color) -> StyleBoxFlat:
 
 
 static func primary(button: Button) -> void:
-	for state: String in ["normal", "hover", "pressed", "focus", "hover_pressed"]:
-		var style: StyleBoxFlat = _raised(Color("f2d38a") if state == "hover" else Color("e3bf6c"), Color("9c7a2f"))
-		if state == "focus": style.border_color = Color("fff0c2")
-		button.add_theme_stylebox_override(state, style)
+	button.add_theme_stylebox_override("normal", skin("gold"))
+	button.add_theme_stylebox_override("hover", skin("gold", Color(1.08, 1.08, 1.08)))
+	button.add_theme_stylebox_override("pressed", skin("gold", Color(0.9, 0.9, 0.9)))
+	button.add_theme_stylebox_override("hover_pressed", skin("gold", Color(0.95, 0.95, 0.95)))
 	for color: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color", "icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_focus_color"]:
-		button.add_theme_color_override(color, Color("2a2312"))
+		button.add_theme_color_override(color, Color("3a2408"))
+	button.add_theme_color_override("font_outline_color", Color(1, 0.95, 0.8, 0.5))
+	button.add_theme_constant_override("outline_size", 2)
 
 
 static func icon(name: String) -> Texture2D:

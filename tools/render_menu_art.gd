@@ -14,7 +14,6 @@ func open(stage_path: String) -> BattleViewV2:
 	await process_frame
 	while battle._warming_up: await process_frame
 	for layer: Node in battle.find_children("*", "CanvasLayer", true, false): (layer as CanvasLayer).hide()
-	for pad: Node3D in battle._pads: (pad.get_child(2) as Label3D).hide()
 	battle.simulation.coins = 99999
 	return battle
 func advance(battle: BattleViewV2, seconds: float) -> void:
@@ -35,7 +34,7 @@ func save(name: String, region: Rect2i = Rect2i(), size: Vector2i = Vector2i(128
 	print("saved ", name)
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
-	for entry: Array in [["vale", "res://data/campaign/stage_04.json"], ["canyon", "res://data/campaign/stage_07.json"], ["swamp", "res://data/campaign/stage_10.json"]]:
+	for entry: Array in [["vale", "res://data/campaign/stage_01.json"], ["canyon", "res://data/campaign/stage_05.json"], ["swamp", "res://data/campaign/stage_09.json"]]:
 		var battle: BattleViewV2 = await open(str(entry[1]))
 		var allowed: Array = battle.stage.allowed_towers
 		for pad in range(mini(6, battle.simulation.pads.size())):

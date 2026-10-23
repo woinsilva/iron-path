@@ -74,6 +74,7 @@ func _ready() -> void:
 	diorama.route_points = stage.get("route_points", [])
 	diorama.additional_route_points = stage.get("extra_route_points", [])
 	diorama.biome = str(stage.get("biome", "vale"))
+	diorama.scenery = str(stage.get("scenery", ""))
 	diorama.stage_index = int(stage.index)
 	if int(stage.index) in [6, 7]: diorama.river_x = -20.3
 	if str(stage.id) == "arsenal_lab":

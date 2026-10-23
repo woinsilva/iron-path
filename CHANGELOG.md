@@ -5,6 +5,14 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Unreleased] — 2026-10-19
 
+### Rodada 2 — jogar como app de celular (2026-10-23)
+- Batalha em tela cheia: vidas, moedas e onda flutuam no canto superior esquerdo, controles redondos no direito e uma barra compacta de cartas de torre embaixo. Ações da torre selecionada aparecem num menu flutuante junto dela.
+- Posicionamento livre: o jogador arrasta a carta até o mapa; a torre fantasma fica verde onde pode ser construída e vermelha sobre a rua, a água ou colada em outra torre (`BattleSimV2.can_build_at` / `build_at`, teste `test_placement.gd`).
+- Mapas novos das fases 1, 5 e 9 (`scenery` em cada fase, `scripts/presentation3d/map_scenery.gd`): vale de fazenda com vila, chaminés fumegando, lago e cercas; cânion com rio, cachoeira animada e mesas de rocha; pântano com lago enevoado, juncos e colunata rúnica. O entorno do tabuleiro é preenchido até as bordas da tela.
+- Movimento: árvores e arbustos balançam com o vento no shader (`foliage.gdshader`), bandeiras tremulam (`flag.gdshader`), fumaça e espuma em partículas.
+- Menus: botões brilhantes com gradiente e contorno (`art/ui/skins`), fonte Lilita One e a tela inicial mostrando o mapa da fase 1 vivo, com a câmera passeando.
+- Balanceamento dos mapas novos: fase 1 com 76% da ameaça escrita, fase 5 com 1.000 moedas iniciais e a segunda entrada só na segunda metade das ondas, fase 9 com 1.700 moedas e 96% da ameaça.
+
 ### Fase 6 — cenários mais vivos e mapas com mais entradas (2026-10-22)
 - Cada bioma ganhou tufos de grama (Vale, Garganta e Pântano com paletas próprias), flores no Vale, sombras de nuvens passando, névoa baixa no Pântano e partículas no ar (pólen, poeira, vaga-lumes), via `scripts/presentation3d/biome_dressing.gd`. Tudo some no perfil Economia e nada é colocado sobre estradas ou bases.
 - Novas entradas de inimigos: fases 6, 7 e 9 passam a ter duas entradas terrestres e as fases 11 e 12, três (além da trilha aérea). As ondas da segunda metade usam as entradas novas, anunciadas pelo nome na previsão de onda; o cartão da fase mostra quantas entradas existem.

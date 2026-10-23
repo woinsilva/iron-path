@@ -4,7 +4,6 @@
   "index": 9,
   "name": "Ruínas Veladas",
   "biome": "swamp",
-  "starting_coins": 1500,
   "lives": 20,
   "max_level": 6,
   "allowed_towers": [
@@ -17,85 +16,13 @@
     "arcane",
     "banner"
   ],
-  "pads": [
-    [
-      -14,
-      0,
-      -4
-    ],
-    [
-      -9,
-      0,
-      9
-    ],
-    [
-      3,
-      0,
-      -4
-    ],
-    [
-      10,
-      0,
-      -2
-    ],
-    [
-      9,
-      0,
-      3
-    ],
-    [
-      1,
-      0,
-      3
-    ],
-    [
-      -6,
-      0,
-      2
-    ],
-    [
-      -3,
-      0,
-      -4
-    ],
-    [
-      -16,
-      0,
-      1
-    ],
-    [
-      18,
-      0,
-      0
-    ],
-    [
-      -4,
-      0,
-      -10
-    ],
-    [
-      -16,
-      0,
-      -10
-    ],
-    [
-      -5.9,
-      0,
-      -4
-    ],
-    [
-      -0.1,
-      0,
-      -4
-    ]
-  ],
   "waves": [
     {
       "interval": 8,
       "groups": [
         {
           "enemy": "grunt_elite",
-          "count": 6,
+          "count": 7,
           "interval": 1.2,
           "route": 0,
           "at": 0
@@ -126,7 +53,7 @@
         },
         {
           "enemy": "resistant",
-          "count": 2,
+          "count": 3,
           "interval": 2.1,
           "route": 0,
           "at": 4
@@ -138,14 +65,14 @@
       "groups": [
         {
           "enemy": "swarm",
-          "count": 14,
+          "count": 16,
           "interval": 0.4,
           "route": 0,
           "at": 0
         },
         {
           "enemy": "runner_veteran",
-          "count": 3,
+          "count": 4,
           "interval": 1,
           "route": 0,
           "at": 5
@@ -157,7 +84,7 @@
       "groups": [
         {
           "enemy": "flyer",
-          "count": 6,
+          "count": 7,
           "interval": 1,
           "route": 1,
           "at": 0
@@ -176,7 +103,7 @@
       "groups": [
         {
           "enemy": "resistant",
-          "count": 6,
+          "count": 7,
           "interval": 1.6,
           "route": 0,
           "at": 0
@@ -202,7 +129,7 @@
         },
         {
           "enemy": "runner_veteran",
-          "count": 5,
+          "count": 6,
           "interval": 0.9,
           "route": 0,
           "at": 3
@@ -221,7 +148,7 @@
         },
         {
           "enemy": "swarm",
-          "count": 14,
+          "count": 17,
           "interval": 0.35,
           "route": 0,
           "at": 2
@@ -233,7 +160,7 @@
       "groups": [
         {
           "enemy": "brute",
-          "count": 2,
+          "count": 3,
           "interval": 3,
           "route": 2,
           "at": 0
@@ -252,14 +179,14 @@
       "groups": [
         {
           "enemy": "resistant",
-          "count": 6,
+          "count": 7,
           "interval": 1.3,
           "route": 0,
           "at": 0
         },
         {
           "enemy": "armored",
-          "count": 4,
+          "count": 5,
           "interval": 1.7,
           "route": 0,
           "at": 4
@@ -271,14 +198,14 @@
       "groups": [
         {
           "enemy": "resistant",
-          "count": 7,
+          "count": 8,
           "interval": 1.1,
           "route": 2,
           "at": 0
         },
         {
           "enemy": "healer",
-          "count": 3,
+          "count": 5,
           "interval": 3,
           "route": 0,
           "at": 3
@@ -290,14 +217,14 @@
       "groups": [
         {
           "enemy": "swarm",
-          "count": 30,
+          "count": 35,
           "interval": 0.3,
           "route": 0,
           "at": 0
         },
         {
           "enemy": "shieldbearer",
-          "count": 4,
+          "count": 5,
           "interval": 1.4,
           "route": 0,
           "at": 4
@@ -309,7 +236,7 @@
       "groups": [
         {
           "enemy": "runner_veteran",
-          "count": 13,
+          "count": 16,
           "interval": 0.7,
           "route": 2,
           "at": 0
@@ -328,7 +255,7 @@
       "groups": [
         {
           "enemy": "flyer",
-          "count": 9,
+          "count": 11,
           "interval": 0.7,
           "route": 1,
           "at": 0
@@ -347,7 +274,7 @@
       "groups": [
         {
           "enemy": "brute",
-          "count": 3,
+          "count": 4,
           "interval": 2.8,
           "route": 0,
           "at": 0
@@ -366,21 +293,21 @@
       "groups": [
         {
           "enemy": "armored",
-          "count": 9,
+          "count": 10,
           "interval": 1.1,
           "route": 2,
           "at": 0
         },
         {
           "enemy": "healer",
-          "count": 2,
+          "count": 3,
           "interval": 4,
           "route": 0,
           "at": 4
         },
         {
           "enemy": "swarm",
-          "count": 24,
+          "count": 23,
           "interval": 0.4,
           "route": 0,
           "at": 7
@@ -392,14 +319,14 @@
       "groups": [
         {
           "enemy": "resistant",
-          "count": 7,
+          "count": 9,
           "interval": 1,
           "route": 0,
           "at": 0
         },
         {
           "enemy": "standardbearer",
-          "count": 4,
+          "count": 2,
           "interval": 4,
           "route": 0,
           "at": 3
@@ -411,14 +338,14 @@
       "groups": [
         {
           "enemy": "flyer_heavy",
-          "count": 6,
+          "count": 7,
           "interval": 1.1,
           "route": 1,
           "at": 0
         },
         {
           "enemy": "runner_veteran",
-          "count": 9,
+          "count": 10,
           "interval": 0.7,
           "route": 2,
           "at": 2
@@ -430,14 +357,14 @@
       "groups": [
         {
           "enemy": "resistant",
-          "count": 8,
+          "count": 9,
           "interval": 1.1,
           "route": 0,
           "at": 0
         },
         {
           "enemy": "flyer_heavy",
-          "count": 4,
+          "count": 5,
           "interval": 1.2,
           "route": 1,
           "at": 4
@@ -456,14 +383,14 @@
         },
         {
           "enemy": "resistant",
-          "count": 9,
+          "count": 10,
           "interval": 1,
           "route": 0,
           "at": 2
         },
         {
           "enemy": "runner_veteran",
-          "count": 9,
+          "count": 10,
           "interval": 0.7,
           "route": 0,
           "at": 10
@@ -473,76 +400,227 @@
   ],
   "route_points": [
     [
-      -19,
-      0,
-      -7
+      -21.0,
+      0.0,
+      -8.0
     ],
     [
-      -9,
-      0,
-      -7
+      -15.0,
+      0.0,
+      -8.0
     ],
     [
-      4,
-      0,
-      -7
+      -10.0,
+      0.0,
+      -5.0
     ],
     [
-      14,
-      0,
-      -5
+      -4.0,
+      0.0,
+      -8.0
     ],
     [
-      14,
-      0,
-      3
+      3.0,
+      0.0,
+      -8.0
     ],
     [
-      6,
-      0,
-      6
+      8.0,
+      0.0,
+      -5.0
     ],
     [
-      -5,
-      0,
-      6
+      7.0,
+      0.0,
+      0.0
     ],
     [
-      -13,
-      0,
-      3
+      1.0,
+      0.0,
+      1.0
     ],
     [
-      -11,
-      0,
-      -1
+      -3.0,
+      0.0,
+      4.0
     ],
     [
-      -3,
-      0,
-      -1
+      1.0,
+      0.0,
+      8.0
     ],
     [
-      5,
-      0,
-      0
+      8.0,
+      0.0,
+      8.0
+    ],
+    [
+      13.0,
+      0.0,
+      5.0
+    ],
+    [
+      16.0,
+      0.0,
+      0.0
+    ],
+    [
+      13.0,
+      0.0,
+      -4.0
+    ]
+  ],
+  "extra_route_points": [
+    [
+      [
+        -21.0,
+        0.0,
+        6.0
+      ],
+      [
+        -16.0,
+        0.0,
+        5.0
+      ],
+      [
+        -11.0,
+        0.0,
+        8.0
+      ],
+      [
+        -5.0,
+        0.0,
+        8.5
+      ],
+      [
+        1.0,
+        0.0,
+        8.0
+      ],
+      [
+        8.0,
+        0.0,
+        8.0
+      ],
+      [
+        13.0,
+        0.0,
+        5.0
+      ],
+      [
+        16.0,
+        0.0,
+        0.0
+      ],
+      [
+        13.0,
+        0.0,
+        -4.0
+      ]
     ]
   ],
   "air_route_points": [
     [
-      -19,
-      0,
-      -9
+      -19.0,
+      0.0,
+      -9.0
     ],
     [
-      -7,
-      0,
-      -4
+      -4.0,
+      0.0,
+      -5.0
     ],
     [
-      5,
-      0,
-      0
+      13.0,
+      0.0,
+      -4.0
+    ]
+  ],
+  "pads": [
+    [
+      -12.0,
+      0.0,
+      -3.3
+    ],
+    [
+      -7.0,
+      0.0,
+      -3.5
+    ],
+    [
+      4.6,
+      0.0,
+      5.0
+    ],
+    [
+      11.0,
+      0.0,
+      -4.8
+    ],
+    [
+      -1.0,
+      0.0,
+      -5.0
+    ],
+    [
+      -14.0,
+      0.0,
+      2.8
+    ],
+    [
+      10.5,
+      0.0,
+      3.2
+    ],
+    [
+      7.6,
+      0.0,
+      4.0
+    ],
+    [
+      -6.5,
+      0.0,
+      4.8
+    ],
+    [
+      16.5,
+      0.0,
+      -6.0
+    ],
+    [
+      -3.5,
+      0.0,
+      0.5
+    ],
+    [
+      9.5,
+      0.0,
+      -8.0
+    ],
+    [
+      11.6,
+      0.0,
+      -1.2
+    ],
+    [
+      4.0,
+      0.0,
+      -4.2
+    ]
+  ],
+  "scenery": "swamp_lake",
+  "blocked_zones": [
+    [
+      -17.4,
+      -2.4,
+      6.6,
+      3.8
+    ],
+    [
+      17.1,
+      -16,
+      4.4,
+      32
     ]
   ],
   "route_labels": [
@@ -550,38 +628,5 @@
     "Trilha aérea",
     "Atalho do Brejo"
   ],
-  "extra_route_points": [
-    [
-      [
-        -19.0,
-        0.0,
-        8.0
-      ],
-      [
-        -15.0,
-        0.0,
-        7.0
-      ],
-      [
-        -13.0,
-        0.0,
-        3.0
-      ],
-      [
-        -11.0,
-        0.0,
-        -1.0
-      ],
-      [
-        -3.0,
-        0.0,
-        -1.0
-      ],
-      [
-        5.0,
-        0.0,
-        0.0
-      ]
-    ]
-  ]
+  "starting_coins": 1700
 }

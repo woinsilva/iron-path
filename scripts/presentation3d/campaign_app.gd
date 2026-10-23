@@ -214,12 +214,8 @@ func _star_chip(parent: Node) -> PanelContainer:
 	MenuKitV2.label(row, "%d / 36" % _total_stars(), 32, Color("fff6dc")).size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	return chip
 func _build_home(root: Control) -> void:
-	var art: TextureRect = MenuKitV2.cover(root, "res://art/ui/backdrop_vale.jpg")
-	art.resized.connect(func() -> void: art.pivot_offset = art.size / 2)
-	var drift: Tween = art.create_tween().set_loops()
-	drift.tween_property(art, "scale", Vector2(1.08, 1.08), 16.0).set_trans(Tween.TRANS_SINE)
-	drift.tween_property(art, "scale", Vector2.ONE, 16.0).set_trans(Tween.TRANS_SINE)
-	MenuKitV2.shade(root, 0.45, 0.88)
+	_live_backdrop()
+	MenuKitV2.shade(root, 0.15, 0.78)
 	var frame: Control = Control.new()
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	MenuKitV2.safe_margin(root, 44).add_child(frame)
@@ -279,6 +275,27 @@ func _build_home(root: Control) -> void:
 	var version: Label = MenuKitV2.label(frame, "Versão 0.9.0-rc1", 22, Color("8ba4a4"))
 	version.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	version.grow_vertical = Control.GROW_DIRECTION_BEGIN
+## The title screen shows the real first map, alive (wind, smoke, flags), under a slow camera drift.
+func _live_backdrop() -> void:
+	var stage: Dictionary = StageSessionV2.read_stage("res://data/campaign/stage_01.json")
+	var view: Diorama3D = Diorama3D.new()
+	view.name = "MenuDiorama"
+	view.route_points = stage.route_points
+	view.biome = str(stage.biome)
+	view.scenery = str(stage.get("scenery", ""))
+	view.stage_index = 1
+	menu.add_child(view)
+	var landmarks: StageLandmarksV2 = StageLandmarksV2.new()
+	landmarks.entrance = view.route.sample_baked(0)
+	landmarks.endpoint = view.route.sample_baked(view.route.get_baked_length())
+	menu.add_child(landmarks)
+	var camera: Camera3D = view.camera
+	camera.size = 26.0
+	var drift: Tween = view.create_tween().set_loops()
+	drift.tween_property(camera, "h_offset", 5.0, 14.0).set_trans(Tween.TRANS_SINE)
+	drift.parallel().tween_property(camera, "size", 22.0, 14.0).set_trans(Tween.TRANS_SINE)
+	drift.tween_property(camera, "h_offset", -5.0, 14.0).set_trans(Tween.TRANS_SINE)
+	drift.parallel().tween_property(camera, "size", 26.0, 14.0).set_trans(Tween.TRANS_SINE)
 func _build_map(root: Control) -> void:
 	var backdrop: ColorRect = ColorRect.new()
 	backdrop.color = Color("0a1c20")

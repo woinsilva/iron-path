@@ -16,7 +16,7 @@ func run() -> void:
 	battle.set_physics_process(false)
 	var clear: bool = true
 	for pad: Vector3 in battle.simulation.pads:
-		clear = clear and battle.simulation.routes[0].get_closest_point(pad).distance_to(pad) >= 2.2
+		clear = clear and battle.simulation.can_build_at(pad)
 	check(clear, "Swamp bases remain outside the new road")
 	check(battle.diorama.find_children("RunicRuin*", "", false, false).size() >= 4, "Swamp has its own runic ruin geometry")
 	var enemy: SimEnemyV2 = battle.simulation.spawn_enemy("resistant", 0, 24)

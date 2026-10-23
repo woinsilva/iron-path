@@ -20,7 +20,7 @@ func run() -> void:
 	check(battle.diorama.all_ground_routes.size() == 2 and battle.diorama.bridge_centers.size() == 2, "Twin bridges draw both ground entries with exactly two unique crossings")
 	var clear_layout: bool = true
 	for pad: Vector3 in battle.simulation.pads:
-		for route_id in [0, 2]: clear_layout = clear_layout and battle.simulation.routes[route_id].get_closest_point(pad).distance_to(pad) >= 2.2
+		for route_id in [0, 2]: clear_layout = clear_layout and battle.simulation.routes[route_id].get_closest_point(pad).distance_to(pad) >= float(battle.simulation.placement_rules.road_clearance)
 		clear_layout = clear_layout and absf(pad.x) >= 2.2
 	check(clear_layout, "Every build base clears both roads and the river")
 	check(battle._next_wave.text.contains("Ponte Norte"), "Upcoming wave announces its entry before spawning")

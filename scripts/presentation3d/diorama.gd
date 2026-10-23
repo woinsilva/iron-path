@@ -5,6 +5,8 @@ var route_points: Array = []
 var additional_route_points: Array = []
 var all_ground_routes: Array[Curve3D] = []
 var biome: String = "vale"
+## Name of a hand-dressed map (MapSceneryV2); empty keeps the generic biome dressing.
+var scenery: String = ""
 var stage_index: int = 1
 var reserved_positions: PackedVector3Array = PackedVector3Array()
 var river_x: float = 19.3
@@ -39,7 +41,8 @@ func _ready() -> void:
 	route = primary
 	_build_banks()
 	_build_verge_details()
-	if biome == "swamp": _build_swamp()
+	if not scenery.is_empty(): MapSceneryV2.build(self, scenery)
+	elif biome == "swamp": _build_swamp()
 	elif biome == "canyon": _build_canyon()
 	else: _build_forest()
 	BiomeDressingV2.dress(self)
@@ -98,13 +101,13 @@ func _build_ground() -> void:
 		grass.set_shader_parameter("deep_color", Color("35473e"))
 		grass.set_shader_parameter("light_color", Color("4f6050"))
 	var earth: StandardMaterial3D = SceneCraft3D.material(Color("665341"))
-	SceneCraft3D.box(self, Vector3(72, 1.2, 44), Vector3(0, -0.75, 0), earth)
-	SceneCraft3D.box(self, Vector3(72, 0.22, 44), Vector3(0, -0.06, 0), grass)
+	SceneCraft3D.box(self, Vector3(96, 1.2, 64), Vector3(0, -0.75, 0), earth)
+	SceneCraft3D.box(self, Vector3(96, 0.22, 64), Vector3(0, -0.06, 0), grass)
 	_water_surface = ShaderMaterial.new()
 	_water_surface.shader = load("res://scripts/presentation3d/water.gdshader") as Shader
 	_water_surface.set_shader_parameter("phase",0.0)
 	_water_surface.set_shader_parameter("deep_color",Color("2c5d5a") if biome == "swamp" else Color("3c8492"))
-	water = SceneCraft3D.box(self, Vector3(river_width, 0.12, 44), Vector3(river_x, 0.08, 0), _water_surface)
+	water = SceneCraft3D.box(self, Vector3(river_width, 0.12, 64), Vector3(river_x, 0.08, 0), _water_surface)
 
 func _build_route() -> void:
 	var controls: PackedVector3Array = PackedVector3Array([
@@ -196,8 +199,6 @@ func _distance_from_route(point: Vector3) -> float:
 func _process(delta: float) -> void:
 	_wind_time += delta
 	if _water_surface != null: _water_surface.set_shader_parameter("phase",_wind_time)
-	for index in range(_foliage.size()):
-		_foliage[index].rotation.z = sin(_wind_time * 0.65 + index * 0.8) * 0.007
 
 func _style_foliage(node: Node) -> void:
 	if node is MeshInstance3D:

@@ -76,3 +76,8 @@ P10: splash PNG e ícone PNG rasterizados dos SVG próprios com tools/assets/ren
 - `art/ui/tower_*.jpg`: retratos das oito famílias em L3, renderizados pelo mesmo script no Laboratório do Arsenal.
 - `art/ui/icons/*.svg`: ícones vetoriais desenhados para o projeto (voltar, fechar, engrenagem, livro, informação, estrela, cadeado, jogar, troféu, frasco).
 - `art/branding/intro_logo.ogv`: conversão para Theora/Vorbis de `animated-logo.mp4` (logo do estúdio fornecido pelo usuário), com áudio normalizado e final estendido.
+
+### Rodada 2 — 2026-10-23
+- `art/fonts/LilitaOne-Regular.ttf`: Lilita One, de Juan Montoreano, SIL Open Font License 1.1 (`art/fonts/OFL-LilitaOne.txt`), baixada de github.com/google/fonts com autorização do usuário.
+- `art/models/` (Tree_1_B, Tree_2_A, Tree_4_A/B, Tree_Bare_1_A/2_A, Bush_1_C/3_A/4_A, Rock_1_D/3_A/3_C/3_F, Grass_2_A): KayKit Forest Nature Pack 1.0 FREE (CC0), já no cache local, exportados por `tools/assets/prepare_props.py`.
+- `art/ui/skins/*.svg` e novos ícones em `art/ui/icons/` (coração, moeda, pausa, velocidade, casa, reiniciar, ajuda, escudo): desenhados para o projeto.
