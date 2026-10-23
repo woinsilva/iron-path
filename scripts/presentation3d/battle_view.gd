@@ -391,6 +391,8 @@ func _sync_towers(delta: float) -> void:
 		var module: Node3D = display.get_node_or_null("LevelDecor/BranchModule") as Node3D
 		if module != null and (display is CannonDisplay3D or display is ArcherDisplay3D or display is BallistaDisplayV2):
 			module.rotation.y = (display.get("turret") as Node3D).rotation.y
+		# A tower under construction or upgrade cannot fire, so it stops tracking enemies too.
+		if tower.state != SimTowerV2.State.READY: continue
 		var target: SimEnemyV2 = simulation.enemies.get(tower.pending_target) as SimEnemyV2
 		if target == null:
 			target = simulation.choose_target(tower)

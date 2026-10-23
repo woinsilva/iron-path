@@ -45,6 +45,13 @@ func run() -> void:
 	battle._unhandled_input(drag)
 	battle._unhandled_input(release)
 	check(battle._placing.is_empty() and not is_instance_valid(battle._ghost) and battle.simulation.towers.size() == towers_before, "Dropping a red ghost removes it and builds nothing")
+	# While upgrading, the tower neither fires nor turns to follow enemies.
+	battle.simulation.upgrade(placed)
+	var turret: Node3D = (battle.tower_views[tower.id] as Node3D).get("turret") as Node3D
+	var heading: float = turret.global_rotation.y
+	battle.simulation.spawn_enemy("grunt", 0, battle.simulation.routes[0].get_closest_offset(tower.position) - 2.0)
+	for tick in range(60): battle._physics_process(1.0 / 60)
+	check(tower.state == SimTowerV2.State.UPGRADING and is_equal_approx(turret.global_rotation.y, heading), "An upgrading tower keeps its aim still")
 	battle.queue_free()
 	await process_frame
 	print("P13 tower tap: %d checks; %d failures" % [checks, failures])
