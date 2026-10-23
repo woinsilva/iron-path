@@ -17,6 +17,12 @@ static func build(diorama: Diorama3D, scenery: String) -> void:
 		"vale_terraces": _vale_terraces(diorama)
 		"vale_river": _vale_river(diorama)
 		"vale_hillfort": _vale_hillfort(diorama)
+		"canyon_quarry": _canyon_quarry(diorama)
+		"canyon_fortress": _canyon_fortress(diorama)
+		"canyon_forge": _canyon_forge(diorama)
+		"swamp_causeway": _swamp_causeway(diorama)
+		"swamp_nest": _swamp_nest(diorama)
+		"swamp_heart": _swamp_heart(diorama)
 	_frame(diorama)
 
 
@@ -815,3 +821,415 @@ static func _vale_hillfort(diorama: Diorama3D) -> void:
 		SceneCraft3D.cylinder(diorama, 0.4, 0.1, _on_ground(diorama, fire) + Vector3(0, 0.05, 0), dark, 10)
 		_smoke(diorama, _on_ground(diorama, fire) + Vector3(0, 0.3, 0), Color(0.6, 0.58, 0.55, 0.5))
 	_road_fences(diorama, Color("7a5c3e"))
+
+
+# --- shared canyon pieces ------------------------------------------------------------------
+
+static func _first_free(diorama: Diorama3D, candidates: Array, road: float, reserved: float) -> Vector3:
+	for candidate: Vector3 in candidates:
+		if _free(diorama, candidate, road, reserved): return candidate
+	return Vector3.INF
+
+
+## Layered mesas along the top and bottom of the board, as if the canyon walls close in.
+static func _canyon_walls(diorama: Diorama3D, rng: RandomNumberGenerator, palette: Array) -> void:
+	for edge: float in [-1.0, 1.0]:
+		var x: float = -23.0
+		while x < 23.0:
+			var radius: float = rng.randf_range(1.5, 2.4)
+			var point: Vector3 = Vector3(x, 0, edge * rng.randf_range(11.8, 13.6))
+			x += radius * 1.35
+			if diorama._distance_from_route(point) < radius + 1.4 or absf(point.x - diorama.river_x) < diorama.river_width * 0.5 + radius: continue
+			var height: float = rng.randf_range(2.4, 4.6) * (0.65 if edge > 0 else 1.0)
+			var mesa: Node3D = Node3D.new()
+			mesa.position = _on_ground(diorama, point)
+			mesa.rotation.y = rng.randf_range(0, TAU)
+			diorama.add_child(mesa)
+			for layer in range(4):
+				var band: float = height / 4.0
+				SceneCraft3D.cylinder(mesa, radius * (1.0 - layer * 0.09) * rng.randf_range(0.95, 1.05), band, Vector3(0, band * (layer + 0.5), 0), palette[layer], 7)
+
+
+static func _canyon_props(diorama: Diorama3D, rng: RandomNumberGenerator) -> void:
+	_scatter(diorama, rng, ["Tree_Bare_1_A_Color1", "Tree_Bare_2_A_Color1"], 10, Rect2(-21, -11, 42, 22), 2.6, Vector2(0.5, 0.85))
+	_scatter(diorama, rng, ["Rock_1_A_Color1", "Rock_1_D_Color1", "Rock_2_A_Color1", "Rock_3_A_Color1", "Rock_3_C_Color1", "Rock_3_F_Color1"], 34, Rect2(-21, -11, 42, 22), 2.0, Vector2(0.6, 1.3), false)
+	_scatter(diorama, rng, ["Bush_4_A_Color1", "Bush_3_A_Color1"], 16, Rect2(-21, -11, 42, 22), 2.0, Vector2(0.5, 0.8))
+
+
+static func _canyon_palette() -> Array:
+	return [SceneCraft3D.material(Color("b06a46")), SceneCraft3D.material(Color("7d4836")), SceneCraft3D.material(Color("b06a46")), SceneCraft3D.material(Color("c2804f"))]
+
+
+static func _ore_cart(parent: Node3D, point: Vector3, angle: float, rng: RandomNumberGenerator) -> void:
+	var iron: StandardMaterial3D = SceneCraft3D.material(Color("3d3b39"), 0.5, 0.7)
+	var timber: StandardMaterial3D = SceneCraft3D.material(Color("6b4a2e"), 0.92)
+	var cart: Node3D = Node3D.new()
+	cart.position = point
+	cart.rotation.y = angle
+	cart.add_to_group(SCENERY_GROUP)
+	parent.add_child(cart)
+	SceneCraft3D.box(cart, Vector3(0.9, 0.55, 1.2), Vector3(0, 0.45, 0), iron)
+	for z: float in [-0.4, 0.4]:
+		for sign: float in [-1.0, 1.0]:
+			var wheel: MeshInstance3D = SceneCraft3D.cylinder(cart, 0.16, 0.08, Vector3(sign * 0.45, 0.16, z), timber, 10)
+			wheel.rotation.z = PI / 2
+	for ore in range(4): SceneCraft3D.sphere(cart, 0.16, Vector3(rng.randf_range(-0.2, 0.2), 0.8, rng.randf_range(-0.35, 0.35)), SceneCraft3D.material(Color("b9ad98"), 0.9))
+
+
+# --- Pedreira dos Gigantes: a working quarry with a crane, cut blocks and ore carts ----------
+
+static func _canyon_quarry(diorama: Diorama3D) -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 6606
+	_entrances(diorama, rng)
+	_canyon_walls(diorama, rng, _canyon_palette())
+	var stone: StandardMaterial3D = SceneCraft3D.material(Color("cdbf9f"), 0.9)
+	var cut: StandardMaterial3D = SceneCraft3D.material(Color("b8aa91"), 0.9)
+	var wood: StandardMaterial3D = SceneCraft3D.material(Color("694632"))
+	var steel: StandardMaterial3D = SceneCraft3D.material(Color("778080"), 0.6, 0.6)
+	# Stepped quarry face: terraces of pale stone cut into the hillside.
+	var face: Vector3 = _first_free(diorama, [Vector3(5, 0, 0.5), Vector3(4, 0, 1.5), Vector3(16, 0, 5)], 3.6, 3.0)
+	if face != Vector3.INF:
+		var pit: Node3D = Node3D.new()
+		pit.name = "QuarryFace"
+		pit.position = _on_ground(diorama, face)
+		diorama.add_child(pit)
+		for step in range(4):
+			var size: float = 3.4 - step * 0.7
+			var slab: MeshInstance3D = SceneCraft3D.box(pit, Vector3(size, 0.45, size * 0.8), Vector3(0, 0.22 + step * 0.45, -step * 0.25), stone if step % 2 == 0 else cut)
+			slab.rotation.y = 0.2
+		# Crane over the face hoisting a block.
+		var crane: Node3D = Node3D.new()
+		crane.position = Vector3(-1.6, 0, 0.8)
+		pit.add_child(crane)
+		for x: float in [-0.5, 0.5]: SceneCraft3D.box(crane, Vector3(0.22, 3.6, 0.22), Vector3(x, 1.8, 0), wood)
+		SceneCraft3D.box(crane, Vector3(4.4, 0.26, 0.26), Vector3(1.6, 3.5, 0), wood)
+		SceneCraft3D.beam(crane, Vector3(3.5, 3.5, 0), Vector3(3.5, 2.2, 0), 0.04, steel)
+		var block: MeshInstance3D = SceneCraft3D.box(crane, Vector3(0.8, 0.6, 0.6), Vector3(3.5, 1.9, 0), cut)
+		var hoist: Tween = block.create_tween().set_loops()
+		hoist.tween_property(block, "position:y", 2.6, 2.5).set_trans(Tween.TRANS_SINE)
+		hoist.tween_property(block, "position:y", 1.9, 2.5).set_trans(Tween.TRANS_SINE)
+	# Stacks of cut blocks and carts along the quarry track.
+	for index in range(10):
+		var point: Vector3 = Vector3(rng.randf_range(-18, 17), 0, rng.randf_range(-10, 10))
+		if not _free(diorama, point, 2.2, 2.0): continue
+		var pile: Node3D = Node3D.new()
+		pile.position = _on_ground(diorama, point)
+		pile.rotation.y = rng.randf_range(0, TAU)
+		pile.add_to_group(SCENERY_GROUP)
+		diorama.add_child(pile)
+		for level in range(rng.randi_range(1, 3)): SceneCraft3D.box(pile, Vector3(0.9, 0.5, 0.6), Vector3(rng.randf_range(-0.1, 0.1), 0.25 + level * 0.5, 0), stone if level % 2 == 0 else cut)
+	var track: Vector3 = _first_free(diorama, [Vector3(14, 0, 4), Vector3(15, 0, 7), Vector3(-17, 0, -8)], 2.4, 2.4)
+	if track != Vector3.INF:
+		for sign: float in [-1.0, 1.0]: SceneCraft3D.box(diorama, Vector3(0.06, 0.05, 6.0), _on_ground(diorama, track) + Vector3(sign * 0.45, 0.04, 0), steel)
+		for index in range(3): _ore_cart(diorama, _on_ground(diorama, track + Vector3(0, 0, -2.0 + index * 1.6)), 0.0, rng)
+	_canyon_props(diorama, rng)
+	var exit: Vector3 = diorama.route.sample_baked(diorama.route.get_baked_length())
+	_flag(diorama, _on_ground(diorama, exit + Vector3(-1.4, 0.1, -1.4)), Color("b8442e"))
+
+
+# --- Fortaleza Quebrada: a ruined border fort whose broken walls the roads pass through -------
+
+static func _canyon_fortress(diorama: Diorama3D) -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 7707
+	var stone: StandardMaterial3D = SceneCraft3D.material(Color("8d8b7d"), 0.95)
+	var dark: StandardMaterial3D = SceneCraft3D.material(Color("5f665f"), 0.95)
+	var cloth: StandardMaterial3D = SceneCraft3D.material(Color("7e2f2a"))
+	# Every entrance is a breach in the curtain wall: wall stubs either side and fallen stones.
+	for index in range(diorama.all_ground_routes.size()):
+		var breach: Node3D = _entrance_frame(diorama, diorama.all_ground_routes[index], "WallBreach%d" % index)
+		for sign: float in [-1.0, 1.0]:
+			var x: float = 2.0
+			while x < 8.0:
+				var height: float = rng.randf_range(1.4, 3.4) * (1.0 - (x - 2.0) * 0.06)
+				SceneCraft3D.box(breach, Vector3(1.5, height, 1.0), Vector3(sign * x, height * 0.5, 0.4), stone)
+				if rng.randf() < 0.6: SceneCraft3D.box(breach, Vector3(0.6, 0.55, 1.1), Vector3(sign * x, height + 0.27, 0.4), dark)
+				x += 1.5
+			SceneCraft3D.cylinder(breach, 1.2, 4.2, Vector3(sign * 2.4, 2.1, 0.6), stone, 10)
+			SceneCraft3D.cylinder(breach, 1.35, 0.3, Vector3(sign * 2.4, 4.2, 0.6), dark, 10)
+			var banner: MeshInstance3D = SceneCraft3D.box(breach, Vector3(0.7, 1.4, 0.05), Vector3(sign * 2.4, 2.8, -0.65), cloth)
+			banner.rotation.z = sign * 0.08
+		for chunk in range(6):
+			var piece: MeshInstance3D = SceneCraft3D.box(breach, Vector3(0.7, 0.45, 0.6), Vector3(rng.randf_range(-3.5, 3.5), 0.22, rng.randf_range(-2.4, -1.4)), dark)
+			piece.rotation.y = rng.randf_range(0, PI)
+	_canyon_walls(diorama, rng, _canyon_palette())
+	# The old keep stands broken in the middle of the board.
+	var keep_spot: Vector3 = _first_free(diorama, [Vector3(13, 0, -2), Vector3(14, 0, 0), Vector3(-12, 0, -8)], 3.2, 2.8)
+	if keep_spot != Vector3.INF:
+		var keep: Node3D = Node3D.new()
+		keep.name = "BrokenKeep"
+		keep.position = _on_ground(diorama, keep_spot)
+		diorama.add_child(keep)
+		SceneCraft3D.box(keep, Vector3(3.0, 3.6, 3.0), Vector3(0, 1.8, 0), stone)
+		SceneCraft3D.box(keep, Vector3(1.6, 1.4, 3.0), Vector3(-0.7, 4.3, 0), stone)
+		for x: float in [-1.2, 0.0]: SceneCraft3D.box(keep, Vector3(0.6, 0.6, 3.1), Vector3(x, 5.2, 0), dark)
+		SceneCraft3D.box(keep, Vector3(0.9, 1.4, 0.1), Vector3(0.4, 0.7, 1.52), SceneCraft3D.material(Color("1d1714")))
+		_smoke(keep, Vector3(0.8, 3.8, 0.6), Color(0.5, 0.48, 0.45, 0.45))
+	_canyon_props(diorama, rng)
+	var exit: Vector3 = diorama.route.sample_baked(diorama.route.get_baked_length())
+	_flag(diorama, _on_ground(diorama, exit + Vector3(1.4, 0.1, -1.4)), Color("3a5f8c"))
+
+
+# --- Forja do Colosso: a giant's forge with glowing furnaces and lava channels ---------------
+
+static func _canyon_forge(diorama: Diorama3D) -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 8808
+	_entrances(diorama, rng)
+	_canyon_walls(diorama, rng, [SceneCraft3D.material(Color("8e5440")), SceneCraft3D.material(Color("5b3a32")), SceneCraft3D.material(Color("8e5440")), SceneCraft3D.material(Color("a86a48"))])
+	var stone: StandardMaterial3D = SceneCraft3D.material(Color("626b66"), 0.95)
+	var steel: StandardMaterial3D = SceneCraft3D.material(Color("3f4b4b"), 0.55, 0.6)
+	var ember: StandardMaterial3D = SceneCraft3D.material(Color("ff9a3c"))
+	ember.emission_enabled = true
+	ember.emission = Color("ff6a1f")
+	ember.emission_energy_multiplier = 2.2
+	# Two furnaces with smoking chimneys and glowing mouths.
+	var placed: int = 0
+	for candidate: Vector3 in [Vector3(-12, 0, -1), Vector3(-10, 0, 1.5), Vector3(-15, 0, 0), Vector3(3.5, 0, -0.5), Vector3(-6, 0, -1)]:
+		if placed >= 2 or not _free(diorama, candidate, 3.0, 2.8): continue
+		placed += 1
+		var furnace: Node3D = Node3D.new()
+		furnace.name = "Furnace%d" % placed
+		furnace.position = _on_ground(diorama, candidate)
+		diorama.add_child(furnace)
+		SceneCraft3D.cylinder(furnace, 1.6, 0.35, Vector3(0, 0.18, 0), stone, 10)
+		SceneCraft3D.box(furnace, Vector3(2.3, 2.5, 1.9), Vector3(0, 1.55, 0), stone)
+		SceneCraft3D.box(furnace, Vector3(1.1, 0.8, 0.12), Vector3(0, 0.9, 1.0), ember)
+		for x: float in [-0.5, 0.0, 0.5]: SceneCraft3D.box(furnace, Vector3(0.07, 0.9, 0.1), Vector3(x, 0.9, 1.07), steel)
+		SceneCraft3D.cylinder(furnace, 0.5, 2.2, Vector3(0.5, 3.8, -0.3), stone, 8)
+		_smoke(furnace, Vector3(0.5, 5.0, -0.3), Color(0.32, 0.3, 0.3, 0.6))
+		var glow: OmniLight3D = OmniLight3D.new()
+		glow.light_color = Color("ff8a3d")
+		glow.light_energy = 1.4
+		glow.omni_range = 4.0
+		glow.position = Vector3(0, 1.0, 1.6)
+		furnace.add_child(glow)
+	# Lava channels: glowing cracks in the ground, away from roads and build spots.
+	for index in range(14):
+		var point: Vector3 = Vector3(rng.randf_range(-19, 17), 0, rng.randf_range(-10, 10))
+		if not _free(diorama, point, 2.4, 2.2): continue
+		var crack: MeshInstance3D = SceneCraft3D.box(diorama, Vector3(rng.randf_range(1.2, 2.6), 0.04, 0.16), _on_ground(diorama, point) + Vector3(0, 0.08, 0), ember)
+		crack.rotation.y = rng.randf_range(0, PI)
+	# Anvils and stacked ingots.
+	for index in range(5):
+		var point: Vector3 = Vector3(rng.randf_range(-18, 17), 0, rng.randf_range(-10, 10))
+		if not _free(diorama, point, 2.2, 2.0): continue
+		var anvil: Node3D = Node3D.new()
+		anvil.position = _on_ground(diorama, point)
+		anvil.rotation.y = rng.randf_range(0, TAU)
+		anvil.add_to_group(SCENERY_GROUP)
+		diorama.add_child(anvil)
+		SceneCraft3D.box(anvil, Vector3(0.9, 0.5, 0.8), Vector3(0, 0.25, 0), stone)
+		SceneCraft3D.box(anvil, Vector3(0.55, 0.5, 0.5), Vector3(0, 0.75, 0), steel)
+		SceneCraft3D.box(anvil, Vector3(1.3, 0.28, 0.6), Vector3(0.15, 1.12, 0), steel)
+	_canyon_props(diorama, rng)
+	var exit: Vector3 = diorama.route.sample_baked(diorama.route.get_baked_length())
+	_flag(diorama, _on_ground(diorama, exit + Vector3(-1.4, 0.1, -1.4)), Color("b8442e"))
+
+
+# --- shared swamp pieces -------------------------------------------------------------------
+
+static func _swamp_woods(diorama: Diorama3D, rng: RandomNumberGenerator) -> void:
+	_scatter(diorama, rng, ["Tree_3_A_Color1", "Tree_1_B_Color1", "Tree_4_B_Color1"], 30, Rect2(-30, -18, 60, 6.4), 3.0, Vector2(0.6, 1.0))
+	_scatter(diorama, rng, ["Tree_3_A_Color1", "Tree_4_B_Color1", "Tree_Bare_1_A_Color1"], 14, Rect2(-21, -11.5, 42, 23), 3.0, Vector2(0.55, 0.9))
+	_scatter(diorama, rng, ["Bush_1_C_Color1", "Grass_2_A_Color1"], 30, Rect2(-21, -11, 42, 22), 1.9, Vector2(0.6, 1.1))
+	_scatter(diorama, rng, ["Rock_1_D_Color1", "Rock_3_C_Color1"], 12, Rect2(-21, -11, 42, 22), 2.0, Vector2(0.5, 0.9), false)
+
+
+## Dark pools with reeds and lily pads in the open ground.
+static func _swamp_pools(diorama: Diorama3D, rng: RandomNumberGenerator, count: int) -> void:
+	var pad: StandardMaterial3D = SceneCraft3D.material(Color("4f7a43"))
+	var placed: int = 0
+	var attempts: int = 0
+	while placed < count and attempts < count * 20:
+		attempts += 1
+		var center: Vector3 = Vector3(rng.randf_range(-19, 17), 0, rng.randf_range(-10, 10))
+		var size: Vector2 = Vector2(rng.randf_range(1.2, 2.2), rng.randf_range(0.8, 1.5))
+		if not _free(diorama, center, size.x + 2.0, size.x + 1.6): continue
+		var ground: Vector3 = _on_ground(diorama, center)
+		_pond(diorama, ground, size)
+		_reeds(diorama, rng, ground, size.x + 0.3, 6)
+		for leaf in range(3):
+			var angle: float = rng.randf_range(0, TAU)
+			SceneCraft3D.cylinder(diorama, rng.randf_range(0.15, 0.25), 0.02, ground + Vector3(cos(angle) * size.x * 0.5, 0.14, sin(angle) * size.y * 0.5), pad, 10)
+		placed += 1
+
+
+static func _rune_material(energy: float) -> StandardMaterial3D:
+	var rune: StandardMaterial3D = SceneCraft3D.material(Color("c1aef0"))
+	rune.emission_enabled = true
+	rune.emission = Color("9a7be0")
+	rune.emission_energy_multiplier = energy
+	return rune
+
+
+# --- Trilhas Submersas: raised plank trails over a drowned forest with stilt huts --------------
+
+static func _swamp_causeway(diorama: Diorama3D) -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 10010
+	_entrances(diorama, rng)
+	_swamp_pools(diorama, rng, 9)
+	_swamp_woods(diorama, rng)
+	# Plank edging and posts along the trails: the roads read as boardwalks over the mud.
+	var plank: StandardMaterial3D = SceneCraft3D.material(Color("6f5a40"))
+	for road: Curve3D in diorama.all_ground_routes:
+		var distance: float = 3.0
+		while distance < road.get_baked_length() - 2.0:
+			var here: Vector3 = road.sample_baked(distance)
+			var ahead: Vector3 = road.sample_baked(distance + 0.8)
+			var side: Vector3 = Vector3(-(ahead - here).z, 0, (ahead - here).x).normalized() * 1.2
+			for sign: float in [-1.0, 1.0]:
+				var edge: Vector3 = here + side * sign
+				if diorama._distance_from_route(edge) < 1.1: continue
+				var next: Vector3 = ahead + side * sign
+				SceneCraft3D.beam(diorama, _on_ground(diorama, edge) + Vector3(0, 0.16, 0), _on_ground(diorama, next) + Vector3(0, 0.16, 0), 0.09, plank)
+				if int(distance / 0.8) % 3 == 0: SceneCraft3D.cylinder(diorama, 0.07, 0.6, _on_ground(diorama, edge) + Vector3(0, 0.2, 0), plank, 6)
+			distance += 0.8
+	# Stilt huts with smoking chimneys standing in the water.
+	var built: int = 0
+	for index in range(12):
+		if built >= 3: break
+		var point: Vector3 = Vector3(rng.randf_range(-18, 16), 0, rng.randf_range(-9, 9))
+		if not _free(diorama, point, 3.0, 2.8): continue
+		built += 1
+		var hut: Node3D = Node3D.new()
+		hut.name = "StiltHut%d" % built
+		hut.position = _on_ground(diorama, point)
+		hut.rotation.y = rng.randf_range(-PI, PI)
+		hut.add_to_group(SCENERY_GROUP)
+		diorama.add_child(hut)
+		_pond(diorama, hut.position, Vector2(1.8, 1.5))
+		for x: float in [-0.8, 0.8]:
+			for z: float in [-0.7, 0.7]: SceneCraft3D.cylinder(hut, 0.08, 1.2, Vector3(x, 0.6, z), plank, 6)
+		SceneCraft3D.box(hut, Vector3(2.0, 0.12, 1.8), Vector3(0, 1.2, 0), plank)
+		SceneCraft3D.box(hut, Vector3(1.6, 1.1, 1.4), Vector3(0, 1.8, 0), SceneCraft3D.material(Color("5b4a36")))
+		var roof: PrismMesh = PrismMesh.new()
+		roof.size = Vector3(2.0, 0.9, 1.8)
+		SceneCraft3D.mesh(hut, roof, Vector3(0, 2.8, 0), SceneCraft3D.material(Color("6f6a45")))
+		_smoke(hut, Vector3(0.5, 3.2, 0), Color(0.7, 0.8, 0.72, 0.4))
+	var exit: Vector3 = diorama.route.sample_baked(diorama.route.get_baked_length())
+	_flag(diorama, _on_ground(diorama, exit + Vector3(-1.3, 0.1, 1.3)), Color("6a4f9c"))
+
+
+# --- Ninho das Sombras: twisted roots around a nest of glowing eggs ---------------------------
+
+static func _swamp_nest(diorama: Diorama3D) -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 11011
+	_entrances(diorama, rng)
+	_swamp_pools(diorama, rng, 6)
+	_swamp_woods(diorama, rng)
+	var bark: StandardMaterial3D = SceneCraft3D.material(Color("3e3328"), 0.95)
+	var egg: StandardMaterial3D = SceneCraft3D.material(Color("cdb8f2"))
+	egg.emission_enabled = true
+	egg.emission = Color("8f62d6")
+	egg.emission_energy_multiplier = 1.4
+	# The nest: a bowl of interwoven branches beside the end of the road, holding glowing eggs.
+	var road: Curve3D = diorama.route
+	var exit: Vector3 = road.sample_baked(road.get_baked_length())
+	var arrival: Vector3 = exit - road.sample_baked(road.get_baked_length() - 2.0)
+	arrival.y = 0
+	arrival = arrival.normalized()
+	var nest: Node3D = Node3D.new()
+	nest.name = "ShadowNest"
+	nest.position = _on_ground(diorama, exit + arrival * 2.2)
+	diorama.add_child(nest)
+	for ring in range(3):
+		var radius: float = 1.9 - ring * 0.25
+		for index in range(14):
+			var a: float = index * TAU / 14 + ring * 0.4
+			var b: float = a + TAU / 14 * 1.6
+			SceneCraft3D.beam(nest, Vector3(cos(a) * radius, 0.25 + ring * 0.32, sin(a) * radius), Vector3(cos(b) * radius, 0.45 + ring * 0.32, sin(b) * radius), 0.16, bark)
+	for index in range(5):
+		var angle: float = index * TAU / 5
+		var shell: MeshInstance3D = SceneCraft3D.sphere(nest, 0.36, Vector3(cos(angle) * 0.7, 0.55, sin(angle) * 0.7), egg)
+		shell.scale = Vector3(0.8, 1.15, 0.8)
+		var pulse: Tween = shell.create_tween().set_loops()
+		pulse.tween_property(shell, "scale", Vector3(0.86, 1.22, 0.86), 1.2 + index * 0.17).set_trans(Tween.TRANS_SINE)
+		pulse.tween_property(shell, "scale", Vector3(0.8, 1.15, 0.8), 1.2 + index * 0.17).set_trans(Tween.TRANS_SINE)
+	var glow: OmniLight3D = OmniLight3D.new()
+	glow.light_color = Color("a07ae8")
+	glow.light_energy = 1.2
+	glow.omni_range = 5.0
+	glow.position = Vector3(0, 1.2, 0)
+	nest.add_child(glow)
+	# Giant roots arching out of the mud across open ground.
+	for index in range(9):
+		var point: Vector3 = Vector3(rng.randf_range(-19, 17), 0, rng.randf_range(-10, 10))
+		if not _free(diorama, point, 2.6, 2.4): continue
+		var base: Vector3 = _on_ground(diorama, point)
+		var reach: Vector3 = Vector3(rng.randf_range(-1.6, 1.6), 0, rng.randf_range(-1.6, 1.6))
+		SceneCraft3D.beam(diorama, base, base + reach * 0.5 + Vector3(0, 1.1, 0), 0.24, bark)
+		SceneCraft3D.beam(diorama, base + reach * 0.5 + Vector3(0, 1.1, 0), base + reach, 0.2, bark)
+	_flag(diorama, _on_ground(diorama, exit + Vector3(-1.3, 0.1, 1.3)), Color("6a4f9c"))
+
+
+# --- Coração da Ruína: the sanctuary at the heart of the swamp, with a floating crystal -------
+
+static func _swamp_heart(diorama: Diorama3D) -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 12012
+	_entrances(diorama, rng)
+	_swamp_pools(diorama, rng, 6)
+	_swamp_woods(diorama, rng)
+	var stone: StandardMaterial3D = SceneCraft3D.material(Color("687c70"), 0.95)
+	var moss: StandardMaterial3D = SceneCraft3D.material(Color("546a4a"))
+	var rune: StandardMaterial3D = _rune_material(1.6)
+	var road: Curve3D = diorama.route
+	var exit: Vector3 = road.sample_baked(road.get_baked_length())
+	var arrival: Vector3 = exit - road.sample_baked(road.get_baked_length() - 2.0)
+	arrival.y = 0
+	arrival = arrival.normalized()
+	# Stepped altar where the roads end, crowned by a slowly turning crystal inside a rune halo.
+	var shrine: Node3D = Node3D.new()
+	shrine.name = "RuinHeart"
+	shrine.position = _on_ground(diorama, exit + arrival * 2.0)
+	diorama.add_child(shrine)
+	for step in range(3): SceneCraft3D.box(shrine, Vector3(3.0 - step * 0.6, 0.35, 3.0 - step * 0.6), Vector3(0, 0.175 + step * 0.35, 0), stone if step % 2 == 0 else moss)
+	var crystal: Node3D = Node3D.new()
+	crystal.position = Vector3(0, 2.4, 0)
+	shrine.add_child(crystal)
+	for sign: float in [-1.0, 1.0]:
+		var point: CylinderMesh = CylinderMesh.new()
+		point.top_radius = 0.0
+		point.bottom_radius = 0.55
+		point.height = 1.0
+		point.radial_segments = 6
+		var half: MeshInstance3D = SceneCraft3D.mesh(crystal, point, Vector3(0, sign * 0.5, 0), rune)
+		if sign < 0: half.rotation.z = PI
+	var spin: Tween = crystal.create_tween().set_loops()
+	spin.tween_property(crystal, "rotation:y", TAU, 8.0).as_relative()
+	var hover: Tween = crystal.create_tween().set_loops()
+	hover.tween_property(crystal, "position:y", 2.7, 2.0).set_trans(Tween.TRANS_SINE)
+	hover.tween_property(crystal, "position:y", 2.4, 2.0).set_trans(Tween.TRANS_SINE)
+	var ring: TorusMesh = TorusMesh.new()
+	ring.inner_radius = 1.15
+	ring.outer_radius = 1.25
+	ring.rings = 24
+	ring.ring_segments = 6
+	var halo: MeshInstance3D = SceneCraft3D.mesh(shrine, ring, Vector3(0, 2.4, 0), rune)
+	halo.rotation.x = PI / 2.4
+	var light: OmniLight3D = OmniLight3D.new()
+	light.light_color = Color("a184e8")
+	light.light_energy = 1.6
+	light.omni_range = 6.0
+	light.position = Vector3(0, 2.4, 0)
+	shrine.add_child(light)
+	# A ring of tall rune pillars around the sanctuary, kept off the roads.
+	for index in range(10):
+		var angle: float = index * TAU / 10
+		var point: Vector3 = shrine.position + Vector3(cos(angle), 0, sin(angle)) * 6.2
+		if not _free(diorama, point, 1.9, 1.7): continue
+		var pillar: Node3D = Node3D.new()
+		pillar.position = _on_ground(diorama, point)
+		pillar.rotation.z = rng.randf_range(-0.06, 0.06)
+		pillar.add_to_group(SCENERY_GROUP)
+		diorama.add_child(pillar)
+		var height: float = rng.randf_range(1.6, 2.8)
+		SceneCraft3D.box(pillar, Vector3(0.9, 0.25, 0.9), Vector3(0, 0.12, 0), stone)
+		SceneCraft3D.cylinder(pillar, 0.32, height, Vector3(0, height / 2, 0), stone, 8)
+		SceneCraft3D.box(pillar, Vector3(0.7, 0.16, 0.7), Vector3(0, height, 0), moss)
+		var glyph: MeshInstance3D = SceneCraft3D.box(pillar, Vector3(0.18, 0.18, 0.04), Vector3(0, height * 0.6, 0.33), rune)
+		glyph.rotation.z = PI / 4

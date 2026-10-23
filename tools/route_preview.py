@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw
 
 SCALE = 22  # pixels per metre
 X0, X1, Z0, Z1 = -24.0, 24.0, -14.0, 14.0
+CLEARANCE = 1.9
 RIVERS = {3: (0.0, 2.2), 5: (0.0, 2.2), 8: (0.0, 2.2), 6: (-20.3, 3.0), 7: (-20.3, 3.0)}
 
 
@@ -50,10 +51,12 @@ def px(x, z):
 def main():
     stage = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8-sig"))
     target = sys.argv[2]
+    global CLEARANCE
+    CLEARANCE = float(sys.argv[sys.argv.index("--clearance") + 1]) if "--clearance" in sys.argv else 1.9
     suggest = int(sys.argv[sys.argv.index("--suggest") + 1]) if "--suggest" in sys.argv else 0
     grounds = [bezier(stage["route_points"])] + [bezier(r) for r in stage.get("extra_route_points", [])]
     air = bezier(stage["air_route_points"]) if "air_route_points" in stage else None
-    river = RIVERS.get(int(stage.get("index", 0)), (19.3, 3.0))
+    river = tuple(stage["river"]) if "river" in stage else RIVERS.get(int(stage.get("index", 0)), (19.3, 3.0))
     bounds = stage.get("bounds", [-20.0, 20.0, -11.0, 11.0])
     blocked = [tuple(z) for z in stage.get("blocked_zones", [])] or [(river[0] - river[1] / 2 - 0.7, -16, river[1] + 1.4, 32)]
     image = Image.new("RGB", (int((X1 - X0) * SCALE), int((Z1 - Z0) * SCALE)), (120, 150, 90))
@@ -83,7 +86,7 @@ def main():
             return False
         if any(z[0] <= point[0] <= z[0] + z[2] and z[1] <= point[1] <= z[1] + z[3] for z in blocked):
             return False
-        if any(nearest(line, point) < 1.9 for line in grounds):
+        if any(nearest(line, point) < CLEARANCE for line in grounds):
             return False
         return all(math.dist(point, c) >= 3.2 for c in chosen)
 

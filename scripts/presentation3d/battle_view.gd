@@ -97,6 +97,9 @@ func _ready() -> void:
 		diorama.river_x = 0
 		diorama.river_width = 2.2
 		diorama.bridges_enabled = true
+	if stage.has("river"):
+		diorama.river_x = float(stage.river[0])
+		diorama.river_width = float(stage.river[1])
 	add_child(diorama)
 	var landmarks: StageLandmarksV2 = StageLandmarksV2.new()
 	# Hand-dressed maps build their own set pieces (MapSceneryV2); the older generic ones stay off there.

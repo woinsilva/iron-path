@@ -172,10 +172,10 @@ func _low_fog() -> void:
 	_fog.albedo_texture = texture
 	_fog.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_fog.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_fog.uv1_scale = Vector3(1.2, 1.2, 1)
+	_fog.uv1_scale = Vector3(2.2, 2.2, 1)
 	_fog.texture_repeat = true
 	var plane: PlaneMesh = PlaneMesh.new()
-	plane.size = Vector2(52, 34)
+	plane.size = Vector2(96, 64)
 	var sheet: MeshInstance3D = MeshInstance3D.new()
 	sheet.mesh = plane
 	sheet.material_override = _fog
