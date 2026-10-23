@@ -32,6 +32,19 @@ func run() -> void:
 	check(tower.priority == priority, "The tap that opens the card does not press a card button")
 	var card: Rect2 = battle._actions.get_global_rect()
 	check(not card.has_point(screen), "The card opens away from the tapped tower")
+	# Releasing a ghost on the road (red) cancels the placement instead of keeping the card armed.
+	battle._select_pad(-1)
+	battle._begin_placement("cannon")
+	var road: Vector3 = battle.simulation.routes[0].sample_baked(10.0)
+	var release: InputEventScreenTouch = InputEventScreenTouch.new()
+	release.position = battle.diorama.camera.unproject_position(road)
+	release.pressed = false
+	var towers_before: int = battle.simulation.towers.size()
+	var drag: InputEventScreenDrag = InputEventScreenDrag.new()
+	drag.position = release.position
+	battle._unhandled_input(drag)
+	battle._unhandled_input(release)
+	check(battle._placing.is_empty() and not is_instance_valid(battle._ghost) and battle.simulation.towers.size() == towers_before, "Dropping a red ghost removes it and builds nothing")
 	battle.queue_free()
 	await process_frame
 	print("P13 tower tap: %d checks; %d failures" % [checks, failures])

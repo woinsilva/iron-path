@@ -648,9 +648,15 @@ func _confirm_placement() -> void:
 		if simulation.coins < int(simulation.catalog.towers[_placing].levels[0].cost): _hint.text = "Moedas insuficientes para esta torre."
 		elif footing.y - footing.x > MAX_FOOTING_DROP: _hint.text = "Terreno inclinado demais aqui: escolha um ponto mais plano."
 		else: _hint.text = "Aqui não dá: escolha um ponto fora da rua e da água, com espaço entre as torres."
+		# Releasing on a red spot drops the ghost; the player picks the card again to retry.
+		_end_placement()
+		_update_hud()
 		return
 	var pad: int = simulation.build_at(_ghost.position, _placing)
-	if pad < 0: return
+	if pad < 0:
+		_end_placement()
+		_update_hud()
+		return
 	_hint.text = "Construção iniciada. A torre atacará ao terminar a obra."
 	_end_placement()
 	# The new tower is not selected: its card only opens when the player taps it once it stands.
