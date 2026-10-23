@@ -47,7 +47,7 @@ func _ready() -> void:
 func _build_camera_and_light() -> void:
 	camera = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = 30.5
+	camera.size = 32.0
 	camera.v_offset = -1.2
 	camera.position = Vector3(0, 33, 29)
 	add_child(camera)

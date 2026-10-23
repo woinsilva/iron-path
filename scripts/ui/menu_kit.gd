@@ -11,6 +11,7 @@ const ICONS: String = "res://art/ui/icons/"
 static var _theme: Theme
 static var _heading: FontVariation
 static var _bold: FontVariation
+static var _display: FontFile
 
 
 static func box(fill: Color, border: Color, radius: int, width: int, padding: int = 18) -> StyleBoxFlat:
@@ -26,20 +27,26 @@ static func box(fill: Color, border: Color, radius: int, width: int, padding: in
 	return style
 
 
+## Lilita One (SIL OFL, art/fonts) for titles and buttons; the default font fills any glyph it lacks.
+static func display_font() -> FontFile:
+	if _display == null:
+		_display = load("res://art/fonts/LilitaOne-Regular.ttf") as FontFile
+		_display.fallbacks = [ThemeDB.fallback_font]
+	return _display
+
+
 static func heading_font() -> FontVariation:
 	if _heading == null:
 		_heading = FontVariation.new()
-		_heading.base_font = ThemeDB.fallback_font
-		_heading.variation_embolden = 0.8
-		_heading.spacing_glyph = 2
+		_heading.base_font = display_font()
+		_heading.spacing_glyph = 1
 	return _heading
 
 
 static func bold_font() -> FontVariation:
 	if _bold == null:
 		_bold = FontVariation.new()
-		_bold.base_font = ThemeDB.fallback_font
-		_bold.variation_embolden = 0.45
+		_bold.base_font = display_font()
 	return _bold
 
 

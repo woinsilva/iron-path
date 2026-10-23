@@ -52,7 +52,12 @@ static func create(stage: Dictionary, difficulty: String = "normal") -> BattleSi
 		var branch_points: PackedVector3Array = PackedVector3Array()
 		for point: Array in extra: branch_points.append(Vector3(float(point[0]), float(point[1]), float(point[2])))
 		routes.append(curve_from_points(branch_points))
-	return BattleSimV2.new(definitions, routes, pads, waves, initial_money, initial_health)
+	var sim: BattleSimV2 = BattleSimV2.new(definitions, routes, pads, waves, initial_money, initial_health)
+	if stage.has("air_route_points"): sim.air_routes.append(1)
+	for zone: Array in stage.get("blocked_zones", []):
+		sim.blocked_zones.append(Rect2(float(zone[0]), float(zone[1]), float(zone[2]), float(zone[3])))
+	if stage.has("bounds"): sim.placement_rules.bounds = stage.bounds
+	return sim
 
 ## Enemies written in the stage's waves (optionally of one type), before summons add any of their own.
 static func authored_enemy_count(stage: Dictionary, enemy_id: String = "") -> int:

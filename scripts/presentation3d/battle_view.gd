@@ -54,6 +54,17 @@ var _result: PanelContainer
 var _result_title: Label
 var _result_body: Label
 var _last_result: Dictionary = {}
+var _lives_label: Label
+var _coins_label: Label
+var _actions: PanelContainer
+var _card_bar: PanelContainer
+var _hud_blockers: Array[Control] = []
+var _placing: String = ""
+var _ghost: Node3D
+var _ghost_ring: MeshInstance3D
+var _ghost_valid: bool = false
+var _ghost_overlay: StandardMaterial3D
+var _bases: Dictionary = {}
 
 func _ready() -> void:
 	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
@@ -86,6 +97,8 @@ func _ready() -> void:
 	landmarks.endpoint = diorama.route.sample_baked(diorama.route.get_baked_length())
 	add_child(landmarks)
 	simulation = StageSessionV2.create(stage, difficulty)
+	if not stage.has("blocked_zones"):
+		simulation.blocked_zones.append(Rect2(diorama.river_x - diorama.river_width * 0.5 - 0.7, -16, diorama.river_width + 1.4, 32))
 	_build_pads()
 	_build_air_route()
 	if stage.has("route_labels"):
@@ -118,23 +131,9 @@ func _ready() -> void:
 	_update_hud()
 	await _prepare_enemy_models()
 
+## Build spots are free now: the stage's authored pads only seed tests and tools, so nothing is drawn for them.
 func _build_pads() -> void:
-	for index in range(simulation.pads.size()):
-		var holder: Node3D = Node3D.new()
-		holder.position = simulation.pads[index] + Vector3(0, 0.1, 0)
-		add_child(holder)
-		SceneCraft3D.cylinder(holder, 1.0, 0.16, Vector3(0, 0.08, 0), SceneCraft3D.material(Color("aca58a")), 20)
-		SceneCraft3D.cylinder(holder, 0.84, 0.05, Vector3(0, 0.18, 0), SceneCraft3D.material(Color("757f68")), 20)
-		var sign: Label3D = Label3D.new()
-		sign.text = "+"
-		sign.font_size = 100
-		sign.pixel_size = 0.008
-		sign.modulate = Color("f2d78b")
-		sign.position.y = 0.55
-		sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		sign.outline_size = 10
-		holder.add_child(sign)
-		_pads.append(holder)
+	_pads.clear()
 
 func _physics_process(delta: float) -> void:
 	if _warming_up: return
@@ -264,26 +263,17 @@ func _handle_events(batch: Array[Dictionary]) -> void:
 
 func _create_tower(id: int) -> void:
 	var tower: SimTowerV2 = simulation.towers[id]
-	var display: Node3D
-	if tower.type_id == "archer":
-		var archer: ArcherDisplay3D = ArcherDisplay3D.new()
-		archer.simulation_controlled = true
-		display = archer
-	elif tower.type_id == "cannon":
-		display = CannonDisplay3D.new()
-	elif tower.type_id == "bleed":
-		display = BallistaDisplayV2.new()
-	elif tower.type_id == "banner":
-		display = BannerDisplayV2.new()
-	else:
-		var magic: MagicDisplayV2 = MagicDisplayV2.new()
-		magic.family = tower.type_id
-		display = magic
+	var display: Node3D = _tower_display(tower.type_id)
 	display.position = tower.position + Vector3(0, 0.1, 0)
 	add_child(display)
 	display.visible = false
 	tower_views[id] = display
-	(_pads[tower.pad].get_child(2) as Label3D).visible = false
+	var base: Node3D = Node3D.new()
+	base.position = tower.position + Vector3(0, 0.1, 0)
+	add_child(base)
+	SceneCraft3D.cylinder(base, 1.0, 0.16, Vector3(0, 0.08, 0), SceneCraft3D.material(Color("aca58a")), 20)
+	SceneCraft3D.cylinder(base, 0.84, 0.05, Vector3(0, 0.18, 0), SceneCraft3D.material(Color("757f68")), 20)
+	_bases[id] = base
 	var site: Node3D = Node3D.new()
 	site.position = tower.position + Vector3(0, 0.1, 0)
 	add_child(site)
@@ -295,17 +285,30 @@ func _create_tower(id: int) -> void:
 	SceneCraft3D.beam(site, Vector3(-0.9, 0.2, 0.9), Vector3(0.9, 1.5, 0.9), 0.08, wood)
 	_sites[id] = site
 
+func _tower_display(type_id: String) -> Node3D:
+	if type_id == "archer":
+		var archer: ArcherDisplay3D = ArcherDisplay3D.new()
+		archer.simulation_controlled = true
+		return archer
+	if type_id == "cannon": return CannonDisplay3D.new()
+	if type_id == "bleed": return BallistaDisplayV2.new()
+	if type_id == "banner": return BannerDisplayV2.new()
+	var magic: MagicDisplayV2 = MagicDisplayV2.new()
+	magic.family = type_id
+	return magic
+
 func _remove_tower(id: int) -> void:
 	if tower_views.has(id):
 		var display: Node3D = tower_views[id]
-		for index in range(_pads.size()):
-			if BattleSimV2.distance_xz(_pads[index].position, display.position) < 0.2:
-				(_pads[index].get_child(2) as Label3D).visible = true
 		display.queue_free()
 		tower_views.erase(id)
 	if _sites.has(id):
 		(_sites[id] as Node3D).queue_free()
 		_sites.erase(id)
+	if _bases.has(id):
+		(_bases[id] as Node3D).queue_free()
+		_bases.erase(id)
+	if simulation.tower_on_pad(_selected_pad) == null: _select_pad(-1)
 
 func _sync_enemies(delta: float) -> void:
 	for id: int in enemy_views:
@@ -497,31 +500,100 @@ func _unhandled_input(event: InputEvent) -> void:
 	if is_instance_valid(_help_layer):
 		if event.is_action_pressed("ui_cancel"): _dismiss_help()
 		return
-	var point: Vector2
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		point = event.position
-	elif event is InputEventScreenTouch and event.pressed:
-		point = event.position
-	elif event.is_action_pressed("ui_cancel"):
-		if _selected_pad >= 0:
-			_select_pad(-1)
-		else:
-			_toggle_pause()
+	if event.is_action_pressed("ui_cancel"):
+		if not _placing.is_empty(): _end_placement()
+		elif _selected_pad >= 0: _select_pad(-1)
+		else: _toggle_pause()
 		return
-	else:
+	# Touch drives everything; desktop clicks arrive as emulated touches (project setting).
+	if not (event is InputEventScreenTouch or event is InputEventScreenDrag): return
+	var point: Vector2 = event.position
+	if _over_hud(point): return
+	var ground: Variant = _ground_point(point)
+	if ground == null: return
+	if not _placing.is_empty():
+		_move_ghost(ground as Vector3)
+		if event is InputEventScreenTouch and not event.pressed: _confirm_placement()
 		return
+	if event is InputEventScreenTouch and event.pressed: _select_pad(_tower_pad_near(ground as Vector3))
+
+## Drag that starts on a tower card keeps feeding the ghost even while the finger is still over the HUD.
+func _input(event: InputEvent) -> void:
+	if _placing.is_empty() or _warming_up: return
+	if event is InputEventScreenDrag:
+		var ground: Variant = _ground_point(event.position)
+		if ground != null and not _over_hud(event.position): _move_ghost(ground as Vector3)
+	elif event is InputEventScreenTouch and not event.pressed and is_instance_valid(_ghost) and _ghost.visible and not _over_hud(event.position):
+		_confirm_placement()
+		get_viewport().set_input_as_handled()
+
+func _ground_point(point: Vector2) -> Variant:
 	var camera: Camera3D = diorama.camera
-	var hit: Variant = Plane(Vector3.UP, 0.0).intersects_ray(camera.project_ray_origin(point), camera.project_ray_normal(point))
-	if hit == null:
-		return
+	return Plane(Vector3.UP, 0.0).intersects_ray(camera.project_ray_origin(point), camera.project_ray_normal(point))
+
+func _over_hud(point: Vector2) -> bool:
+	for blocker: Control in _hud_blockers:
+		if is_instance_valid(blocker) and blocker.is_visible_in_tree() and blocker.get_global_rect().has_point(point): return true
+	return false
+
+func _tower_pad_near(point: Vector3) -> int:
 	var selected: int = -1
-	var closest: float = 1.25
-	for index in range(simulation.pads.size()):
-		var distance: float = BattleSimV2.distance_xz(simulation.pads[index], hit as Vector3)
+	var closest: float = 1.3
+	for tower: SimTowerV2 in simulation.towers.values():
+		var distance: float = BattleSimV2.distance_xz(tower.position, point)
 		if distance < closest:
 			closest = distance
-			selected = index
-	_select_pad(selected)
+			selected = tower.pad
+	return selected
+
+## Tower card pressed: a ghost of that tower follows the finger, green where it may stand and red on the road.
+func _begin_placement(type_id: String) -> void:
+	if simulation.paused or simulation._terminal(): return
+	if _placing == type_id:
+		_end_placement()
+		return
+	_end_placement()
+	_select_pad(-1)
+	_placing = type_id
+	_ghost = _tower_display(type_id)
+	_ghost.visible = false
+	add_child(_ghost)
+	_ghost_overlay = StandardMaterial3D.new()
+	_ghost_overlay.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_ghost_overlay.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	for mesh: Node in _ghost.find_children("*", "GeometryInstance3D", true, false):
+		(mesh as GeometryInstance3D).material_overlay = _ghost_overlay
+		(mesh as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_ghost_ring = SceneCraft3D.mesh(_ghost, _ring_mesh(float(simulation.catalog.towers[type_id].levels[0].range), 0.06), Vector3(0, 0.06, 0), _ring_material(Color.WHITE))
+	_hint.text = "Arraste até um lugar livre e solte. Vermelho: na rua, na água ou colado em outra torre."
+	_update_hud()
+
+func _move_ghost(point: Vector3) -> void:
+	if not is_instance_valid(_ghost): return
+	_ghost.visible = true
+	_ghost.position = Vector3(point.x, 0.1, point.z)
+	var affordable: bool = simulation.coins >= int(simulation.catalog.towers[_placing].levels[0].cost)
+	_ghost_valid = affordable and simulation.can_build_at(point)
+	var tint: Color = Color(0.35, 1.0, 0.45, 0.42) if _ghost_valid else Color(1.0, 0.18, 0.15, 0.55)
+	_ghost_overlay.albedo_color = tint
+	(_ghost_ring.material_override as StandardMaterial3D).albedo_color = Color(tint, 1.0)
+
+func _confirm_placement() -> void:
+	if not is_instance_valid(_ghost) or not _ghost.visible: return
+	if not _ghost_valid:
+		_hint.text = "Aqui não dá: escolha um ponto fora da rua e da água, com espaço entre as torres." if simulation.coins >= int(simulation.catalog.towers[_placing].levels[0].cost) else "Moedas insuficientes para esta torre."
+		return
+	var pad: int = simulation.build_at(_ghost.position, _placing)
+	if pad < 0: return
+	_hint.text = "Construção iniciada. A torre atacará ao terminar a obra."
+	_end_placement()
+	_select_pad(pad)
+
+func _end_placement() -> void:
+	_placing = ""
+	if is_instance_valid(_ghost): _ghost.queue_free()
+	_ghost = null
+	if is_instance_valid(_card_bar): _update_hud()
 
 func _select_pad(index: int) -> void:
 	_selected_pad = index
@@ -598,7 +670,7 @@ func _purchase(type_id: String) -> void:
 	if _selected_pad >= 0 and simulation.build(_selected_pad, type_id):
 		_hint.text = "Construção iniciada. A torre atacará ao terminar a obra."
 	else:
-		_hint.text = "Selecione uma base vazia e confira as moedas disponíveis."
+		_hint.text = "Arraste a carta até um lugar livre e confira as moedas disponíveis."
 	_update_hud()
 
 func _request_upgrade() -> void:
@@ -669,6 +741,7 @@ func _button(parent: Node, text: String, callback: Callable, width: float = 150.
 	MenuKitV2.feedback(button)
 	return button
 
+## Full-screen battle: the map fills the screen and the HUD floats in the corners, like mobile tower defense.
 func _build_hud() -> void:
 	_canvas = CanvasLayer.new()
 	_canvas.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -676,106 +749,210 @@ func _build_hud() -> void:
 	var overlay: BattleOverlayV2 = BattleOverlayV2.new()
 	overlay.battle = self
 	_canvas.add_child(overlay)
-	var top: VBoxContainer = _panel(_canvas, 0, 160, Control.PRESET_TOP_WIDE)
-	var header: HBoxContainer = HBoxContainer.new()
-	header.add_theme_constant_override("separation", 30)
-	top.add_child(header)
-	_top_stats = _label(header, "", 30, Color("ecd49a"))
-	_top_stats.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_top_stats.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_wave_label = _button(header, "Onda", _show_forecast, 200)
+	var root: Control = Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.theme = MenuKitV2.theme()
+	_canvas.add_child(root)
+	var frame: MarginContainer = MenuKitV2.safe_margin(root, 22)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var board: Control = Control.new()
+	board.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(board)
+	# Top-left: resources, wave pill and the next-wave preview.
+	var status: VBoxContainer = VBoxContainer.new()
+	status.add_theme_constant_override("separation", 8)
+	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	board.add_child(status)
+	var chips: HBoxContainer = HBoxContainer.new()
+	chips.add_theme_constant_override("separation", 10)
+	chips.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	status.add_child(chips)
+	_lives_label = _chip(chips, "heart", Color("ff6b6b"))
+	_coins_label = _chip(chips, "coin", Color("f2c54e"))
+	_wave_label = _button(chips, "Onda", _show_forecast, 200)
+	_wave_label.custom_minimum_size = Vector2(200, 72)
 	_wave_label.tooltip_text = "Inspecionar as duas próximas ondas"
-	_pause = _button(header, "Pausar", _toggle_pause)
-	_speed = _button(header, "Velocidade: 1×", _toggle_speed, 220)
-	_button(header, "Reiniciar", _restart)
-	_button(header, "?", _show_help, 72)
-	_button(header, "Menu", func() -> void: get_tree().paused = false; exit_requested.emit())
-	_next_wave = _label(top, "", 23, Color("b0c6c5"))
+	_top_stats = _hud_label(status, "", 22, Color("e8eee6"))
+	_next_wave = _hud_label(status, "", 21, Color("cfe0dc"))
 	_next_wave.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_next_wave.max_lines_visible = 2
+	_next_wave.custom_minimum_size = Vector2(620, 0)
+	_hud_blockers.append(chips)
+	# Top-right: round controls.
+	var controls: HBoxContainer = HBoxContainer.new()
+	controls.add_theme_constant_override("separation", 12)
+	board.add_child(controls)
+	controls.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	controls.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_speed = _round(controls, "fast", "Velocidade", _toggle_speed)
+	_speed.icon = null
+	_speed.add_theme_font_size_override("font_size", 32)
+	_pause = _round(controls, "pause", "Pausar", _toggle_pause)
+	_round(controls, "restart", "Reiniciar", _restart)
+	_round(controls, "help", "Como jogar", _show_help)
+	_round(controls, "home", "Voltar ao mapa", func() -> void: get_tree().paused = false; exit_requested.emit())
+	_hud_blockers.append(controls)
+	# Boss bar, top centre.
 	_boss_panel = PanelContainer.new()
-	_boss_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	_boss_panel.offset_left = 28
-	_boss_panel.offset_right = 588
-	_boss_panel.offset_top = 170
-	_boss_panel.offset_bottom = 254
-	var boss_style: StyleBoxFlat = StyleBoxFlat.new()
-	boss_style.bg_color = Color("172b31")
-	boss_style.border_color = Color("bfa66b")
-	boss_style.set_border_width_all(2)
-	boss_style.set_corner_radius_all(7)
-	boss_style.set_content_margin_all(8)
-	_boss_panel.add_theme_stylebox_override("panel", boss_style)
+	_boss_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_boss_panel.offset_left = -300
+	_boss_panel.offset_right = 300
+	_boss_panel.offset_top = 112
+	_boss_panel.offset_bottom = 196
+	_boss_panel.add_theme_stylebox_override("panel", MenuKitV2.box(Color(0.08, 0.05, 0.05, 0.85), Color("e7a982"), 18, 2, 8))
 	_boss_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_canvas.add_child(_boss_panel)
+	board.add_child(_boss_panel)
 	var boss_column: VBoxContainer = VBoxContainer.new()
 	_boss_panel.add_child(boss_column)
-	_boss_label = _label(boss_column, "", 22, Color("ecd49a"))
+	_boss_label = _hud_label(boss_column, "", 22, Color("ffe1c8"))
 	_boss_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_boss_label.max_lines_visible = 2
 	_boss_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_boss_health = ProgressBar.new()
 	_boss_health.custom_minimum_size.y = 18
 	_boss_health.show_percentage = false
-	var health_fill: StyleBoxFlat = StyleBoxFlat.new()
-	health_fill.bg_color = Color("ce8c66")
-	health_fill.set_corner_radius_all(4)
-	_boss_health.add_theme_stylebox_override("fill", health_fill)
+	_boss_health.add_theme_stylebox_override("fill", MenuKitV2.box(Color("e0704f"), Color(0, 0, 0, 0), 6, 0, 0))
+	_boss_health.add_theme_stylebox_override("background", MenuKitV2.box(Color(0, 0, 0, 0.5), Color(0, 0, 0, 0), 6, 0, 0))
 	boss_column.add_child(_boss_health)
 	_boss_panel.visible = false
-	var bottom: VBoxContainer = _panel(_canvas, -260, 0, Control.PRESET_BOTTOM_WIDE)
-	_context = _label(bottom, "Selecione uma base de pedra para construir.", 28, Color("ecd49a"))
+	# Bottom: status lines over a compact strip of tower cards, start button on the right.
+	var bottom: VBoxContainer = VBoxContainer.new()
+	bottom.add_theme_constant_override("separation", 6)
+	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	board.add_child(bottom)
+	bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	bottom.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_context = _hud_label(bottom, "", 24, Color("f6e3ad"))
+	_context.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_context.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_context.max_lines_visible = 2
-	var actions: HBoxContainer = HBoxContainer.new()
-	actions.add_theme_constant_override("separation", 14)
-	bottom.add_child(actions)
-	for type_id: String in stage.allowed_towers:
-		var key: String = type_id
-		var definition: Dictionary = simulation.catalog.towers[key]
-		_purchase_buttons[key] = _button(actions, "%s · %d\n%.1f m · %s" % [str(definition.name), int(definition.levels[0].cost), float(definition.levels[0].range), "Terra/ar" if str(definition.layer) == "both" else ("Ar" if str(definition.layer) == "air" else ("Suporte" if str(definition.layer) == "ally" else "Terra"))], func() -> void: _purchase(key), 210)
-	_upgrade = _button(actions, "Melhorar", _request_upgrade, 210)
-	for branch: String in ["A", "B"]:
-		var key: String = branch
-		_branch_buttons[key] = _button(actions, "Ramo " + key, func() -> void: _request_branch(key), 240)
-	_priority = _button(actions, "Alvo: Primeiro", _cycle_priority, 230)
-	_cancel = _button(actions, "Cancelar obra", func() -> void: simulation.cancel_work(_selected_pad), 210)
-	_sell = _button(actions, "Vender", func() -> void: simulation.sell(_selected_pad), 180)
-	var gap: Control = Control.new()
-	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	actions.add_child(gap)
-	_start = _button(actions, "Iniciar defesa", _start_or_early, 270)
-	MenuKitV2.primary(_start)
-	_hint = _label(bottom, "Construa sua defesa e inicie a primeira onda. As próximas chegam automaticamente.", 23, Color("b0c6c5"))
+	_hint = _hud_label(bottom, "Arraste uma torre da barra para o mapa. Depois inicie a primeira onda; as próximas chegam sozinhas.", 21, Color("dbe6e2"))
+	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint.max_lines_visible = 2
+	var row: HBoxContainer = HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 16)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bottom.add_child(row)
+	_card_bar = PanelContainer.new()
+	_card_bar.add_theme_stylebox_override("panel", MenuKitV2.box(Color(0.03, 0.08, 0.09, 0.78), Color(MenuKitV2.GOLD, 0.45), 22, 2, 8))
+	row.add_child(_card_bar)
+	_hud_blockers.append(_card_bar)
+	var cards: HBoxContainer = HBoxContainer.new()
+	cards.add_theme_constant_override("separation", 8)
+	_card_bar.add_child(cards)
+	for type_id: String in stage.allowed_towers:
+		_purchase_buttons[type_id] = _card(cards, type_id)
+	_start = _button(row, "Iniciar defesa", _start_or_early, 240)
+	_start.custom_minimum_size = Vector2(240, 120)
+	_start.size_flags_vertical = Control.SIZE_SHRINK_END
+	MenuKitV2.primary(_start)
+	_hud_blockers.append(_start)
+	# Floating actions next to the selected tower.
+	_actions = PanelContainer.new()
+	_actions.add_theme_stylebox_override("panel", MenuKitV2.box(Color(0.03, 0.08, 0.09, 0.9), Color(MenuKitV2.GOLD, 0.6), 20, 2, 8))
+	_actions.visible = false
+	root.add_child(_actions)
+	_hud_blockers.append(_actions)
+	var actions: HBoxContainer = HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 8)
+	_actions.add_child(actions)
+	_upgrade = _button(actions, "Melhorar", _request_upgrade, 190)
+	for branch: String in ["A", "B"]:
+		var key: String = branch
+		_branch_buttons[key] = _button(actions, "Ramo " + key, func() -> void: _request_branch(key), 210)
+	_priority = _button(actions, "Alvo: Primeiro", _cycle_priority, 200)
+	_cancel = _button(actions, "Cancelar obra", func() -> void: simulation.cancel_work(_selected_pad), 190)
+	_sell = _button(actions, "Vender", func() -> void: simulation.sell(_selected_pad), 160)
+	for button: Button in [_upgrade, _branch_buttons.A, _branch_buttons.B, _priority, _cancel, _sell]:
+		button.add_theme_font_size_override("font_size", 22)
+	# Result card.
 	_result = PanelContainer.new()
 	_result.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	_result.offset_left = -510
 	_result.offset_right = 510
 	_result.offset_top = -330
 	_result.offset_bottom = 330
-	var result_style: StyleBoxFlat = StyleBoxFlat.new()
-	result_style.bg_color = Color("132b31")
-	result_style.border_color = Color("bfa66b")
-	result_style.set_border_width_all(3)
+	var result_style: StyleBoxFlat = MenuKitV2.box(Color(0.04, 0.11, 0.13, 0.96), MenuKitV2.GOLD, 28, 3, 32)
+	result_style.border_width_top = 8
 	result_style.content_margin_left = 44
-	result_style.content_margin_top = 32
 	result_style.content_margin_right = 44
-	result_style.content_margin_bottom = 32
+	result_style.shadow_color = Color(0, 0, 0, 0.5)
+	result_style.shadow_size = 24
 	_result.add_theme_stylebox_override("panel", result_style)
-	_canvas.add_child(_result)
+	root.add_child(_result)
 	var result_column: VBoxContainer = VBoxContainer.new()
 	result_column.add_theme_constant_override("separation", 20)
 	_result.add_child(result_column)
-	_result_title = _label(result_column, "", 54, Color("ecd49a"))
+	_result_title = MenuKitV2.label(result_column, "", 60, MenuKitV2.GOLD, true)
 	_result_body = _label(result_column, "", 25)
 	_result_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var buttons: HBoxContainer = HBoxContainer.new()
+	buttons.add_theme_constant_override("separation", 16)
 	result_column.add_child(buttons)
-	_button(buttons, "Tentar novamente", _restart, 270)
+	MenuKitV2.primary(_button(buttons, "Tentar novamente", _restart, 270))
 	_button(buttons, "Voltar ao mapa", func() -> void: exit_requested.emit(), 270)
 	_result.visible = false
+
+func _hud_label(parent: Node, text: String, size: int, color: Color) -> Label:
+	var label: Label = _label(parent, text, size, Color.WHITE)
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_constant_override("outline_size", 7)
+	label.add_theme_color_override("font_outline_color", Color(0.02, 0.05, 0.06, 0.9))
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return label
+
+func _chip(parent: Node, icon_name: String, tint: Color) -> Label:
+	var chip: PanelContainer = PanelContainer.new()
+	chip.add_theme_stylebox_override("panel", MenuKitV2.box(Color(0.03, 0.08, 0.09, 0.8), Color(tint, 0.6), 36, 2, 10))
+	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	parent.add_child(chip)
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	chip.add_child(row)
+	var icon: TextureRect = TextureRect.new()
+	icon.texture = MenuKitV2.icon(icon_name)
+	icon.modulate = tint
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.custom_minimum_size = Vector2(40, 40)
+	row.add_child(icon)
+	var value: Label = MenuKitV2.label(row, "0", 34, Color("fff6dc"), true)
+	value.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	value.custom_minimum_size = Vector2(70, 0)
+	return value
+
+func _round(parent: Node, icon_name: String, tooltip: String, action: Callable) -> Button:
+	var button: Button = MenuKitV2.icon_button(parent, icon_name, tooltip, 92)
+	button.pressed.connect(func() -> void: _sound("ui", AudioServiceNode.BUS_UI); action.call())
+	return button
+
+## Tower card: portrait, price, reach and target layer. Press (or press and drag) to place it on the map.
+func _card(parent: Node, type_id: String) -> Button:
+	var definition: Dictionary = simulation.catalog.towers[type_id]
+	var first: Dictionary = definition.levels[0]
+	var card: Button = Button.new()
+	card.name = "Card_" + type_id
+	card.toggle_mode = true
+	card.custom_minimum_size = Vector2(150, 176)
+	card.icon = load("res://art/ui/tower_%s.jpg" % type_id) as Texture2D
+	card.expand_icon = true
+	card.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	card.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	card.add_theme_constant_override("icon_max_width", 96)
+	card.add_theme_font_size_override("font_size", 19)
+	card.text = "%d\n%.1f m · %s" % [int(first.cost), float(first.range), "Terra/ar" if str(definition.layer) == "both" else ("Ar" if str(definition.layer) == "air" else ("Suporte" if str(definition.layer) == "ally" else "Terra"))]
+	card.tooltip_text = "%s · %s" % [str(definition.name), str(definition.description)]
+	card.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	parent.add_child(card)
+	MenuKitV2.feedback(card)
+	card.button_down.connect(func() -> void:
+		_sound("ui", AudioServiceNode.BUS_UI)
+		if _selected_pad >= 0 and simulation.tower_on_pad(_selected_pad) == null: _purchase(type_id)
+		else: _begin_placement(type_id)
+	)
+	return card
 
 func _start_or_early() -> void:
 	if _warming_up: return
@@ -789,12 +966,15 @@ func _start_or_early() -> void:
 	_update_hud()
 
 func _update_hud() -> void:
-	_speed.text = "Velocidade: %d×" % int(Engine.time_scale)
+	_speed.text = "%d×" % int(Engine.time_scale)
 	if _top_stats == null:
 		return
-	_top_stats.text = "%s   |   Vidas %d   |   Moedas %d" % [str(stage.name), simulation.lives, simulation.coins]
+	_top_stats.text = str(stage.name)
+	_lives_label.text = str(simulation.lives)
+	_coins_label.text = str(simulation.coins)
 	_wave_label.text = "Onda %d / %d" % [simulation.wave_index, simulation.waves.size()]
-	_pause.text = "Continuar" if simulation.paused else "Pausar"
+	_pause.icon = MenuKitV2.icon("play" if simulation.paused else "pause")
+	_pause.tooltip_text = "Continuar" if simulation.paused else "Pausar"
 	var boss: SimEnemyV2 = null
 	for enemy: SimEnemyV2 in simulation.enemies.values():
 		if enemy.boss: boss = enemy; break
@@ -820,8 +1000,10 @@ func _update_hud() -> void:
 	var allowed: bool = _selected_pad >= 0 and not simulation.paused and not simulation._terminal()
 	for key: String in _purchase_buttons:
 		var button: Button = _purchase_buttons[key]
-		button.visible = tower == null
-		button.disabled = not allowed or simulation.coins < int(simulation.catalog.towers[key].levels[0].cost)
+		button.disabled = simulation.paused or simulation._terminal() or simulation.coins < int(simulation.catalog.towers[key].levels[0].cost)
+		button.set_pressed_no_signal(_placing == key)
+	_actions.visible = tower != null and not simulation._terminal()
+	if _actions.visible: _place_actions(tower)
 	var ready: bool = tower != null and tower.state == SimTowerV2.State.READY
 	var choosing_branch: bool = ready and tower.level == 3 and simulation.catalog.towers[tower.type_id].has("branches")
 	_upgrade.visible = ready and not choosing_branch
@@ -865,10 +1047,20 @@ func _update_hud() -> void:
 			_upgrade.text = "Nível máximo"
 			_upgrade.disabled = true
 	elif _selected_pad >= 0:
-		_context.text = "Base %d · Escolha a torre. Comprar exige confirmação no botão." % (_selected_pad + 1)
+		_context.text = "Espaço livre · Toque numa carta para construir aqui."
+	elif not _placing.is_empty():
+		_context.text = "%s · %d moedas" % [str(simulation.catalog.towers[_placing].name), int(simulation.catalog.towers[_placing].levels[0].cost)]
 	else:
-		_context.text = "Selecione uma base de pedra para construir."
+		_context.text = ""
 	_update_tutorial_hint()
+
+## Keeps the tower's action strip just above it on screen, clamped inside the viewport.
+func _place_actions(tower: SimTowerV2) -> void:
+	var screen: Vector2 = diorama.camera.unproject_position(tower.position + Vector3(0, 3.2, 0))
+	var size: Vector2 = _actions.get_combined_minimum_size()
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	_actions.size = size
+	_actions.position = Vector2(clampf(screen.x - size.x / 2, 16, view.x - size.x - 16), clampf(screen.y - size.y - 10, 120, view.y - size.y - 250))
 
 func _show_result(victory: bool) -> void:
 	_result.visible = true
@@ -955,14 +1147,14 @@ func _sync_enemy_areas() -> void:
 func _update_tutorial_hint() -> void:
 	if not tutorial_enabled or int(stage.index) != 1 or simulation.state != BattleSimV2.State.PREPARATION: return
 	if simulation.towers.is_empty():
-		_hint.text = "1/3 · Toque numa base de pedra para começar sua defesa." if _selected_pad < 0 else "2/3 · Escolha uma torre nos botões. Confira preço, alcance e tipos de alvo antes de comprar."
+		_hint.text = "1/3 · Arraste uma torre da barra de baixo até um lugar livre perto da estrada." if _selected_pad < 0 and _placing.is_empty() else "2/3 · Solte a torre num ponto verde. Confira preço, alcance e tipos de alvo na carta."
 	else:
 		var ready: bool = false
 		for tower: SimTowerV2 in simulation.towers.values():
 			if tower.state == SimTowerV2.State.READY: ready = true
 		_hint.text = "3/3 · Toque em Iniciar defesa. Depois, as ondas chegam automaticamente." if ready else "3/3 · Aguarde a barra da obra. A torre atacará quando estiver pronta; depois toque em Iniciar defesa."
 func _show_help() -> void:
-	_show_info("Como defender o caminho", "• Inimigos que chegam à bandeira retiram vidas. Guarde a saída.\n• Toque numa base e confirme a torre. Confira alcance e alvos no botão.\n• Construção e melhoria levam tempo; a torre fica sem atacar durante a obra.\n• A primeira onda é manual. As demais chegam sozinhas; chamar antes rende até 5 moedas.\n• Selecione torres para melhorar, especializar, vender ou mudar a ordem dos alvos.\n• Arqueira e Cristal atingem ar; Canhão e Alquimista atingem só o chão.\n• Armadura pede magia, sangramento e cobertura. Chefes avisam antes das habilidades.\n• Pausa congela a batalha. 2× acelera o jogo; use o Guia no mapa para conhecer cada função.")
+	_show_info("Como defender o caminho", "• Inimigos que chegam à bandeira retiram vidas. Guarde a saída.\n• Arraste uma carta até o mapa: verde pode construir, vermelho não (rua, água ou outra torre).\n• Construção e melhoria levam tempo; a torre fica sem atacar durante a obra.\n• A primeira onda é manual. As demais chegam sozinhas; chamar antes rende até 5 moedas.\n• Selecione torres para melhorar, especializar, vender ou mudar a ordem dos alvos.\n• Arqueira e Cristal atingem ar; Canhão e Alquimista atingem só o chão.\n• Armadura pede magia, sangramento e cobertura. Chefes avisam antes das habilidades.\n• Pausa congela a batalha. 2× acelera o jogo; use o Guia no mapa para conhecer cada função.")
 
 func _show_forecast() -> void:
 	var lines: Array[String] = ["Depois da primeira onda, a sequência é automática. Fechar esta previsão restaura a pausa anterior."]

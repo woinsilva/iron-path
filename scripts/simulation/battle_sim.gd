@@ -21,6 +21,10 @@ var pads: PackedVector3Array = PackedVector3Array()
 var routes: Array[Curve3D] = []
 var catalog: Dictionary
 var movement_rules: Dictionary = {}
+var placement_rules: Dictionary = {}
+var air_routes: Array[int] = []
+## Ground the stage forbids for building besides the roads (rivers, cliffs), as XZ rectangles.
+var blocked_zones: Array[Rect2] = []
 var waves: Array = []
 var events: Array[Dictionary] = []
 var kills: int = 0
@@ -41,6 +45,7 @@ var _accumulator: float = 0.0
 func _init(definitions: Dictionary, route_list: Array[Curve3D], build_pads: PackedVector3Array, wave_list: Array, starting_coins: int = 200, starting_lives: int = 20) -> void:
 	catalog = definitions
 	movement_rules = definitions.get("movement", {"lane_spacing": 0.6, "body_radius": 0.42, "boss_scale": 1.8, "lane_change_speed": 1.8})
+	placement_rules = definitions.get("placement", {"road_clearance": 1.9, "tower_spacing": 1.85, "bounds": [-20.0, 20.0, -11.0, 11.0]})
 	routes = route_list
 	pads = build_pads
 	waves = wave_list
@@ -298,6 +303,36 @@ func tower_on_pad(pad: int) -> SimTowerV2:
 		if tower.pad == pad:
 			return tower
 	return null
+
+## Free placement: anywhere on open ground, clear of every walking route, water and other towers.
+func can_build_at(point: Vector3) -> bool:
+	var bounds: Array = placement_rules.bounds
+	if point.x < float(bounds[0]) or point.x > float(bounds[1]) or point.z < float(bounds[2]) or point.z > float(bounds[3]): return false
+	for zone: Rect2 in blocked_zones:
+		if zone.has_point(Vector2(point.x, point.z)): return false
+	for index in range(routes.size()):
+		if _is_air_route(index): continue
+		var road: Curve3D = routes[index]
+		if distance_xz(road.get_closest_point(point), point) < float(placement_rules.road_clearance): return false
+	for tower: SimTowerV2 in towers.values():
+		if distance_xz(tower.position, point) < float(placement_rules.tower_spacing): return false
+	return true
+
+## Builds at a free spot by turning it into a new pad, so upgrades, selling and tests keep using pad indices.
+func build_at(point: Vector3, type_id: String) -> int:
+	var spot: Vector3 = Vector3(point.x, 0, point.z)
+	if paused or _terminal() or not can_build_at(spot) or not catalog.towers.has(type_id): return -1
+	if coins < int(catalog.towers[type_id].levels[0].cost): return -1
+	pads.append(spot)
+	var pad: int = pads.size() - 1
+	if not build(pad, type_id):
+		pads.remove_at(pad)
+		return -1
+	return pad
+
+## Routes flown over by air units; towers may stand under them.
+func _is_air_route(index: int) -> bool:
+	return index in air_routes
 
 func build(pad: int, type_id: String) -> bool:
 	if not _pad_available(pad) or tower_on_pad(pad) != null or not catalog.towers.has(type_id):

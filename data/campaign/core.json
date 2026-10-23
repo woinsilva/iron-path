@@ -6,6 +6,16 @@
     "boss_scale": 1.8,
     "lane_change_speed": 1.8
   },
+  "placement": {
+    "road_clearance": 1.9,
+    "tower_spacing": 1.85,
+    "bounds": [
+      -20.0,
+      20.0,
+      -11.0,
+      11.0
+    ]
+  },
   "enemies": {
     "grunt": {
       "name": "Saqueador",
