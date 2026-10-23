@@ -104,8 +104,8 @@ func _build_heights() -> void:
 	roll.frequency = 0.045
 	var hills: FastNoiseLite = FastNoiseLite.new()
 	hills.seed = 9203
-	hills.frequency = 0.075
-	hills.fractal_octaves = 3
+	hills.frequency = 0.045
+	hills.fractal_octaves = 2
 	_heights.resize(HEIGHT_SIZE.x * HEIGHT_SIZE.y)
 	for row in range(HEIGHT_SIZE.y):
 		for column in range(HEIGHT_SIZE.x):
@@ -117,7 +117,11 @@ func _build_heights() -> void:
 			# front would hide the board.
 			var ridge: float = smoothstep(19.0, 27.0, absf(point.x)) + smoothstep(10.5, 15.5, -point.z)
 			var water: float = smoothstep(river_width * 0.5 + 0.4, river_width * 0.5 + 3.0, absf(point.x - river_x))
-			var height: float = (roll.get_noise_2d(point.x, point.z) * 0.45 + maxf(0.0, hills.get_noise_2d(point.x, point.z)) * 2.4 * open + ridge * 2.6) * relief
+			# The land descends from a high western plateau (where the road enters) to the valley floor in the
+			# east, so the road visibly climbs down; open ground carries flat-topped knolls with steep sides.
+			var descent: float = 2.6 * (1.0 - smoothstep(-20.0, 6.0, point.x))
+			var knoll: float = smoothstep(0.12, 0.34, hills.get_noise_2d(point.x, point.z)) * 2.0 * open
+			var height: float = (descent + roll.get_noise_2d(point.x, point.z) * 0.35 + knoll + ridge * 2.6) * relief
 			_heights[row * HEIGHT_SIZE.x + column] = height * water
 
 func terrain_height(point: Vector3) -> float:
@@ -152,6 +156,8 @@ func _photo_ground() -> ShaderMaterial:
 	ground.set_shader_parameter("grass_normal", load("res://art/textures/aerial_grass_rock_nor_gl.jpg"))
 	ground.set_shader_parameter("soil_albedo", load("res://art/textures/forrest_ground_01_Diffuse.jpg"))
 	ground.set_shader_parameter("soil_normal", load("res://art/textures/forrest_ground_01_nor_gl.jpg"))
+	ground.set_shader_parameter("rock_albedo", load("res://art/textures/rocky_trail_Diffuse.jpg"))
+	ground.set_shader_parameter("rock_normal", load("res://art/textures/rocky_trail_nor_gl.jpg"))
 	var noise: FastNoiseLite = FastNoiseLite.new()
 	noise.seed = 4040
 	noise.frequency = 0.04

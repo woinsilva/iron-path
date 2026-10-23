@@ -17,7 +17,7 @@ void vertex() {
 }
 void fragment() {
     vec4 c = texture(sprite, UV);
-    ALBEDO = c.rgb;
+    ALBEDO = c.rgb * 1.18;
     ALPHA = c.a;
     ALPHA_SCISSOR_THRESHOLD = 0.45;
     ROUGHNESS = 0.9;

@@ -8,8 +8,14 @@ uniform sampler2D soil_normal : hint_normal, filter_linear_mipmap, repeat_enable
 uniform sampler2D mask_noise : filter_linear_mipmap, repeat_enable;
 uniform float tile = 0.18;
 uniform vec3 tint : source_color = vec3(1.0);
+uniform sampler2D rock_albedo : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D rock_normal : hint_normal, filter_linear_mipmap, repeat_enable;
 varying vec3 world_position;
-void vertex() { world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+varying vec3 world_normal;
+void vertex() {
+    world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+    world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
+}
 void fragment() {
     vec2 uv = world_position.xz * tile;
     float m = smoothstep(0.58, 0.8, texture(mask_noise, world_position.xz * 0.02).r);
@@ -20,7 +26,10 @@ void fragment() {
     vec3 soil = texture(soil_albedo, uv * 0.8).rgb;
     // Large-scale tone variation breaks up visible tiling.
     float tone = 0.88 + 0.24 * texture(mask_noise, world_position.xz * 0.006).r;
-    ALBEDO = mix(grass, soil, m) * tint * tone;
-    NORMAL_MAP = mix(texture(grass_normal, uv).rgb, texture(soil_normal, uv * 0.8).rgb, m);
+    // Steep slopes show bare rock, so knolls and the plateau edge read as real elevation.
+    float slope = smoothstep(0.12, 0.3, 1.0 - world_normal.y);
+    vec3 rock = texture(rock_albedo, uv * 1.4).rgb * vec3(0.9, 0.86, 0.8);
+    ALBEDO = mix(mix(grass, soil, m) * tint * tone, rock, slope);
+    NORMAL_MAP = mix(mix(texture(grass_normal, uv).rgb, texture(soil_normal, uv * 0.8).rgb, m), texture(rock_normal, uv * 1.4).rgb, slope);
     ROUGHNESS = 0.95;
 }

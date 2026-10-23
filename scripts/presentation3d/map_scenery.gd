@@ -240,10 +240,13 @@ static func _vale_meadow(diorama: Diorama3D) -> void:
 	var exit: Vector3 = diorama.route.sample_baked(diorama.route.get_baked_length())
 	var gate: Vector3 = diorama.route.sample_baked(2.2)
 	var clear: Array[Vector3] = [exit, gate]
-	for band: Array in [[Rect2(-31, -19, 62, 8.6), 150], [Rect2(-31, 10.6, 62, 8.4), 130], [Rect2(-31, -11, 10, 22), 60], [Rect2(21.6, -11, 10, 22), 50]]:
-		_sprite_scatter(diorama, rng, tall + broad, int(band[1]), band[0], 2.6, Vector2(4.2, 6.8), clear, 6.5)
-	# Copses inside the board, on open ground away from roads and the reference build spots.
-	_sprite_scatter(diorama, rng, broad + tall, 16, Rect2(-20, -10, 37, 20), 3.6, Vector2(3.4, 5.2), clear, 6.0)
+	# A wood line behind the board and loose groves on the flanks; nothing tall stands where it could hide
+	# the road from the camera (see _hides_road).
+	_sprite_scatter(diorama, rng, tall + broad, 70, Rect2(-31, -19, 62, 7.5), 2.6, Vector2(4.2, 6.4), clear, 6.5)
+	_sprite_scatter(diorama, rng, tall + broad, 18, Rect2(-31, -11, 9, 20), 2.6, Vector2(3.8, 5.6), clear, 6.5)
+	_sprite_scatter(diorama, rng, tall + broad, 14, Rect2(22, -11, 9, 20), 2.6, Vector2(3.8, 5.6), clear, 6.5)
+	# A few copses inside the board, on open ground away from roads and the reference build spots.
+	_sprite_scatter(diorama, rng, broad + tall, 9, Rect2(-20, -10, 37, 20), 3.6, Vector2(3.2, 4.6), clear, 6.0)
 	_sprite_scatter(diorama, rng, shrubs, 70, Rect2(-21, -11, 40, 22), 2.0, Vector2(0.7, 1.4), clear, 3.0)
 	_sprite_scatter(diorama, rng, ground, 220, Rect2(-21, -11, 40, 22), 1.5, Vector2(0.3, 0.6), clear, 2.0)
 	_sprite_scatter(diorama, rng, rocks, 22, Rect2(-21, -11, 40, 22), 2.0, Vector2(0.5, 1.3), clear, 3.0)
@@ -298,6 +301,17 @@ static func weather(root: Node) -> void:
 		mesh.material_override = material
 
 
+## The camera looks down at ~49° from the south, so a prop of height H covers the ground up to about
+## 0.9·H behind it (towards -z). Reject props whose silhouette would fall on a road.
+static func _hides_road(diorama: Diorama3D, point: Vector3, height: float) -> bool:
+	var reach: float = height * 0.9 + 1.2
+	var step: float = 0.0
+	while step <= reach:
+		if diorama._distance_from_route(point - Vector3(0, 0, step)) < 1.8: return true
+		step += 0.6
+	return false
+
+
 ## Sprite props spread over an area on the terrain, clear of roads, build spots and a radius around a point.
 static func _sprite_scatter(diorama: Diorama3D, rng: RandomNumberGenerator, names: Array, count: int, area: Rect2, road: float, height: Vector2, keep_clear: Array[Vector3], clear_radius: float) -> void:
 	var placed: int = 0
@@ -306,11 +320,13 @@ static func _sprite_scatter(diorama: Diorama3D, rng: RandomNumberGenerator, name
 		attempts += 1
 		var point: Vector3 = Vector3(rng.randf_range(area.position.x, area.end.x), 0, rng.randf_range(area.position.y, area.end.y))
 		if not _free(diorama, point, road, 2.0): continue
+		var size: float = rng.randf_range(height.x, height.y)
+		if _hides_road(diorama, point, size): continue
 		var crowded: bool = false
 		for spot: Vector3 in keep_clear: crowded = crowded or point.distance_to(Vector3(spot.x, 0, spot.z)) < clear_radius
 		if crowded: continue
 		point.y = diorama.terrain_height(point)
-		SpritePropsV2.place(diorama, str(names[rng.randi() % names.size()]), point, rng.randf_range(height.x, height.y), rng.randf() < 0.5)
+		SpritePropsV2.place(diorama, str(names[rng.randi() % names.size()]), point, size, rng.randf() < 0.5)
 		placed += 1
 
 
