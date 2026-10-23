@@ -69,6 +69,7 @@ $checks = @(
     @{ Name = 'sfx'; Arguments = @('--headless', '--path', $projectRoot, '-s', 'res://tests/simulation3d/test_sfx.gd') },
     @{ Name = 'lanes'; Arguments = @('--headless', '--path', $projectRoot, '-s', 'res://tests/simulation3d/test_lanes.gd') },
     @{ Name = 'placement'; Arguments = @('--headless', '--path', $projectRoot, '-s', 'res://tests/simulation3d/test_placement.gd') },
+    @{ Name = 'tower-tap'; Arguments = @('--headless', '--path', $projectRoot, '-s', 'res://tests/simulation3d/test_tower_tap.gd') },
     @{ Name = 'arsenal-reference'; Arguments = @('--headless', '--path', $projectRoot, '-s', 'res://tools/measure_arsenal.gd') },
     @{ Name = 'gait-walk'; Arguments = @('--headless', '--path', $projectRoot, '-s', 'res://tools/measure_gait.gd') },
     @{ Name = 'gait-run'; Arguments = @('--headless', '--path', $projectRoot, '-s', 'res://tools/measure_gait.gd', '--', '--run') }

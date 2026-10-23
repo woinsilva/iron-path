@@ -59,6 +59,9 @@ var _coins_label: Label
 var _actions: PanelContainer
 var _tower_title: Label
 var _tower_stats: Dictionary = {}
+var _tap_start: Vector2 = Vector2(-1000, -1000)
+## When the tower card last opened (ms); its buttons ignore presses for a moment after it appears.
+var _card_opened_at: int = 0
 var _card_bar: PanelContainer
 var _hud_blockers: Array[Control] = []
 var _placing: String = ""
@@ -563,7 +566,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_move_ghost(ground as Vector3)
 		if event is InputEventScreenTouch and not event.pressed: _confirm_placement()
 		return
-	if event is InputEventScreenTouch and event.pressed: _select_pad(_tower_pad_near(ground as Vector3))
+	# Select on release of a tap, so the card that opens is not hit by the same press/release (mouse or finger).
+	if event is InputEventScreenTouch:
+		if event.pressed: _tap_start = point
+		elif _tap_start.distance_to(point) < 24.0: _select_pad(_tower_pad_near(ground as Vector3))
 
 ## Drag that starts on a tower card keeps feeding the ghost even while the finger is still over the HUD.
 func _input(event: InputEvent) -> void:
@@ -657,6 +663,7 @@ func _end_placement() -> void:
 	if is_instance_valid(_card_bar): _update_hud()
 
 func _select_pad(index: int) -> void:
+	if index >= 0 and index != _selected_pad: _card_opened_at = Time.get_ticks_msec()
 	_selected_pad = index
 	_update_ring()
 	_update_hud()
@@ -1075,6 +1082,12 @@ func _build_hud() -> void:
 		button.custom_minimum_size.y = 84
 	MenuKitV2.primary(_upgrade)
 	_sell.add_theme_color_override("font_color", Color("ffb3a1"))
+	# A press that lands while the card is still appearing belongs to the tap that opened it, not to a button.
+	for button: Button in [_upgrade, _branch_buttons.A, _branch_buttons.B, _priority, _cancel, _sell]:
+		button.gui_input.connect(func(event: InputEvent) -> void:
+			if (event is InputEventMouseButton or event is InputEventScreenTouch) and Time.get_ticks_msec() - _card_opened_at < 300:
+				button.accept_event()
+		)
 	# Result card.
 	_result = PanelContainer.new()
 	_result.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
@@ -1327,7 +1340,10 @@ func _place_actions(tower: SimTowerV2) -> void:
 	var size: Vector2 = _actions.get_combined_minimum_size()
 	var view: Vector2 = get_viewport().get_visible_rect().size
 	_actions.size = size
-	_actions.position = Vector2(clampf(screen.x - size.x / 2, 16, view.x - size.x - 16), clampf(screen.y - size.y - 10, 120, view.y - size.y - 250))
+	var top: float = screen.y - size.y - 10
+	# No room above the tower: open the card below its base instead of sliding it over the tower.
+	if top < 120: top = diorama.camera.unproject_position(tower.position).y + 40
+	_actions.position = Vector2(clampf(screen.x - size.x / 2, 16, view.x - size.x - 16), clampf(top, 120, view.y - size.y - 250))
 
 func _show_result(victory: bool) -> void:
 	_result.visible = true
