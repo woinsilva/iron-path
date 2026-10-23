@@ -81,6 +81,8 @@ func _ready() -> void:
 	diorama.photo = bool(stage.get("photo", false))
 	diorama.descent = stage.get("descent", [])
 	diorama.flats = stage.get("flats", [])
+	diorama.mounds = stage.get("mounds", [])
+	diorama.descent_drop = float(stage.get("descent_drop", 2.6))
 	# Underground routes, counted among the ground roads (the air route sits at simulation id 1).
 	for route_id: int in stage.get("burrow_routes", []):
 		diorama.burrow_routes.append(route_id - (1 if stage.has("air_route_points") else 0))
@@ -97,11 +99,13 @@ func _ready() -> void:
 		diorama.bridges_enabled = true
 	add_child(diorama)
 	var landmarks: StageLandmarksV2 = StageLandmarksV2.new()
-	landmarks.forge_enabled = int(stage.index) == 8
-	landmarks.fortress_enabled = int(stage.index) == 7
-	landmarks.quarry_enabled = int(stage.index) == 6
-	landmarks.guard_gate_enabled = int(stage.index) == 4
-	landmarks.orchard_enabled = int(stage.index) == 2
+	# Hand-dressed maps build their own set pieces (MapSceneryV2); the older generic ones stay off there.
+	var generic: bool = not stage.has("scenery")
+	landmarks.forge_enabled = int(stage.index) == 8 and generic
+	landmarks.fortress_enabled = int(stage.index) == 7 and generic
+	landmarks.quarry_enabled = int(stage.index) == 6 and generic
+	landmarks.guard_gate_enabled = int(stage.index) == 4 and generic
+	landmarks.orchard_enabled = int(stage.index) == 2 and generic
 	landmarks.show_mill = int(stage.index) == 1
 	landmarks.entrance = diorama.route.sample_baked(0)
 	landmarks.endpoint = diorama.route.sample_baked(diorama.route.get_baked_length())

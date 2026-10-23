@@ -14,6 +14,9 @@ static func build(diorama: Diorama3D, scenery: String) -> void:
 		"vale_meadow": _vale_meadow(diorama)
 		"canyon_bridges": _canyon_bridges(diorama)
 		"swamp_lake": _swamp_lake(diorama)
+		"vale_terraces": _vale_terraces(diorama)
+		"vale_river": _vale_river(diorama)
+		"vale_hillfort": _vale_hillfort(diorama)
 	_frame(diorama)
 
 
@@ -536,3 +539,279 @@ static func _swamp_lake(diorama: Diorama3D) -> void:
 	var exit: Vector3 = diorama.route.sample_baked(diorama.route.get_baked_length())
 	_flag(diorama, _on_ground(diorama, exit + Vector3(-1.3, 0.1, 1.3)), Color("6a4f9c"))
 	_smoke(diorama, _on_ground(diorama, exit + Vector3(1.6, 0.4, 1.4)), Color(0.7, 0.9, 0.75, 0.35))
+
+
+# --- shared vale pieces --------------------------------------------------------------------
+
+## Woods and undergrowth common to the vale maps: a sparse wood line, groves on the flanks, bushes and
+## rocks, none of it tall enough to hide a road from the camera.
+static func _vale_woods(diorama: Diorama3D, rng: RandomNumberGenerator, groves: int) -> void:
+	var trees: Array = ["Tree_1_A_Color1", "Tree_1_B_Color1", "Tree_2_A_Color1", "Tree_2_B_Color1", "Tree_3_A_Color1", "Tree_4_A_Color1", "Tree_4_B_Color1"]
+	_scatter(diorama, rng, trees, 30, Rect2(-30, -18, 60, 6.4), 2.6, Vector2(0.65, 1.05))
+	_scatter(diorama, rng, trees, 10, Rect2(-30, -11, 8.5, 20), 2.6, Vector2(0.6, 1.0))
+	_scatter(diorama, rng, trees, 8, Rect2(22, -11, 8, 20), 2.6, Vector2(0.6, 1.0))
+	_scatter(diorama, rng, trees, groves, Rect2(-20, -10, 37, 20), 3.4, Vector2(0.55, 0.85))
+	_scatter(diorama, rng, ["Bush_1_A_Color1", "Bush_1_C_Color1", "Bush_2_C_Color1", "Bush_3_A_Color1", "Bush_4_A_Color1"], 40, Rect2(-21, -11, 40, 22), 2.0, Vector2(0.6, 1.1))
+	_scatter(diorama, rng, ["Rock_1_A_Color1", "Rock_1_D_Color1", "Rock_3_A_Color1", "Rock_3_C_Color1"], 16, Rect2(-21, -11, 40, 22), 2.2, Vector2(0.5, 0.9), false)
+
+
+## Split-rail fences along stretches of every road, following the ground.
+static func _road_fences(diorama: Diorama3D, color: Color) -> void:
+	var wood: StandardMaterial3D = SceneCraft3D.material(color)
+	for road: Curve3D in diorama.all_ground_routes:
+		var distance: float = 6.0
+		while distance < road.get_baked_length() - 6.0:
+			var here: Vector3 = road.sample_baked(distance)
+			var ahead: Vector3 = road.sample_baked(distance + 0.6)
+			var side: Vector3 = Vector3(-(ahead - here).z, 0, (ahead - here).x).normalized() * 1.7
+			for sign: float in [-1.0, 1.0]:
+				var post: Vector3 = here + side * sign
+				var next: Vector3 = road.sample_baked(distance + 1.1) + side * sign
+				if diorama._distance_from_route(post) < 1.55 or diorama._is_reserved(post, 1.6): continue
+				if absf(post.x - diorama.river_x) < diorama.river_width * 0.5 + 1.0: continue
+				post.y = diorama.terrain_height(post)
+				next.y = diorama.terrain_height(next)
+				SceneCraft3D.box(diorama, Vector3(0.1, 0.55, 0.1), post + Vector3(0, 0.3, 0), wood)
+				SceneCraft3D.beam(diorama, post + Vector3(0, 0.42, 0), next + Vector3(0, 0.42, 0), 0.05, wood)
+			distance += 1.1 if int(distance / 9.0) % 2 == 0 else 4.0
+
+
+## A small fruit tree: KayKit crown with red fruit, stepping aside for towers like other scenery.
+static func _fruit_tree(diorama: Diorama3D, rng: RandomNumberGenerator, point: Vector3, fruit: StandardMaterial3D) -> void:
+	var size: float = rng.randf_range(0.42, 0.52)
+	var tree: Node3D = _prop(diorama, "Tree_1_A_Color1" if rng.randf() < 0.5 else "Tree_2_A_Color1", point, size, rng.randf_range(-PI, PI))
+	for index in range(6):
+		var angle: float = index * TAU / 6 + rng.randf_range(-0.3, 0.3)
+		SceneCraft3D.sphere(tree, 0.22, Vector3(sin(angle) * 1.7, rng.randf_range(2.6, 3.6), cos(angle) * 1.7), fruit)
+
+
+static func _haystack(diorama: Diorama3D, point: Vector3) -> void:
+	var stack: Node3D = Node3D.new()
+	stack.position = _on_ground(diorama, point)
+	stack.add_to_group(SCENERY_GROUP)
+	diorama.add_child(stack)
+	var hay: StandardMaterial3D = SceneCraft3D.material(Color("d8b45c"), 0.95)
+	SceneCraft3D.cylinder(stack, 0.55, 0.7, Vector3(0, 0.35, 0), hay, 12)
+	var top: CylinderMesh = CylinderMesh.new()
+	top.top_radius = 0.05
+	top.bottom_radius = 0.6
+	top.height = 0.6
+	top.radial_segments = 12
+	SceneCraft3D.mesh(stack, top, Vector3(0, 1.0, 0), hay)
+
+
+static func _barn(diorama: Diorama3D, point: Vector3, angle: float) -> void:
+	var barn: Node3D = Node3D.new()
+	barn.position = _on_ground(diorama, point)
+	barn.rotation.y = angle
+	barn.add_to_group(SCENERY_GROUP)
+	diorama.add_child(barn)
+	var red: StandardMaterial3D = SceneCraft3D.material(Color("9c3b2f"))
+	var trim: StandardMaterial3D = SceneCraft3D.material(Color("efe6d0"))
+	var roof: StandardMaterial3D = SceneCraft3D.material(Color("5b4a3d"))
+	SceneCraft3D.box(barn, Vector3(3.4, 2.2, 2.6), Vector3(0, 1.1, 0), red)
+	var gable: PrismMesh = PrismMesh.new()
+	gable.size = Vector3(3.8, 1.6, 3.0)
+	var top: MeshInstance3D = SceneCraft3D.mesh(barn, gable, Vector3(0, 3.0, 0), roof)
+	top.rotation.y = PI / 2
+	SceneCraft3D.box(barn, Vector3(1.4, 1.6, 0.08), Vector3(0, 0.8, 1.31), trim)
+	SceneCraft3D.box(barn, Vector3(1.2, 1.4, 0.1), Vector3(0, 0.8, 1.33), red)
+	for sign: float in [-1.0, 1.0]: SceneCraft3D.beam(barn, Vector3(sign * 0.6, 0.15, 1.36), Vector3(-sign * 0.6, 1.45, 1.36), 0.08, trim)
+
+
+# --- Pomar Cercado: an orchard hillside the road crosses in switchbacks ----------------------
+
+static func _vale_terraces(diorama: Diorama3D) -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 2202
+	_entrances(diorama, rng)
+	_vale_woods(diorama, rng, 4)
+	var fruit: StandardMaterial3D = SceneCraft3D.material(Color("c8452f"), 0.6)
+	# Orchard rows on the open slopes and in loose lines along the terraces.
+	for row_z: float in [-10.6, 7.6, 9.2, 10.8]:
+		var x: float = -20.0
+		while x < 17.0:
+			var point: Vector3 = Vector3(x + rng.randf_range(-0.3, 0.3), 0, row_z + rng.randf_range(-0.25, 0.25))
+			if _free(diorama, point, 2.4, 2.4) and not _hides_road(diorama, point, 2.0): _fruit_tree(diorama, rng, point, fruit)
+			x += 2.6
+	for zone: Rect2 in [Rect2(-20, -6, 4.5, 9), Rect2(14.5, -1, 3, 8)]:
+		var z: float = zone.position.y
+		while z < zone.end.y:
+			var x: float = zone.position.x
+			while x < zone.end.x:
+				var point: Vector3 = Vector3(x, 0, z)
+				if _free(diorama, point, 2.4, 2.4): _fruit_tree(diorama, rng, point, fruit)
+				x += 2.4
+			z += 2.6
+	# Dry-stone walls hold each terrace: a low wall on the downhill (south) side of the long legs.
+	var wall: StandardMaterial3D = SceneCraft3D.material(Color("a39c86"), 0.95)
+	var road: Curve3D = diorama.route
+	var distance: float = 4.0
+	while distance < road.get_baked_length() - 4.0:
+		var here: Vector3 = road.sample_baked(distance)
+		var tangent: Vector3 = road.sample_baked(distance + 0.5) - here
+		if absf(tangent.x) > absf(tangent.z) * 2.5:
+			var stone: Vector3 = here + Vector3(0, 0, 1.75)
+			if diorama._distance_from_route(stone) > 1.5 and not diorama._is_reserved(stone, 1.4):
+				var block: MeshInstance3D = SceneCraft3D.box(diorama, Vector3(0.62, 0.32, 0.36), _on_ground(diorama, stone) + Vector3(0, 0.1, 0), wall)
+				block.rotation.y = atan2(-tangent.z, tangent.x) + rng.randf_range(-0.08, 0.08)
+		distance += 0.6
+	# Farm at the bottom of the hill where the road ends: barn, farmhouse, haystacks and beehives.
+	var exit: Vector3 = diorama.route.sample_baked(diorama.route.get_baked_length())
+	var barn_spot: Vector3 = exit + Vector3(-1.6, 0, -3.2)
+	if _free(diorama, barn_spot, 2.2, 2.2): _barn(diorama, barn_spot, 0.15)
+	var house_spot: Vector3 = exit + Vector3(-5.0, 0, -2.6)
+	if _free(diorama, house_spot, 2.2, 2.2): _house(diorama, _on_ground(diorama, house_spot), -0.25, Color("a8543c"), true)
+	for offset: Vector3 in [Vector3(-3.5, 0, 1.6), Vector3(-4.6, 0, 2.2), Vector3(1.8, 0, -1.6)]:
+		if _free(diorama, exit + offset, 1.8, 1.8): _haystack(diorama, exit + offset)
+	var hive: StandardMaterial3D = SceneCraft3D.material(Color("e2c37a"))
+	for index in range(4):
+		var spot: Vector3 = Vector3(-18.5 + index * 1.2, 0, 6.2)
+		if _free(diorama, spot, 1.6, 1.6):
+			var box: Node3D = Node3D.new()
+			box.position = _on_ground(diorama, spot)
+			box.add_to_group(SCENERY_GROUP)
+			diorama.add_child(box)
+			for level in range(3): SceneCraft3D.box(box, Vector3(0.5 - level * 0.04, 0.22, 0.42), Vector3(0, 0.12 + level * 0.23, 0), hive)
+	_flag(diorama, _on_ground(diorama, exit + Vector3(1.2, 0.1, -1.4)), Color("2f7f86"))
+	_road_fences(diorama, Color("8a6a45"))
+
+
+# --- Travessia do Rio: a wavy road down to a river crossing, with a watermill and ponds --------
+
+static func _vale_river(diorama: Diorama3D) -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 3303
+	_entrances(diorama, rng)
+	_vale_woods(diorama, rng, 6)
+	# Watermill on the east bank with a turning wheel in the current.
+	var mill: Node3D = Node3D.new()
+	mill.name = "Watermill"
+	mill.position = _on_ground(diorama, Vector3(diorama.river_x + diorama.river_width * 0.5 + 1.6, 0, -2.0))
+	mill.add_to_group(SCENERY_GROUP)
+	diorama.add_child(mill)
+	var plaster: StandardMaterial3D = SceneCraft3D.material(Color("e5d8bb"))
+	var timber: StandardMaterial3D = SceneCraft3D.material(Color("6e5136"))
+	var stone: StandardMaterial3D = SceneCraft3D.material(Color("9d978a"), 0.95)
+	SceneCraft3D.box(mill, Vector3(2.6, 0.5, 2.4), Vector3(0, 0.25, 0), stone)
+	SceneCraft3D.box(mill, Vector3(2.4, 1.8, 2.2), Vector3(0, 1.4, 0), plaster)
+	for x: float in [-1.15, 1.15]: SceneCraft3D.box(mill, Vector3(0.14, 1.85, 2.25), Vector3(x, 1.4, 0), timber)
+	var gable: PrismMesh = PrismMesh.new()
+	gable.size = Vector3(2.9, 1.3, 2.7)
+	SceneCraft3D.mesh(mill, gable, Vector3(0, 2.95, 0), SceneCraft3D.material(Color("8c4b36")))
+	var wheel: Node3D = Node3D.new()
+	wheel.position = Vector3(-1.75, 1.0, 0)
+	mill.add_child(wheel)
+	for spoke in range(8):
+		var arm: Node3D = Node3D.new()
+		arm.rotation.x = spoke * TAU / 8
+		wheel.add_child(arm)
+		SceneCraft3D.box(arm, Vector3(0.12, 0.08, 1.9), Vector3(0, 0, 0), timber)
+		SceneCraft3D.box(arm, Vector3(0.5, 0.35, 0.08), Vector3(0, 0, 0.95), timber)
+	var hub: MeshInstance3D = SceneCraft3D.cylinder(wheel, 0.2, 0.4, Vector3.ZERO, stone, 10)
+	hub.rotation.z = PI / 2
+	var turning: Tween = wheel.create_tween().set_loops()
+	turning.tween_property(wheel, "rotation:x", -TAU, 6.0).as_relative()
+	_smoke(mill, Vector3(0.7, 3.4, -0.6))
+	# Ponds with reeds and lily pads in the open ground on both banks.
+	var pad: StandardMaterial3D = SceneCraft3D.material(Color("4f7a43"))
+	for center: Vector3 in [Vector3(-5.5, 0, -1.5), Vector3(5.0, 0, 2.0)]:
+		if not _free(diorama, center, 3.2, 2.6): continue
+		var pond_center: Vector3 = _on_ground(diorama, center)
+		_pond(diorama, pond_center, Vector2(1.9, 1.3))
+		_reeds(diorama, rng, pond_center, 2.1, 10)
+		for leaf in range(4):
+			var angle: float = rng.randf_range(0, TAU)
+			SceneCraft3D.cylinder(diorama, 0.2, 0.02, pond_center + Vector3(cos(angle) * 1.0, 0.14, sin(angle) * 0.7), pad, 10)
+	# Fishing dock and a rowboat on the west bank.
+	var dock: Vector3 = _on_ground(diorama, Vector3(diorama.river_x - diorama.river_width * 0.5 - 0.4, 0, 3.2))
+	var plank: StandardMaterial3D = SceneCraft3D.material(Color("8a6a45"))
+	SceneCraft3D.box(diorama, Vector3(2.2, 0.1, 1.0), dock + Vector3(0.6, 0.25, 0), plank)
+	for z: float in [-0.4, 0.4]: SceneCraft3D.cylinder(diorama, 0.07, 0.6, dock + Vector3(1.5, 0.05, z), timber, 6)
+	var boat: MeshInstance3D = SceneCraft3D.box(diorama, Vector3(0.7, 0.25, 1.6), Vector3(diorama.river_x - 0.2, 0.2, 4.6), timber)
+	boat.rotation.y = 0.3
+	# Wildflower meadow patches.
+	var petals: Array[StandardMaterial3D] = [SceneCraft3D.material(Color("f2e05c")), SceneCraft3D.material(Color("e8f0f4")), SceneCraft3D.material(Color("c86ab8"))]
+	for index in range(160):
+		var point: Vector3 = Vector3(rng.randf_range(-20, 17), 0, rng.randf_range(-10, 10))
+		if not _free(diorama, point, 1.7, 1.4): continue
+		SceneCraft3D.sphere(diorama, 0.07, _on_ground(diorama, point) + Vector3(0, 0.12, 0), petals[index % 3])
+	var exit: Vector3 = diorama.route.sample_baked(diorama.route.get_baked_length())
+	for spot: Vector3 in [exit + Vector3(-2.6, 0, 2.6), exit + Vector3(1.0, 0, 3.2)]:
+		if _free(diorama, spot, 2.3, 2.3): _house(diorama, _on_ground(diorama, spot), rng.randf_range(-0.4, 0.4), Color("4f6f9a"), true)
+	_flag(diorama, _on_ground(diorama, exit + Vector3(-1.2, 0.1, 1.3)), Color("2f7f86"))
+	_road_fences(diorama, Color("8a6a45"))
+
+
+# --- Portão da Guarda: the road spirals up a hill to the guard fort at its top ---------------
+
+static func _vale_hillfort(diorama: Diorama3D) -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 4404
+	_entrances(diorama, rng)
+	_vale_woods(diorama, rng, 3)
+	var stone: StandardMaterial3D = SceneCraft3D.material(Color("a3a48f"), 0.95)
+	var dark: StandardMaterial3D = SceneCraft3D.material(Color("7b7d70"), 0.95)
+	var roof: StandardMaterial3D = SceneCraft3D.material(Color("506c76"))
+	var wood: StandardMaterial3D = SceneCraft3D.material(Color("72543b"))
+	var road: Curve3D = diorama.route
+	var exit: Vector3 = road.sample_baked(road.get_baked_length())
+	var arrival: Vector3 = (exit - road.sample_baked(road.get_baked_length() - 2.0))
+	arrival.y = 0
+	arrival = arrival.normalized()
+	# Keep: a squat tower with a slate cone past the end of the road.
+	var keep: Node3D = Node3D.new()
+	keep.name = "GuardKeep"
+	keep.position = _on_ground(diorama, exit + arrival * 2.4)
+	diorama.add_child(keep)
+	SceneCraft3D.cylinder(keep, 1.5, 3.6, Vector3(0, 1.8, 0), stone, 12)
+	SceneCraft3D.cylinder(keep, 1.7, 0.4, Vector3(0, 3.7, 0), dark, 12)
+	for index in range(8):
+		var angle: float = index * TAU / 8
+		SceneCraft3D.box(keep, Vector3(0.45, 0.45, 0.45), Vector3(cos(angle) * 1.5, 4.1, sin(angle) * 1.5), dark)
+	var cone: CylinderMesh = CylinderMesh.new()
+	cone.top_radius = 0.0
+	cone.bottom_radius = 1.3
+	cone.height = 1.8
+	cone.radial_segments = 12
+	SceneCraft3D.mesh(keep, cone, Vector3(0, 5.0, 0), roof)
+	_flag(keep, Vector3(0, 5.6, 0), Color("2f5f8c"), 1.6)
+	# Gatehouse across the last stretch of road: two round towers and a raised portcullis.
+	var gate: Node3D = _entrance_frame(diorama, road, "GuardGate")
+	gate.position = _on_ground(diorama, road.sample_baked(road.get_baked_length() - 1.2))
+	gate.basis = Basis(Vector3(-arrival.z, 0, arrival.x), Vector3.UP, -arrival)
+	for sign: float in [-1.0, 1.0]:
+		SceneCraft3D.cylinder(gate, 0.66, 3.0, Vector3(sign * 1.65, 1.5, 0), stone, 10)
+		SceneCraft3D.cylinder(gate, 0.78, 0.25, Vector3(sign * 1.65, 3.0, 0), dark, 10)
+		var cap: CylinderMesh = CylinderMesh.new()
+		cap.top_radius = 0
+		cap.bottom_radius = 0.85
+		cap.height = 1.2
+		cap.radial_segments = 10
+		SceneCraft3D.mesh(gate, cap, Vector3(sign * 1.65, 3.7, 0), roof)
+	SceneCraft3D.box(gate, Vector3(3.1, 0.7, 0.75), Vector3(0, 2.6, 0), stone)
+	for x: float in [-1.0, -0.5, 0.0, 0.5, 1.0]: SceneCraft3D.box(gate, Vector3(0.1, 0.5, 0.1), Vector3(x, 2.05, 0), wood)
+	# Ring of curtain wall around the hilltop, broken where the road climbs in.
+	var radius: float = 4.2
+	for index in range(28):
+		var angle: float = index * TAU / 28
+		var point: Vector3 = exit + arrival * 2.4 + Vector3(cos(angle), 0, sin(angle)) * radius
+		if diorama._distance_from_route(point) < 1.8 or diorama._is_reserved(point, 1.7): continue
+		var piece: MeshInstance3D = SceneCraft3D.box(diorama, Vector3(1.0, 1.4, 0.6), _on_ground(diorama, point) + Vector3(0, 0.6, 0), stone)
+		piece.rotation.y = -angle + PI / 2
+		if index % 2 == 0: SceneCraft3D.box(diorama, Vector3(0.4, 0.35, 0.6), _on_ground(diorama, point) + Vector3(0, 1.45, 0), dark)
+	# Army camp below the hill: tents, a campfire and straw targets.
+	var canvas: Array[StandardMaterial3D] = [SceneCraft3D.material(Color("d9cfb4")), SceneCraft3D.material(Color("b55b45"))]
+	for index in range(6):
+		var point: Vector3 = Vector3(rng.randf_range(-19, 16), 0, rng.randf_range(-10, 10))
+		if not _free(diorama, point, 2.6, 2.6) or point.distance_to(Vector3(exit.x, 0, exit.z)) < 8.0: continue
+		var tent: PrismMesh = PrismMesh.new()
+		tent.size = Vector3(1.6, 1.2, 1.9)
+		var shelter: MeshInstance3D = SceneCraft3D.mesh(diorama, tent, _on_ground(diorama, point) + Vector3(0, 0.6, 0), canvas[index % 2])
+		shelter.rotation.y = rng.randf_range(-PI, PI)
+		shelter.add_to_group(SCENERY_GROUP)
+	var fire: Vector3 = Vector3(-17.5, 0, 0.5)
+	if _free(diorama, fire, 2.0, 2.0):
+		SceneCraft3D.cylinder(diorama, 0.4, 0.1, _on_ground(diorama, fire) + Vector3(0, 0.05, 0), dark, 10)
+		_smoke(diorama, _on_ground(diorama, fire) + Vector3(0, 0.3, 0), Color(0.6, 0.58, 0.55, 0.5))
+	_road_fences(diorama, Color("7a5c3e"))

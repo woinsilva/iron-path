@@ -19,6 +19,10 @@ var descent: Array = []
 var burrow_routes: Array = []
 ## [x, z, radius] areas kept at ground level (lakes, plazas) on relief maps.
 var flats: Array = []
+## [x, z, radius, height] rounded hills that lift everything on them, roads included (a hill fort).
+var mounds: Array = []
+## Height of the plateau the land falls from (metres before relief scaling).
+var descent_drop: float = 2.6
 var _heights: PackedFloat32Array = PackedFloat32Array()
 const HEIGHT_STEP: float = 0.5
 const HEIGHT_ORIGIN: Vector2 = Vector2(-48, -32)
@@ -128,12 +132,15 @@ func _build_heights() -> void:
 			var water: float = smoothstep(river_width * 0.5 + 0.4, river_width * 0.5 + 3.0, absf(point.x - river_x))
 			# The land descends from a high western plateau (where the road enters) to the valley floor in the
 			# east, so the road visibly climbs down; open ground carries flat-topped knolls with steep sides.
-			var fall: float = 2.6 * (1.0 - smoothstep(-20.0, 6.0, point.x))
+			var fall: float = descent_drop * (1.0 - smoothstep(-20.0, 6.0, point.x))
 			if descent.size() == 2:
 				var high: Vector2 = Vector2(float(descent[0][0]), float(descent[0][1]))
 				var low: Vector2 = Vector2(float(descent[1][0]), float(descent[1][1]))
 				var along: float = (Vector2(point.x, point.z) - high).dot(low - high) / (low - high).length_squared()
-				fall = 2.6 * (1.0 - smoothstep(0.0, 1.0, along))
+				fall = descent_drop * (1.0 - smoothstep(0.0, 1.0, along))
+			for mound: Array in mounds:
+				var span: float = Vector2(point.x - float(mound[0]), point.z - float(mound[1])).length() / float(mound[2])
+				fall += float(mound[3]) * (1.0 - smoothstep(0.35, 1.0, span))
 			# Canyon knolls are steep-sided mesas; elsewhere they are softer rises.
 			var knoll: float = smoothstep(0.12, 0.34, hills.get_noise_2d(point.x, point.z)) * 2.0 * open
 			if biome == "canyon": knoll = smoothstep(0.16, 0.22, hills.get_noise_2d(point.x, point.z)) * 2.4 * open
