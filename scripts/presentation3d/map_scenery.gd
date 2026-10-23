@@ -1070,6 +1070,7 @@ static func _swamp_causeway(diorama: Diorama3D) -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 10010
 	_entrances(diorama, rng)
+	diorama._build_swamp_hero()
 	_swamp_pools(diorama, rng, 9)
 	_swamp_woods(diorama, rng)
 	# Plank edging and posts along the trails: the roads read as boardwalks over the mud.
@@ -1119,6 +1120,7 @@ static func _swamp_nest(diorama: Diorama3D) -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 11011
 	_entrances(diorama, rng)
+	diorama._build_swamp_hero()
 	_swamp_pools(diorama, rng, 6)
 	_swamp_woods(diorama, rng)
 	var bark: StandardMaterial3D = SceneCraft3D.material(Color("3e3328"), 0.95)
@@ -1172,6 +1174,7 @@ static func _swamp_heart(diorama: Diorama3D) -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 12012
 	_entrances(diorama, rng)
+	diorama._build_swamp_hero(Vector3(-23.5, 0.1, 3.5))
 	_swamp_pools(diorama, rng, 6)
 	_swamp_woods(diorama, rng)
 	var stone: StandardMaterial3D = SceneCraft3D.material(Color("687c70"), 0.95)

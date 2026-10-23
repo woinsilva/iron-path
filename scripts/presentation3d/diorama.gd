@@ -570,10 +570,10 @@ func _build_swamp_border() -> void:
 			_foliage.append(tree)
 	_build_swamp_hero()
 
-func _build_swamp_hero() -> void:
+func _build_swamp_hero(spot: Vector3 = Vector3(-23,0.1,-1)) -> void:
 	var hero: Node3D = Node3D.new()
 	hero.name = "SwampLandmark%d" % stage_index
-	hero.position = Vector3(-23,0.1,-1)
+	hero.position = spot
 	hero.position.y += terrain_height(hero.position)
 	add_child(hero)
 	var stone: StandardMaterial3D = SceneCraft3D.material(Color("687c70"),0.95)

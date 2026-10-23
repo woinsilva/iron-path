@@ -159,6 +159,9 @@ func _physics_process(delta: float) -> void:
 	if _warming_up: return
 	simulation.advance(delta)
 	_handle_events(simulation.consume_events())
+	for id: int in _sites:
+		var worked: SimTowerV2 = simulation.towers.get(id)
+		if worked != null and worked.state != SimTowerV2.State.READY: (_sites[id] as TowerEvolutionV2).set_progress(float(worked.work_elapsed) / worked.work_ticks)
 	_sync_enemies(delta)
 	_sync_towers(delta)
 	_sync_projectiles()
@@ -240,13 +243,13 @@ func _handle_events(batch: Array[Dictionary]) -> void:
 					(tower_views[int(event.id)] as Node3D).visible = true
 					var upgraded: SimTowerV2 = simulation.towers[int(event.id)]
 					TowerUpgradeDecorV2.apply(tower_views[int(event.id)], upgraded.level, upgraded.type_id, upgraded.branch)
-					if upgraded.level > 1: _celebrate_upgrade(tower_views[int(event.id)] as Node3D, upgraded.level)
+					if not bool(event.get("cancelled", false)): _celebrate_upgrade(tower_views[int(event.id)] as Node3D, upgraded.level)
 					if simulation.tower_on_pad(_selected_pad) == upgraded: _update_ring()
 				if _sites.has(int(event.id)):
-					(_sites[int(event.id)] as Node3D).visible = false
+					(_sites[int(event.id)] as TowerEvolutionV2).finish()
 			"upgrade_started":
 				(tower_views[int(event.id)] as Node3D).call("cancel_attack")
-				(_sites[int(event.id)] as Node3D).visible = true
+				(_sites[int(event.id)] as TowerEvolutionV2).begin()
 			"windup":
 				if tower_views.has(int(event.id)):
 					var tower: SimTowerV2 = simulation.towers[int(event.id)]
@@ -302,15 +305,9 @@ func _create_tower(id: int) -> void:
 			prop.set_meta("hidden_by", id)
 	SceneCraft3D.cylinder(base, 0.84, 0.05, Vector3(0, 0.18, 0), SceneCraft3D.material(Color("757f68")), 20)
 	_bases[id] = base
-	var site: Node3D = Node3D.new()
+	var site: TowerEvolutionV2 = TowerEvolutionV2.new()
 	site.position = display.position
 	add_child(site)
-	var wood: StandardMaterial3D = SceneCraft3D.material(Color("bb8c53"))
-	for x: float in [-0.9, 0.9]:
-		for z: float in [-0.9, 0.9]:
-			SceneCraft3D.box(site, Vector3(0.1, 1.5, 0.1), Vector3(x, 0.75, z), wood)
-		SceneCraft3D.box(site, Vector3(0.1, 0.12, 1.9), Vector3(x, 1.5, 0), wood)
-	SceneCraft3D.beam(site, Vector3(-0.9, 0.2, 0.9), Vector3(0.9, 1.5, 0.9), 0.08, wood)
 	_sites[id] = site
 
 func _tower_display(type_id: String) -> Node3D:
@@ -676,7 +673,59 @@ func _celebrate_upgrade(display: Node3D, level: int) -> void:
 	spread.tween_property(dust, "scale", Vector3.ONE * (3.2 if level < 6 else 4.5), 0.55).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	spread.tween_property(dust.material_override, "albedo_color:a", 0.0, 0.55)
 	spread.chain().tween_callback(dust.queue_free)
+	if level < 2: return
 	_sound("ui")
+	# Evolution: the new parts grow into place under a column of light and a burst of golden sparks.
+	var decor: Node3D = display.get_node_or_null("LevelDecor") as Node3D
+	if decor != null:
+		decor.scale = Vector3.ONE * 0.05
+		var grow: Tween = decor.create_tween()
+		grow.tween_property(decor, "scale", Vector3.ONE, 0.6).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	var beam: CylinderMesh = CylinderMesh.new()
+	beam.top_radius = 0.75
+	beam.bottom_radius = 0.95
+	beam.height = 7.0
+	beam.radial_segments = 20
+	beam.cap_top = false
+	beam.cap_bottom = false
+	var light: StandardMaterial3D = StandardMaterial3D.new()
+	light.albedo_color = Color(1.0, 0.86, 0.45, 0.7) if level < 6 else Color(0.85, 0.65, 1.0, 0.8)
+	light.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	light.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	light.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	light.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var column: MeshInstance3D = SceneCraft3D.mesh(self, beam, display.position + Vector3(0, 3.5, 0), light)
+	column.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	column.scale = Vector3(0.3, 1, 0.3)
+	var shine: Tween = column.create_tween().set_parallel()
+	shine.tween_property(column, "scale", Vector3(1.4, 1, 1.4), 0.75).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	shine.tween_property(light, "albedo_color:a", 0.0, 0.75).set_ease(Tween.EASE_IN)
+	shine.chain().tween_callback(column.queue_free)
+	var spark: SphereMesh = SphereMesh.new()
+	spark.radius = 0.06
+	spark.height = 0.12
+	spark.radial_segments = 6
+	spark.rings = 3
+	var gold: StandardMaterial3D = SceneCraft3D.material(Color("ffe08a") if level < 6 else Color("d9b8ff"))
+	gold.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	spark.material = gold
+	var burst: CPUParticles3D = CPUParticles3D.new()
+	burst.mesh = spark
+	burst.amount = 26 if level < 6 else 44
+	burst.lifetime = 1.1
+	burst.one_shot = true
+	burst.explosiveness = 0.9
+	burst.direction = Vector3.UP
+	burst.spread = 55
+	burst.gravity = Vector3(0, -5, 0)
+	burst.initial_velocity_min = 2.5
+	burst.initial_velocity_max = 4.5
+	burst.position = display.position + Vector3(0, 1.5, 0)
+	add_child(burst)
+	burst.emitting = true
+	var cleanup: Tween = burst.create_tween()
+	cleanup.tween_interval(1.4)
+	cleanup.tween_callback(burst.queue_free)
 
 func _ring_mesh(radius: float, half_width: float) -> ArrayMesh:
 	var surface: SurfaceTool = SurfaceTool.new()

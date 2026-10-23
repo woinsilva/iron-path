@@ -406,7 +406,7 @@ func cancel_work(pad: int) -> bool:
 		tower.pending_level = tower.level
 		tower.pending_branch = tower.branch
 		tower.state = SimTowerV2.State.READY
-		events.append({"kind": "work_completed", "id": tower.id})
+		events.append({"kind": "work_completed", "id": tower.id, "cancelled": true})
 	return true
 
 func sell(pad: int) -> bool:
