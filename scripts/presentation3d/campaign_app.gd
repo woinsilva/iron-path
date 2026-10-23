@@ -798,6 +798,8 @@ func _record_result(result: Dictionary) -> void:
 
 func stage_unlocked(index: int) -> bool:
 	if index <= 1: return true
+	# Validation aid: `-- --unlock-all` opens every stage without touching the saved progress.
+	if "--unlock-all" in OS.get_cmdline_user_args(): return true
 	for mode: String in ["adventure", "normal", "veteran"]:
 		var previous: Dictionary = progress.progress.campaign.get("stage_%02d:" % (index - 1) + mode, {})
 		if int(previous.get("stars", 0)) > 0: return true

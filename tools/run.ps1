@@ -1,4 +1,4 @@
-param([switch]$Test, [ValidateSet("campaign", "prototype", "lab3d")][string]$Scene = "campaign")
+param([switch]$Test, [switch]$UnlockAll, [ValidateSet("campaign", "prototype", "lab3d")][string]$Scene = "campaign")
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $candidates = @($env:GODOT_EXE, 'C:\Dev\Tools\Godot\Godot_v4.5.2-stable_win64_console.exe')
@@ -10,6 +10,7 @@ if (-not $Test) {
     $gameArguments = @("--path", $projectRoot, "--resolution", "1280x720")
     if ($Scene -eq "prototype") { $gameArguments += "res://scenes/battle/battle.tscn" }
     if ($Scene -eq "lab3d") { $gameArguments += "res://scenes/lab3d/quality_lab.tscn" }
+    if ($UnlockAll) { $gameArguments += @("--", "--unlock-all") }
     & $godotExe @gameArguments
     exit $LASTEXITCODE
 }
