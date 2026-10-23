@@ -23,7 +23,7 @@ func run() -> void:
 	var guard: SimEnemyV2 = battle.simulation.spawn_enemy("shieldbearer")
 	battle._physics_process(1.0 / 60)
 	var actor: RiggedActor3D = battle.enemy_views[guard.id]
-	check(actor.model_path.ends_with("guardian.glb") and str(actor.get_meta("equipment")).contains("shield_round_color"), "Shield bearer uses its skeletal guardian model and distinct round shield")
+	check(actor.model_path.ends_with("skeleton_warrior.glb") and str(actor.get_meta("equipment")).contains("shield_round_color"), "Shield bearer uses its skeletal guardian model and distinct round shield")
 	battle.simulation.damage(guard.id, 50, "pure")
 	battle._physics_process(1.0 / 60)
 	check(is_equal_approx(actor.health_ratio, 1) and guard.shield == 30, "Projected life remains full while the separate shield absorbs a hit")

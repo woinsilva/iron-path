@@ -58,6 +58,54 @@
         "hit",
         "death"
       ]
+    },
+    {
+      "file": "skeleton_warrior.glb",
+      "source": "Skeleton_Warrior.glb",
+      "clips": [
+        "rally",
+        "death",
+        "hit",
+        "idle",
+        "run",
+        "walk"
+      ]
+    },
+    {
+      "file": "skeleton_mage.glb",
+      "source": "Skeleton_Mage.glb",
+      "clips": [
+        "rally",
+        "death",
+        "hit",
+        "idle",
+        "run",
+        "walk"
+      ]
+    },
+    {
+      "file": "skeleton_rogue.glb",
+      "source": "Skeleton_Rogue.glb",
+      "clips": [
+        "rally",
+        "death",
+        "hit",
+        "idle",
+        "run",
+        "walk"
+      ]
+    },
+    {
+      "file": "skeleton_minion.glb",
+      "source": "Skeleton_Minion.glb",
+      "clips": [
+        "rally",
+        "death",
+        "hit",
+        "idle",
+        "run",
+        "walk"
+      ]
     }
   ],
   "sources": [
@@ -82,22 +130,45 @@
     "axe_1handed.glb": "6d7e38fcb00a55208f50346ac786ade99196eef6dccc199e8c01e5ffa32ef646",
     "bow_withString.glb": "7a4843515fb2d9513b14b257536f3f84cb10fd1fb480bb5548c3e37e86bcab45",
     "Bush_1_A_Color1.glb": "fc839ee47ee211cf3f416d2cd35c149e8dc95ad838da5857ffbe5d518b59a9e3",
+    "Bush_1_C_Color1.glb": "6695539d9c37e2d98f7b5ca0b22bd9cf62e99682e966d3abef21b3d7319c5e1c",
     "Bush_2_C_Color1.glb": "e25e84f0ec8ac395dd086afb9fc783506fa9eb57c008c118c1d1e3a9b6dd1151",
+    "Bush_3_A_Color1.glb": "ea52e35e7189d2995a938d472dd41a92973fe5447fe6bfd4044bf7431bf9248b",
+    "Bush_4_A_Color1.glb": "9d3dc92932dda0594df9fe5c61c8dd57270e72867be3882dbc82a300d648f41f",
     "captain.glb": "67c557c0bfb08c3206605b6f8ca1f1d4309da14ab1660b75e0fad07b045e4d84",
     "goblin.glb": "3c621161b52e375bca2c47fc7a2da13d918363278aae67f666c0233f0f9a114a",
     "Grass_1_A_Color1.glb": "9882d591964b9b01e084e16d432f1d41e2cf2ef83ec2313e1e87f9a58cf183fa",
+    "Grass_2_A_Color1.glb": "a9d2fcebbe3e14d3a1a370bc1268883326172e34302f82c52343574d99f42413",
     "guardian.glb": "29f266774180bb7c64d9bac2de7300009f20df3cfd340a25670e4b1f52d05eb4",
     "quiver.glb": "7d5b1edaa45df165285c483cd44ab7a87ac0c57686c48a488f6d91a4e0b4d6dc",
     "ranger.glb": "34f86cbea62b2a697d7eb0c6531432ee475e4062b0241df1aa408bff9d296bd4",
     "Rock_1_A_Color1.glb": "ef52f8f37cbe1b4efc2306ba194abc81b5dd93cdc6d695a4af4fd4189f673785",
+    "Rock_1_D_Color1.glb": "3a7a3ff3d0e578f62adc843787119d1097fe10b5aa6b3554e5099dae9fdb8750",
     "Rock_2_A_Color1.glb": "bfbdfff3355d793aeea44c9a9882945a865163926145b39e89c6ee91aad20762",
+    "Rock_3_A_Color1.glb": "5633077cfde7034af2156fe2c5090a359de194fd7df8dbeb79da690c661c9654",
+    "Rock_3_C_Color1.glb": "ff4a225fa4d455221410630fc81a0a10d4a0fbd964012c83268dced5f7713164",
+    "Rock_3_F_Color1.glb": "8719183a97e873574d405700f85878a6939ab7bc1221c6b15b2afb6b9c877c2d",
     "shaman.glb": "45cf14b4259a76fb6a4a2127230788b25454631c6e12eaec88d8177605649d6f",
     "shield_round_color.glb": "1c3e57f4ec64e452144e067a9b4b7bd68fcd53d82c511098e93a9cafbe2c7548",
     "shield_square_color.glb": "985956996d0ff5b34b6dceb3afbf0ae28783dfe39d78e9f65da9973b01825570",
+    "skeleton_axe.glb": "a5489c834bda6a7d421b53451af621d6a5deb7268d834f688df6d4c9e9cf8e20",
+    "skeleton_blade.glb": "3bf257b4fdeb6a47e47e2b13e2427bd88f15d6e2517534f4176426092ce5dbfe",
+    "skeleton_mage.glb": "de562ae3ee6d96c00de8fa522141c20a5fa361b766f308104e71b2ad8c4fda1d",
+    "skeleton_minion.glb": "302cb96bc70246df78723b7a5337442653e799c7af9f599134e6bec9b2765e32",
+    "skeleton_rogue.glb": "d9f65ec34f6f94287158c18b849743c96ec692cd22a7414769bec32d9f80ca11",
+    "skeleton_shield.glb": "5bfd1b26bf6bcfd0c8c5d678908431db6f6707df918b03f5b30a7834e293e9b1",
+    "skeleton_shield_large.glb": "a0c40e76ae5be859f3478aacaf51811ba359f82c18702fef03401fafb16c2c27",
+    "skeleton_staff.glb": "99342d194c8c50ba702566189b9f4be6b29cf9b5d0d0fc5369a0dfd86a885786",
+    "skeleton_warrior.glb": "e294e68d7eeccdfa447275dbd167a762077ee53d6589f8c09c4777696b422e71",
     "staff.glb": "bdc7228da87783ed96ef5f26d523291276e98821d16f5337dae092aed983f8fa",
     "sword_1handed.glb": "98974a657986a634b858e7214b8361cfbcae7fd56728c805076594df6c6dbb2e",
     "Tree_1_A_Color1.glb": "5de57ae96b9a99f3f5a151ac260c0a6c5ba95fb10796b39b01a0f25019590ca2",
+    "Tree_1_B_Color1.glb": "abddb9af518ff91019330885e25ab63d4ddb54bcabb579f7e2a87a163c8f1c82",
+    "Tree_2_A_Color1.glb": "d8aefe1de7cb6592579c4705752efd589f751cc6485ae1e39584cd1b7f80fd05",
     "Tree_2_B_Color1.glb": "81c030e6ac07b7c332e4b35ca7e8b3511b218d0a1b9adf54005f03cbb5074faa",
-    "Tree_3_A_Color1.glb": "0126169a95da747c136ff696bce83dcb11ff6de588afa0b2a8c94117c84082bf"
+    "Tree_3_A_Color1.glb": "0126169a95da747c136ff696bce83dcb11ff6de588afa0b2a8c94117c84082bf",
+    "Tree_4_A_Color1.glb": "40716f6360f47178ca168009ee7be3f081054572b2b562be319bc2ef5cc41310",
+    "Tree_4_B_Color1.glb": "a3b059aeb6d3ea82d443f30431d75e2b8c56fa9f7a9ef5bf8abbed1939fc3242",
+    "Tree_Bare_1_A_Color1.glb": "65d25348329e1eea998fadba0f95038083fdbcc91ae0f5a68d6dbdb30d061380",
+    "Tree_Bare_2_A_Color1.glb": "c008a53d9406801cf092d1598427cab7752cf68b5c204fc7c74ffa94a67beeb5"
   }
 }

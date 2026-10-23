@@ -143,6 +143,8 @@ func react_to_hit() -> void:
 		animation_tree.set("parameters/Hit/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 
 func _style_model(node: Node) -> void:
+	# The skeleton pack keeps its own texture and glowing eyes; the goblin recolour is for the adventurer rigs.
+	if model_path.contains("skeleton_"): return
 	if node is MeshInstance3D and str(node.name) != "Goblin_Ears":
 		var instance: MeshInstance3D = node as MeshInstance3D
 		for index in range(instance.mesh.get_surface_count()):

@@ -26,7 +26,9 @@
       "leak": 1,
       "layer": "ground",
       "scale": 0.85,
-      "description": "Inimigo terrestre de referência. Boa cobertura e cadência resolvem grupos pequenos."
+      "description": "Inimigo terrestre de referência. Boa cobertura e cadência resolvem grupos pequenos.",
+      "model": "skeleton_minion",
+      "equipment": []
     },
     "runner": {
       "name": "Corredor",
@@ -37,7 +39,9 @@
       "leak": 1,
       "layer": "ground",
       "scale": 0.76,
-      "description": "Corre mais rápido e tem menos vida. Combine dano rápido e controle antes da saída."
+      "description": "Corre mais rápido e tem menos vida. Combine dano rápido e controle antes da saída.",
+      "model": "skeleton_rogue",
+      "equipment": []
     },
     "swarm": {
       "name": "Rastejante",
@@ -111,15 +115,15 @@
       "leak": 2,
       "layer": "ground",
       "scale": 0.9,
-      "model": "guardian",
+      "model": "skeleton_warrior",
       "equipment": [
         {
           "slot": "handslot.r",
-          "model": "sword_1handed"
+          "model": "skeleton_blade"
         },
         {
           "slot": "handslot.l",
-          "model": "shield_square_color"
+          "model": "skeleton_shield"
         }
       ]
     },
@@ -133,7 +137,13 @@
       "leak": 2,
       "layer": "ground",
       "scale": 1.0,
-      "model": "goblin"
+      "model": "skeleton_minion",
+      "equipment": [
+        {
+          "slot": "handslot.r",
+          "model": "skeleton_axe"
+        }
+      ]
     },
     "boss_captain": {
       "name": "Capitão dos Saqueadores",
@@ -173,11 +183,11 @@
       "leak": 2,
       "layer": "ground",
       "scale": 0.9,
-      "model": "shaman",
+      "model": "skeleton_mage",
       "equipment": [
         {
           "slot": "handslot.r",
-          "model": "staff"
+          "model": "skeleton_staff"
         }
       ],
       "support": {
@@ -217,7 +227,13 @@
       "leak": 2,
       "layer": "ground",
       "scale": 0.86,
-      "model": "goblin"
+      "model": "skeleton_rogue",
+      "equipment": [
+        {
+          "slot": "handslot.r",
+          "model": "skeleton_blade"
+        }
+      ]
     },
     "shieldbearer": {
       "name": "Portador de Escudo",
@@ -229,11 +245,11 @@
       "leak": 2,
       "layer": "ground",
       "scale": 1,
-      "model": "guardian",
+      "model": "skeleton_warrior",
       "equipment": [
         {
           "slot": "handslot.r",
-          "model": "sword_1handed"
+          "model": "skeleton_blade"
         },
         {
           "slot": "handslot.l",
@@ -256,11 +272,11 @@
       "leak": 2,
       "layer": "ground",
       "scale": 1,
-      "model": "guardian",
+      "model": "skeleton_warrior",
       "equipment": [
         {
           "slot": "handslot.r",
-          "model": "sword_1handed"
+          "model": "skeleton_blade"
         }
       ],
       "support": {
@@ -320,11 +336,11 @@
       "leak": 2,
       "layer": "ground",
       "scale": 1.05,
-      "model": "guardian",
+      "model": "skeleton_warrior",
       "equipment": [
         {
           "slot": "handslot.r",
-          "model": "sword_1handed"
+          "model": "skeleton_blade"
         }
       ]
     },
@@ -351,11 +367,11 @@
       "leak": 2,
       "layer": "ground",
       "scale": 1,
-      "model": "shaman",
+      "model": "skeleton_mage",
       "equipment": [
         {
           "slot": "handslot.r",
-          "model": "staff"
+          "model": "skeleton_staff"
         }
       ],
       "ability": {
@@ -382,15 +398,15 @@
       "leak": 3,
       "layer": "ground",
       "scale": 1.2,
-      "model": "guardian",
+      "model": "skeleton_warrior",
       "equipment": [
         {
           "slot": "handslot.r",
-          "model": "sword_1handed"
+          "model": "skeleton_blade"
         },
         {
           "slot": "handslot.l",
-          "model": "shield_square_color"
+          "model": "skeleton_shield_large"
         }
       ]
     },

@@ -22,7 +22,7 @@ func run() -> void:
 	var enemy: SimEnemyV2 = battle.simulation.spawn_enemy("resistant", 0, 24)
 	battle._physics_process(1.0 / 60)
 	var actor: RiggedActor3D = battle.enemy_views[enemy.id]
-	check(actor.skeleton.get_bone_count() == 23 and actor.model.find_children("RunicCrown", "", true, false).size() == 1, "Runic crown follows the actual head bone on the animated guardian")
+	check(actor.skeleton.get_bone_count() >= 23 and actor.model.find_children("RunicCrown", "", true, false).size() == 1, "Runic crown follows the actual head bone on the animated guardian")
 	var crown: Node3D = actor.model.find_child("RunicCrown", true, false) as Node3D
 	var halo: MeshInstance3D = crown.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
 	check((halo.global_transform * halo.get_aabb()).get_center().y > actor.global_position.y + 2.3 * actor.scale.y, "Runic halo stays above the helmet instead of being hidden inside it")
@@ -39,7 +39,7 @@ func run() -> void:
 	var summoner: SimEnemyV2 = battle.simulation.spawn_enemy("summoner", 0, 30)
 	battle._physics_process(1.0 / 60)
 	var mage: RiggedActor3D = battle.enemy_views[summoner.id]
-	check(mage.model_path.ends_with("shaman.glb") and mage.model.find_children("SummoningCrown", "", true, false).size() == 1, "Summoner has its own crown silhouette on a real animated mage rig")
+	check(mage.model_path.ends_with("skeleton_mage.glb") and mage.model.find_children("SummoningCrown", "", true, false).size() == 1, "Summoner has its own crown silhouette on a real animated mage rig")
 	battle.queue_free()
 	await process_frame
 	var submerged: BattleViewV2 = BattleViewV2.new()

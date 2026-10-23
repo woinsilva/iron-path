@@ -29,7 +29,7 @@ func run() -> void:
 	ally.health = 20
 	battle._physics_process(1.0 / 60)
 	var actor: RiggedActor3D = battle.enemy_views[healer.id]
-	check(actor.model_path.ends_with("shaman.glb") and actor.skeleton.get_bone_count() == 23, "Shaman uses its imported animated model")
+	check(actor.model_path.ends_with("skeleton_mage.glb") and actor.skeleton.get_bone_count() >= 23, "Shaman uses its imported animated skeleton mage model")
 	battle.simulation.ticks = 240
 	battle._physics_process(1.0 / 60)
 	check(ally.health == 30 and not battle._effects.is_empty(), "Healing creates an independent visible effect and restores health")
