@@ -257,6 +257,7 @@ func _handle_events(batch: Array[Dictionary]) -> void:
 					var upgraded: SimTowerV2 = simulation.towers[int(event.id)]
 					TowerUpgradeDecorV2.apply(tower_views[int(event.id)], upgraded.level, upgraded.type_id, upgraded.branch)
 					if not bool(event.get("cancelled", false)): _celebrate_upgrade(tower_views[int(event.id)] as Node3D, upgraded.level)
+					else: (tower_views[int(event.id)] as Node3D).scale = Vector3.ONE * TowerUpgradeDecorV2.level_scale(upgraded.level)
 					if simulation.tower_on_pad(_selected_pad) == upgraded: _update_ring()
 				if _sites.has(int(event.id)):
 					(_sites[int(event.id)] as TowerEvolutionV2).finish()
@@ -593,6 +594,7 @@ func _tower_pad_near(point: Vector3) -> int:
 	var selected: int = -1
 	var closest: float = 1.3
 	for tower: SimTowerV2 in simulation.towers.values():
+		if tower.state == SimTowerV2.State.BUILDING: continue
 		var distance: float = BattleSimV2.distance_xz(tower.position, point)
 		if distance < closest:
 			closest = distance
@@ -645,7 +647,8 @@ func _confirm_placement() -> void:
 	if pad < 0: return
 	_hint.text = "Construção iniciada. A torre atacará ao terminar a obra."
 	_end_placement()
-	_select_pad(pad)
+	# The new tower is not selected: its card only opens when the player taps it once it stands.
+	_select_pad(-1)
 
 func _end_placement() -> void:
 	_placing = ""
@@ -681,9 +684,10 @@ func _update_ring() -> void:
 ## Upgrade feedback: the tower springs up from a squash, with a dust ring and, at L6, a golden flash.
 func _celebrate_upgrade(display: Node3D, level: int) -> void:
 	var pop: Tween = display.create_tween()
-	display.scale = Vector3(1.15, 0.7, 1.15)
-	pop.tween_property(display, "scale", Vector3(0.92, 1.12, 0.92), 0.12).set_trans(Tween.TRANS_QUAD)
-	pop.tween_property(display, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	var size: float = TowerUpgradeDecorV2.level_scale(level)
+	display.scale = Vector3(1.15, 0.7, 1.15) * size
+	pop.tween_property(display, "scale", Vector3(0.92, 1.12, 0.92) * size, 0.12).set_trans(Tween.TRANS_QUAD)
+	pop.tween_property(display, "scale", Vector3.ONE * size, 0.35).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	var dust: MeshInstance3D = SceneCraft3D.mesh(self, _ring_mesh(0.6, 0.18), display.position + Vector3(0, 0.12, 0), _ring_material(Color(0.93, 0.86, 0.7, 0.85) if level < 6 else Color("ffd36a")))
 	(dust.material_override as StandardMaterial3D).transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	dust.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

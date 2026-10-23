@@ -18,8 +18,8 @@ const BIOMES: Array = [["vale", "VALE VERDE", 1], ["canyon", "GARGANTA RUBRA", 5
 const STAGES_PER_BIOME: int = 4
 const BIOME_WIDTH: float = 1560.0
 const INTRO_VIDEO: String = "res://art/branding/intro_logo.ogv"
-## Safety net in case the video never reports completion; the clip itself runs 5.6 s.
-const INTRO_TIMEOUT: float = 12.0
+## Safety net in case the video never reports completion; the clip itself runs 4 s.
+const INTRO_TIMEOUT: float = 8.0
 func _ready() -> void:
 	get_tree().auto_accept_quit = false
 	get_tree().quit_on_go_back = false
@@ -28,20 +28,19 @@ func _ready() -> void:
 	progress = _save.load_game()
 	_audio = get_node("/root/AudioService") as AudioServiceNode
 	_audio.apply_settings(progress.settings)
-	_audio.play_vale()
 	_audio_save_timer = Timer.new()
 	_audio_save_timer.wait_time = 0.35
 	_audio_save_timer.one_shot = true
 	_audio_save_timer.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(_audio_save_timer)
 	_audio_save_timer.timeout.connect(_save_audio_preferences)
-	_show_menu()
-	_play_intro()
-## Studio logo shown once at launch over the already-built menu; any click, touch or key skips it.
-func _play_intro() -> void:
-	if DisplayServer.get_name() == "headless" or not ResourceLoader.exists(INTRO_VIDEO): return
+	if not _play_intro(): _show_menu()
+## Studio logo, the very first thing on screen; the menu is only built once it ends (or is skipped).
+## Returns false when there is no intro to play (headless runs, missing video).
+func _play_intro() -> bool:
+	if DisplayServer.get_name() == "headless" or not ResourceLoader.exists(INTRO_VIDEO): return false
 	var stream: VideoStream = load(INTRO_VIDEO) as VideoStream
-	if stream == null: return
+	if stream == null: return false
 	var layer: CanvasLayer = CanvasLayer.new()
 	layer.name = "IntroLayer"
 	layer.layer = 100
@@ -72,20 +71,25 @@ func _play_intro() -> void:
 		if (event is InputEventMouseButton or event is InputEventScreenTouch) and event.is_pressed(): _finish_intro()
 	)
 	_audio.stop_music()
-	# The first frames stall on menu construction and shader warm-up; starting before they are drawn skips the opening.
-	for _frame: int in range(2): await RenderingServer.frame_post_draw
-	if not is_instance_valid(_intro): return
 	player.play()
 	get_tree().create_timer(INTRO_TIMEOUT).timeout.connect(_finish_intro)
+	# Load the menu's heavy resources on worker threads while the video plays, so building it later is quick.
+	for file: String in ResourceLoader.list_directory("res://art/models/"):
+		if file.ends_with(".glb"): ResourceLoader.load_threaded_request("res://art/models/" + file)
+	return true
+## The video's last frame stays on screen while the menu is built and drawn underneath (so its first,
+## slow frames are hidden), then it fades out onto a menu that is already running smoothly.
 func _finish_intro() -> void:
 	if not is_instance_valid(_intro): return
 	var fading: Control = _intro
 	_intro = null
 	fading.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for node: Node in fading.find_children("*", "VideoStreamPlayer", true, false): (node as VideoStreamPlayer).paused = true
+	_show_menu()
+	for _frame: int in range(4): await RenderingServer.frame_post_draw
 	var tween: Tween = create_tween()
-	tween.tween_property(fading, "modulate:a", 0.0, 0.6)
+	tween.tween_property(fading, "modulate:a", 0.0, 0.5)
 	tween.tween_callback(fading.get_parent().queue_free)
-	_audio.play_vale()
 func _show_menu() -> void:
 	_audio.play_vale()
 	_audio.stop_sfx()

@@ -8,6 +8,7 @@ static func apply(display: Node3D, level: int, family: String, branch: String = 
 	decor.name = "LevelDecor"
 	display.add_child(decor)
 	_level_pips(decor, level, family)
+	_tier_marks(decor, level, family)
 	if level < 2: return
 	var metal: StandardMaterial3D = SceneCraft3D.material(Color("b99d59"), 0.5, 0.45)
 	var stone: StandardMaterial3D = SceneCraft3D.material(Color("7b8883"))
@@ -142,6 +143,56 @@ static func apply(display: Node3D, level: int, family: String, branch: String = 
 	motes.mesh = mote
 	motes.position.y = 0.4
 	decor.add_child(motes)
+
+## Visual scale of a tower at each level: every evolution makes it a little bigger.
+static func level_scale(level: int) -> float:
+	return 1.0 + 0.07 * (level - 1)
+
+## Marks readable from the high camera, growing with each level: a metal ring on the base that goes
+## bronze → silver → gold, battlements around it from L3, tall pennants from L4, glowing studs from L5.
+static func _tier_marks(decor: Node3D, level: int, family: String) -> void:
+	if level < 2: return
+	var marks: Node3D = Node3D.new()
+	marks.name = "TierMarks"
+	decor.add_child(marks)
+	var tones: Array[Color] = [Color("a8703f"), Color("c9ced3"), Color("e8c25a"), Color("f2cc55"), Color("c9a2ff")]
+	var tone: Color = tones[mini(level - 2, tones.size() - 1)]
+	var metal: StandardMaterial3D = SceneCraft3D.material(tone, 0.35, 0.7)
+	if level >= 5:
+		metal.emission_enabled = true
+		metal.emission = tone
+		metal.emission_energy_multiplier = 0.35
+	var ring: TorusMesh = TorusMesh.new()
+	ring.inner_radius = 1.0
+	ring.outer_radius = 1.16
+	ring.rings = 36
+	ring.ring_segments = 6
+	SceneCraft3D.mesh(marks, ring, Vector3(0, 0.2, 0), metal)
+	if level >= 3:
+		var stone: StandardMaterial3D = SceneCraft3D.material(Color("8f8a78"))
+		for index in range(10):
+			var angle: float = index * TAU / 10
+			var merlon: MeshInstance3D = SceneCraft3D.box(marks, Vector3(0.26, 0.42 if level < 5 else 0.6, 0.18), Vector3(cos(angle) * 1.12, 0.36, sin(angle) * 1.12), metal if index % 2 == 0 else stone)
+			merlon.rotation.y = -angle
+	if level >= 4:
+		var color: Color = SceneCraft3D.family_color(family)
+		var cloth: StandardMaterial3D = SceneCraft3D.material(color.darkened(0.15))
+		for side: float in [-1.0, 1.0]:
+			var pole: Vector3 = Vector3(side * 1.05, 0, -0.75)
+			SceneCraft3D.cylinder(marks, 0.05, 2.9, pole + Vector3(0, 1.45, 0), metal, 8)
+			SceneCraft3D.sphere(marks, 0.11, pole + Vector3(0, 2.95, 0), metal)
+			var pennant: PrismMesh = PrismMesh.new()
+			pennant.size = Vector3(0.75, 0.5, 0.04)
+			var flag: MeshInstance3D = SceneCraft3D.mesh(marks, pennant, pole + Vector3(side * 0.38, 2.6, 0), cloth)
+			flag.rotation.z = -side * PI / 2
+	if level >= 5:
+		var glow: StandardMaterial3D = SceneCraft3D.material(tone.lightened(0.3))
+		glow.emission_enabled = true
+		glow.emission = tone
+		glow.emission_energy_multiplier = 1.2
+		for index in range(5):
+			var angle: float = index * TAU / 5 + 0.3
+			SceneCraft3D.sphere(marks, 0.1, Vector3(cos(angle) * 1.08, 0.3, sin(angle) * 1.08), glow)
 
 ## Roof height of each family's model, so floating marks sit just above it.
 static func _top(family: String) -> float:
