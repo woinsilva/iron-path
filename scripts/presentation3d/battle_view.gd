@@ -75,6 +75,7 @@ func _ready() -> void:
 	diorama.additional_route_points = stage.get("extra_route_points", [])
 	diorama.biome = str(stage.get("biome", "vale"))
 	diorama.scenery = str(stage.get("scenery", ""))
+	diorama.relief = float(stage.get("relief", 0.0))
 	diorama.stage_index = int(stage.index)
 	if int(stage.index) in [6, 7]: diorama.river_x = -20.3
 	if str(stage.id) == "arsenal_lab":
@@ -97,6 +98,9 @@ func _ready() -> void:
 	landmarks.entrance = diorama.route.sample_baked(0)
 	landmarks.endpoint = diorama.route.sample_baked(diorama.route.get_baked_length())
 	add_child(landmarks)
+	for piece: Node in landmarks.get_children():
+		if piece is Node3D: (piece as Node3D).position.y += diorama.terrain_height((piece as Node3D).position)
+	if diorama.photo_style(): MapSceneryV2.weather(landmarks)
 	simulation = StageSessionV2.create(stage, difficulty)
 	if not stage.has("blocked_zones"):
 		simulation.blocked_zones.append(Rect2(diorama.river_x - diorama.river_width * 0.5 - 0.7, -16, diorama.river_width + 1.4, 32))
@@ -265,18 +269,18 @@ func _handle_events(batch: Array[Dictionary]) -> void:
 func _create_tower(id: int) -> void:
 	var tower: SimTowerV2 = simulation.towers[id]
 	var display: Node3D = _tower_display(tower.type_id)
-	display.position = tower.position + Vector3(0, 0.1, 0)
+	display.position = tower.position + Vector3(0, 0.1 + diorama.terrain_height(tower.position), 0)
 	add_child(display)
 	display.visible = false
 	tower_views[id] = display
 	var base: Node3D = Node3D.new()
-	base.position = tower.position + Vector3(0, 0.1, 0)
+	base.position = display.position
 	add_child(base)
 	SceneCraft3D.cylinder(base, 1.0, 0.16, Vector3(0, 0.08, 0), SceneCraft3D.material(Color("aca58a")), 20)
 	SceneCraft3D.cylinder(base, 0.84, 0.05, Vector3(0, 0.18, 0), SceneCraft3D.material(Color("757f68")), 20)
 	_bases[id] = base
 	var site: Node3D = Node3D.new()
-	site.position = tower.position + Vector3(0, 0.1, 0)
+	site.position = display.position
 	add_child(site)
 	var wood: StandardMaterial3D = SceneCraft3D.material(Color("bb8c53"))
 	for x: float in [-0.9, 0.9]:
@@ -530,7 +534,13 @@ func _input(event: InputEvent) -> void:
 
 func _ground_point(point: Vector2) -> Variant:
 	var camera: Camera3D = diorama.camera
-	return Plane(Vector3.UP, 0.0).intersects_ray(camera.project_ray_origin(point), camera.project_ray_normal(point))
+	var hit: Variant = Plane(Vector3.UP, 0.0).intersects_ray(camera.project_ray_origin(point), camera.project_ray_normal(point))
+	# On rolling terrain, slide along the view ray until it meets the surface (a few steps converge).
+	for _step in range(4):
+		if hit == null: return null
+		var height: float = diorama.terrain_height(hit as Vector3)
+		hit = Plane(Vector3.UP, height).intersects_ray(camera.project_ray_origin(point), camera.project_ray_normal(point))
+	return hit
 
 func _over_hud(point: Vector2) -> bool:
 	for blocker: Control in _hud_blockers:
@@ -572,7 +582,7 @@ func _begin_placement(type_id: String) -> void:
 func _move_ghost(point: Vector3) -> void:
 	if not is_instance_valid(_ghost): return
 	_ghost.visible = true
-	_ghost.position = Vector3(point.x, 0.1, point.z)
+	_ghost.position = Vector3(point.x, 0.1 + diorama.terrain_height(point), point.z)
 	var affordable: bool = simulation.coins >= int(simulation.catalog.towers[_placing].levels[0].cost)
 	_ghost_valid = affordable and simulation.can_build_at(point)
 	var tint: Color = Color(0.35, 1.0, 0.45, 0.42) if _ghost_valid else Color(1.0, 0.18, 0.15, 0.55)
@@ -609,7 +619,7 @@ func _update_ring() -> void:
 	var tower: SimTowerV2 = simulation.tower_on_pad(_selected_pad)
 	var radius: float = simulation.effective_range(tower) if tower != null else 4.2
 	_range_radius = radius
-	_range_ring = SceneCraft3D.mesh(self, _ring_mesh(radius, 0.055), simulation.pads[_selected_pad] + Vector3(0, 0.15, 0), _ring_material(Color("8bd0c4")))
+	_range_ring = SceneCraft3D.mesh(self, _ring_mesh(radius, 0.055), simulation.pads[_selected_pad] + Vector3(0, 0.15 + diorama.terrain_height(simulation.pads[_selected_pad]), 0), _ring_material(Color("8bd0c4")))
 	_range_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	# Gold ring: the reach the next upgrade buys, so the player sees the gain before paying for it.
 	if tower == null or tower.state != SimTowerV2.State.READY or tower.level == 3: return

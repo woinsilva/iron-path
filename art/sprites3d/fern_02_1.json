@@ -1,0 +1,16 @@
+{
+  "name": "fern_02_1",
+  "source": "https://polyhaven.com/a/fern_02",
+  "license": "CC0",
+  "height": 0.3490203693509102,
+  "ortho_scale": 1.0491909742355345,
+  "pivot_uv": [
+    0.5,
+    0.609792947769165
+  ],
+  "shadow_scale": 2.2732471108436587,
+  "shadow_pivot_uv": [
+    0.5,
+    0.5
+  ]
+}

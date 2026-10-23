@@ -1,0 +1,16 @@
+{
+  "name": "celandine_01_3",
+  "source": "https://polyhaven.com/a/celandine_01",
+  "license": "CC0",
+  "height": 0.1494978964328766,
+  "ortho_scale": 0.2675129413604736,
+  "pivot_uv": [
+    0.5,
+    0.6844403445720673
+  ],
+  "shadow_scale": 0.5796113729476929,
+  "shadow_pivot_uv": [
+    0.5,
+    0.5
+  ]
+}

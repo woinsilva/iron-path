@@ -1,0 +1,16 @@
+{
+  "name": "dandelion_01_4",
+  "source": "https://polyhaven.com/a/dandelion_01",
+  "license": "CC0",
+  "height": 0.04747255239635706,
+  "ortho_scale": 0.25664148330688474,
+  "pivot_uv": [
+    0.5,
+    0.5610464513301849
+  ],
+  "shadow_scale": 0.556056547164917,
+  "shadow_pivot_uv": [
+    0.5,
+    0.5
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "island_tree_01_r240",
+  "source": "https://polyhaven.com/a/island_tree_01",
+  "license": "CC0",
+  "height": 5.02744660153985,
+  "ortho_scale": 7.859769058227538,
+  "pivot_uv": [
+    0.5,
+    0.71111860871315
+  ],
+  "shadow_scale": 17.02949962615967,
+  "shadow_pivot_uv": [
+    0.5,
+    0.5
+  ]
+}

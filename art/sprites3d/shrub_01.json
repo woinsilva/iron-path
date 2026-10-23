@@ -1,0 +1,16 @@
+{
+  "name": "shrub_01",
+  "source": "https://polyhaven.com/a/shrub_01",
+  "license": "CC0",
+  "height": 0.39597428869456053,
+  "ortho_scale": 3.1039936780929565,
+  "pivot_uv": [
+    0.5,
+    0.542104184627533
+  ],
+  "shadow_scale": 6.725319635868073,
+  "shadow_pivot_uv": [
+    0.5,
+    0.5
+  ]
+}

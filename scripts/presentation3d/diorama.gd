@@ -7,6 +7,13 @@ var all_ground_routes: Array[Curve3D] = []
 var biome: String = "vale"
 ## Name of a hand-dressed map (MapSceneryV2); empty keeps the generic biome dressing.
 var scenery: String = ""
+## Height of the rolling terrain in metres (0 keeps the board flat). Roads roll gently, open ground
+## rises into hills and the board edges climb into a ridge that frames the map.
+var relief: float = 0.0
+var _heights: PackedFloat32Array = PackedFloat32Array()
+const HEIGHT_STEP: float = 0.5
+const HEIGHT_ORIGIN: Vector2 = Vector2(-48, -32)
+const HEIGHT_SIZE: Vector2i = Vector2i(193, 129)
 var stage_index: int = 1
 var reserved_positions: PackedVector3Array = PackedVector3Array()
 var river_x: float = 19.3
@@ -20,9 +27,14 @@ var _water_surface: ShaderMaterial
 var water: MeshInstance3D
 var _wind_time: float = 0.0
 var _foliage: Array[Node3D] = []
+var _gust_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var _next_gust: float = 4.0
+var _gust_age: float = -1.0
+const GUST_SECONDS: float = 4.5
 
 func _ready() -> void:
 	_build_camera_and_light()
+	if relief > 0.0: _build_heights()
 	_build_ground()
 	_build_route()
 	all_ground_routes.append(route)
@@ -78,6 +90,77 @@ func _build_camera_and_light() -> void:
 	environment_node.environment = environment
 	add_child(environment_node)
 
+func _curve_from(points: Array) -> Curve3D:
+	var controls: PackedVector3Array = PackedVector3Array()
+	for point: Array in points: controls.append(Vector3(float(point[0]), 0, float(point[2])))
+	return StageSessionV2.curve_from_points(controls)
+
+## Bakes the terrain into a 0.5 m grid once, so every later height query is a cheap bilinear lookup.
+func _build_heights() -> void:
+	var roads: Array[Curve3D] = [_curve_from(route_points)]
+	for points: Array in additional_route_points: roads.append(_curve_from(points))
+	var roll: FastNoiseLite = FastNoiseLite.new()
+	roll.seed = 7101
+	roll.frequency = 0.045
+	var hills: FastNoiseLite = FastNoiseLite.new()
+	hills.seed = 9203
+	hills.frequency = 0.075
+	hills.fractal_octaves = 3
+	_heights.resize(HEIGHT_SIZE.x * HEIGHT_SIZE.y)
+	for row in range(HEIGHT_SIZE.y):
+		for column in range(HEIGHT_SIZE.x):
+			var point: Vector3 = Vector3(HEIGHT_ORIGIN.x + column * HEIGHT_STEP, 0, HEIGHT_ORIGIN.y + row * HEIGHT_STEP)
+			var road: float = 1e9
+			for curve: Curve3D in roads: road = minf(road, curve.get_closest_point(point).distance_to(point))
+			var open: float = smoothstep(2.4, 6.5, road)
+			# The camera looks from the south (+z), so only the far side and the flanks rise; a ridge in
+			# front would hide the board.
+			var ridge: float = smoothstep(19.0, 27.0, absf(point.x)) + smoothstep(10.5, 15.5, -point.z)
+			var water: float = smoothstep(river_width * 0.5 + 0.4, river_width * 0.5 + 3.0, absf(point.x - river_x))
+			var height: float = (roll.get_noise_2d(point.x, point.z) * 0.45 + maxf(0.0, hills.get_noise_2d(point.x, point.z)) * 2.4 * open + ridge * 2.6) * relief
+			_heights[row * HEIGHT_SIZE.x + column] = height * water
+
+func terrain_height(point: Vector3) -> float:
+	if _heights.is_empty(): return 0.0
+	var gx: float = clampf((point.x - HEIGHT_ORIGIN.x) / HEIGHT_STEP, 0, HEIGHT_SIZE.x - 1.001)
+	var gz: float = clampf((point.z - HEIGHT_ORIGIN.y) / HEIGHT_STEP, 0, HEIGHT_SIZE.y - 1.001)
+	var x: int = int(gx)
+	var z: int = int(gz)
+	var fx: float = gx - x
+	var fz: float = gz - z
+	var top: float = lerpf(_heights[z * HEIGHT_SIZE.x + x], _heights[z * HEIGHT_SIZE.x + x + 1], fx)
+	var bottom: float = lerpf(_heights[(z + 1) * HEIGHT_SIZE.x + x], _heights[(z + 1) * HEIGHT_SIZE.x + x + 1], fx)
+	return lerpf(top, bottom, fz)
+
+func _terrain_mesh() -> ArrayMesh:
+	var surface: SurfaceTool = SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for row in range(HEIGHT_SIZE.y):
+		for column in range(HEIGHT_SIZE.x):
+			surface.add_vertex(Vector3(HEIGHT_ORIGIN.x + column * HEIGHT_STEP, _heights[row * HEIGHT_SIZE.x + column], HEIGHT_ORIGIN.y + row * HEIGHT_STEP))
+	for row in range(HEIGHT_SIZE.y - 1):
+		for column in range(HEIGHT_SIZE.x - 1):
+			var a: int = row * HEIGHT_SIZE.x + column
+			for index: int in [a, a + 1, a + HEIGHT_SIZE.x, a + 1, a + HEIGHT_SIZE.x + 1, a + HEIGHT_SIZE.x]: surface.add_index(index)
+	surface.generate_normals()
+	return surface.commit()
+
+func _photo_ground() -> ShaderMaterial:
+	var ground: ShaderMaterial = ShaderMaterial.new()
+	ground.shader = load("res://scripts/presentation3d/ground_pbr.gdshader") as Shader
+	ground.set_shader_parameter("grass_albedo", load("res://art/textures/aerial_grass_rock_Diffuse.jpg"))
+	ground.set_shader_parameter("grass_normal", load("res://art/textures/aerial_grass_rock_nor_gl.jpg"))
+	ground.set_shader_parameter("soil_albedo", load("res://art/textures/forrest_ground_01_Diffuse.jpg"))
+	ground.set_shader_parameter("soil_normal", load("res://art/textures/forrest_ground_01_nor_gl.jpg"))
+	var noise: FastNoiseLite = FastNoiseLite.new()
+	noise.seed = 4040
+	noise.frequency = 0.04
+	var mask: NoiseTexture2D = NoiseTexture2D.new()
+	mask.seamless = true
+	mask.noise = noise
+	ground.set_shader_parameter("mask_noise", mask)
+	return ground
+
 func _build_ground() -> void:
 	var grass: ShaderMaterial = ShaderMaterial.new()
 	grass.shader = load("res://scripts/presentation3d/terrain.gdshader") as Shader
@@ -102,11 +185,24 @@ func _build_ground() -> void:
 		grass.set_shader_parameter("light_color", Color("4f6050"))
 	var earth: StandardMaterial3D = SceneCraft3D.material(Color("665341"))
 	SceneCraft3D.box(self, Vector3(96, 1.2, 64), Vector3(0, -0.75, 0), earth)
-	SceneCraft3D.box(self, Vector3(96, 0.22, 64), Vector3(0, -0.06, 0), grass)
+	if not scenery.is_empty() and biome == "vale":
+		var terrain: MeshInstance3D = MeshInstance3D.new()
+		terrain.name = "Terrain"
+		if relief > 0.0: terrain.mesh = _terrain_mesh()
+		else:
+			var flat: PlaneMesh = PlaneMesh.new()
+			flat.size = Vector2(96, 64)
+			terrain.mesh = flat
+		terrain.position.y = 0.05
+		terrain.material_override = _photo_ground()
+		add_child(terrain)
+	else:
+		SceneCraft3D.box(self, Vector3(96, 0.22, 64), Vector3(0, -0.06, 0), grass)
 	_water_surface = ShaderMaterial.new()
 	_water_surface.shader = load("res://scripts/presentation3d/water.gdshader") as Shader
 	_water_surface.set_shader_parameter("phase",0.0)
-	_water_surface.set_shader_parameter("deep_color",Color("2c5d5a") if biome == "swamp" else Color("3c8492"))
+	_water_surface.set_shader_parameter("deep_color",Color("2c5d5a") if biome == "swamp" else (Color("2f5e63") if not scenery.is_empty() and biome == "vale" else Color("3c8492")))
+	if photo_style(): _water_surface.set_shader_parameter("ripple_color", Color("4b7a7c"))
 	water = SceneCraft3D.box(self, Vector3(river_width, 0.12, 64), Vector3(river_x, 0.08, 0), _water_surface)
 
 func _build_route() -> void:
@@ -124,7 +220,7 @@ func _build_route() -> void:
 	_build_road_surface(2.10, 0.10, Color("c6aa77"))
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 3304
-	var pebble: StandardMaterial3D = SceneCraft3D.material(Color("ac9d7f"))
+	var pebble: StandardMaterial3D = SceneCraft3D.material(Color("8a8274") if photo_style() else Color("ac9d7f"))
 	for index in range(70):
 		var distance: float = rng.randf() * route.get_baked_length()
 		var point: Vector3 = route.sample_baked(distance)
@@ -146,15 +242,26 @@ func _build_road_surface(width: float, height: float, color: Color) -> void:
 		var point: Vector3 = route.sample_baked(distance)
 		var tangent: Vector3 = (route.sample_baked(minf(length, distance + 0.15)) - route.sample_baked(maxf(0.0, distance - 0.15))).normalized()
 		var side: Vector3 = Vector3(-tangent.z, 0, tangent.x) * width * 0.5
-		point.y = height
-		left.append(point - side)
-		right.append(point + side)
+		var low: Vector3 = point - side
+		var high: Vector3 = point + side
+		low.y = height + terrain_height(low)
+		high.y = height + terrain_height(high)
+		left.append(low)
+		right.append(high)
 	for index in range(segments):
-		for vertex: Vector3 in [left[index], left[index + 1], right[index], right[index], left[index + 1], right[index + 1]]:
+		for corner: Array in [[left[index], 0.0], [left[index + 1], 0.0], [right[index], 1.0], [right[index], 1.0], [left[index + 1], 0.0], [right[index + 1], 1.0]]:
 			surface.set_normal(Vector3.UP)
-			surface.add_vertex(vertex)
-	var material: StandardMaterial3D = SceneCraft3D.material(color)
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+			surface.set_uv(Vector2(float(corner[1]), 0))
+			surface.add_vertex(corner[0])
+	var material: Material = SceneCraft3D.material(color)
+	(material as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
+	if not scenery.is_empty() and biome == "vale":
+		var trail: ShaderMaterial = ShaderMaterial.new()
+		trail.shader = load("res://scripts/presentation3d/road_pbr.gdshader") as Shader
+		trail.set_shader_parameter("trail_albedo", load("res://art/textures/rocky_trail_Diffuse.jpg"))
+		trail.set_shader_parameter("trail_normal", load("res://art/textures/rocky_trail_nor_gl.jpg"))
+		trail.set_shader_parameter("tint", color.lightened(0.35))
+		material = trail
 	SceneCraft3D.mesh(self, surface.commit(), Vector3.ZERO, material)
 
 func _build_forest() -> void:
@@ -199,6 +306,23 @@ func _distance_from_route(point: Vector3) -> float:
 func _process(delta: float) -> void:
 	_wind_time += delta
 	if _water_surface != null: _water_surface.set_shader_parameter("phase",_wind_time)
+	_update_wind(delta)
+
+## Calm air with an occasional gust: every 6–16 s (random) a front crosses the board from the west,
+## bending the plants it passes and fading out on the far side.
+func _update_wind(delta: float) -> void:
+	if _gust_age < 0.0:
+		_next_gust -= delta
+		if _next_gust <= 0.0: _gust_age = 0.0
+		return
+	_gust_age += delta
+	var progress: float = _gust_age / GUST_SECONDS
+	RenderingServer.global_shader_parameter_set("wind_front", lerpf(-34.0, 34.0, progress))
+	RenderingServer.global_shader_parameter_set("wind_power", sin(clampf(progress, 0.0, 1.0) * PI) * _gust_rng.randf_range(0.9, 1.1) * 1.6)
+	if progress >= 1.0:
+		_gust_age = -1.0
+		_next_gust = _gust_rng.randf_range(6.0, 16.0)
+		RenderingServer.global_shader_parameter_set("wind_power", 0.0)
 
 func _style_foliage(node: Node) -> void:
 	if node is MeshInstance3D:
@@ -254,15 +378,19 @@ func _build_bridges() -> void:
 				for z: float in [-2, 0, 2]:
 					SceneCraft3D.box(bridge, Vector3(0.13, 0.8, 0.13), Vector3(x, 0.3, z), frame)
 		previous = point
+## Maps dressed with the realistic photo materials and sprites (currently the redesigned vale).
+func photo_style() -> bool:
+	return not scenery.is_empty() and biome == "vale"
+
 func walk_surface_height(point: Vector3) -> float:
-	var height: float = 0.1
+	var height: float = 0.1 + terrain_height(point)
 	for center: Vector3 in bridge_centers:
 		var distance: float = BattleSimV2.distance_xz(center,point)
-		height = maxf(height,0.1 + 0.1 * (1.0 - smoothstep(1.65,2.6,distance)))
+		height = maxf(height,0.1 + terrain_height(point) + 0.1 * (1.0 - smoothstep(1.65,2.6,distance)))
 	return height
 
 func _build_banks() -> void:
-	var bank: StandardMaterial3D = SceneCraft3D.material(Color("a4a187"))
+	var bank: StandardMaterial3D = SceneCraft3D.material(Color("6f6a5c") if photo_style() else Color("a4a187"))
 	for z_index in range(25):
 		var z: float = -12.5 + z_index
 		if _distance_from_route(Vector3(river_x, 0, z)) < 2.6 or _is_reserved(Vector3(river_x, 0, z), 2.5): continue
@@ -343,7 +471,7 @@ func _build_verge_details() -> void:
 			for sign: float in [-1,1]:
 				var position: Vector3 = point + side * sign * rng.randf_range(1.12,1.25)
 				if _is_reserved(position,1.3) or (bridges_enabled and absf(position.x - river_x) < river_width * 0.65): continue
-				position.y = 0.13
+				position.y = 0.13 + terrain_height(position)
 				var scale: Vector3 = Vector3(rng.randf_range(0.14,0.25),rng.randf_range(0.05,0.09),rng.randf_range(0.12,0.2))
 				placements.append(Transform3D(Basis(Vector3.UP,rng.randf_range(-PI,PI)).scaled(scale),position))
 	var geometry: SphereMesh = SphereMesh.new()
@@ -352,6 +480,7 @@ func _build_verge_details() -> void:
 	geometry.radial_segments = 8
 	geometry.rings = 4
 	var material: StandardMaterial3D = SceneCraft3D.material(Color("baaa89") if biome != "swamp" else Color("9b9b80"))
+	if photo_style(): material.albedo_color = Color("7d776b")
 	material.vertex_color_use_as_albedo = true
 	geometry.material = material
 	var instances: MultiMesh = MultiMesh.new()

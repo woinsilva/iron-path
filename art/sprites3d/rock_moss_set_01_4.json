@@ -1,0 +1,16 @@
+{
+  "name": "rock_moss_set_01_4",
+  "source": "https://polyhaven.com/a/rock_moss_set_01",
+  "license": "CC0",
+  "height": 1.205450713634491,
+  "ortho_scale": 3.5983966827392577,
+  "pivot_uv": [
+    0.5,
+    0.610567718744278
+  ],
+  "shadow_scale": 7.796526145935059,
+  "shadow_pivot_uv": [
+    0.5,
+    0.5
+  ]
+}

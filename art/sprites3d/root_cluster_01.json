@@ -1,0 +1,16 @@
+{
+  "name": "root_cluster_01",
+  "source": "https://polyhaven.com/a/root_cluster_01",
+  "license": "CC0",
+  "height": 1.5092801377177238,
+  "ortho_scale": 4.947250270843505,
+  "pivot_uv": [
+    0.5,
+    0.6006917655467987
+  ],
+  "shadow_scale": 10.719042253494264,
+  "shadow_pivot_uv": [
+    0.5,
+    0.5
+  ]
+}

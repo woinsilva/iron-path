@@ -1,0 +1,16 @@
+{
+  "name": "grass_medium_02_1",
+  "source": "https://polyhaven.com/a/grass_medium_02",
+  "license": "CC0",
+  "height": 0.17956401547417045,
+  "ortho_scale": 0.2391220539808273,
+  "pivot_uv": [
+    0.5,
+    0.7478376924991608
+  ],
+  "shadow_scale": 0.5180977836251259,
+  "shadow_pivot_uv": [
+    0.5,
+    0.5
+  ]
+}

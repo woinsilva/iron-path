@@ -280,5 +280,6 @@
       -6.8
     ]
   ],
-  "scenery": "vale_meadow"
+  "scenery": "vale_meadow",
+  "relief": 1.0
 }

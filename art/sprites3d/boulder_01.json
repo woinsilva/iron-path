@@ -1,0 +1,16 @@
+{
+  "name": "boulder_01",
+  "source": "https://polyhaven.com/a/boulder_01",
+  "license": "CC0",
+  "height": 1.0038301944732666,
+  "ortho_scale": 2.19640109539032,
+  "pivot_uv": [
+    0.5,
+    0.6508459448814392
+  ],
+  "shadow_scale": 4.758869040012359,
+  "shadow_pivot_uv": [
+    0.5,
+    0.5
+  ]
+}

@@ -5,6 +5,13 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Unreleased] — 2026-10-19
 
+### Mapa 1 realista (2026-10-23)
+- Vegetação, pedras e troncos do Vale viraram sprites renderizados de modelos CC0 do Poly Haven no ângulo exato da câmera, com sombra própria no chão (`sprite_props.gd`, `tools/assets/render_sprites.py`); os modelos pesados ficam fora do jogo.
+- Chão com texturas fotográficas (grama e solo de floresta misturados por ruído) e trilha de terra texturizada; madeira e pedra das construções com textura real.
+- Relevo: o terreno ondula, sobe em colinas longe da estrada e forma uma encosta ao fundo e nas laterais. Inimigos, torres, fantasma de construção e anéis acompanham a altura (`Diorama3D.terrain_height`).
+- Vento em rajadas: o ar fica calmo e, a cada 6–16 s, uma frente de vento atravessa o mapa e dobra as plantas por onde passa.
+- Entrada dos inimigos marcada por uma paliçada com portão aberto, torres de vigia e carroça tombada; tufos pontudos de grama removidos.
+
 ### Rodada 2 — jogar como app de celular (2026-10-23)
 - Batalha em tela cheia: vidas, moedas e onda flutuam no canto superior esquerdo, controles redondos no direito e uma barra compacta de cartas de torre embaixo. Ações da torre selecionada aparecem num menu flutuante junto dela.
 - Posicionamento livre: o jogador arrasta a carta até o mapa; a torre fantasma fica verde onde pode ser construída e vermelha sobre a rua, a água ou colada em outra torre (`BattleSimV2.can_build_at` / `build_at`, teste `test_placement.gd`).

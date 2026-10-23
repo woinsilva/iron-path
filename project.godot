@@ -50,3 +50,13 @@ textures/vram_compression/import_etc2_astc=true
 textures/canvas_textures/default_texture_filter=1
 environment/defaults/default_clear_color=Color(0.91, 0.847, 0.659, 1)
 
+[shader_globals]
+
+wind_front={
+"type": "float",
+"value": -60.0
+}
+wind_power={
+"type": "float",
+"value": 0.0
+}

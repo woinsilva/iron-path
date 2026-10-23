@@ -1,0 +1,16 @@
+{
+  "name": "dead_tree_trunk_02",
+  "source": "https://polyhaven.com/a/dead_tree_trunk_02",
+  "license": "CC0",
+  "height": 1.0550733506679535,
+  "ortho_scale": 4.861636304855346,
+  "pivot_uv": [
+    0.5,
+    0.5716283917427063
+  ],
+  "shadow_scale": 10.533545327186586,
+  "shadow_pivot_uv": [
+    0.5,
+    0.5
+  ]
+}

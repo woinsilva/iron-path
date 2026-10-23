@@ -22,12 +22,12 @@ static func dress(target: Diorama3D) -> BiomeDressingV2:
 
 func _ready() -> void:
 	var palette: Dictionary = {
-		"vale": {"blades": [Color("4d7a32"), Color("5b8a38"), Color("426c2c")], "count": 1800, "flowers": [Color("f2d35b"), Color("f08a7e"), Color("f4f1e6"), Color("b99be8")]},
+		"vale": {"blades": [Color("4d7a32"), Color("5b8a38"), Color("426c2c")], "count": 0, "flowers": []},
 		"canyon": {"blades": [Color("6a5230"), Color("5e4a2c"), Color("554228")], "count": 380, "flowers": []},
 		"swamp": {"blades": [Color("2c4128"), Color("34492d"), Color("263a24")], "count": 1300, "flowers": []},
 	}
 	var look: Dictionary = palette.get(diorama.biome, palette.vale)
-	_scatter(look.blades, int(look.count), _blade_mesh(), 0.9, 1.6)
+	if int(look.count) > 0: _scatter(look.blades, int(look.count), _blade_mesh(), 0.9, 1.6)
 	if not (look.flowers as Array).is_empty(): _scatter(look.flowers, 260, _flower_mesh(), 0.8, 1.3)
 	_cloud_shadows()
 	if diorama.biome == "swamp":
