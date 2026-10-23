@@ -67,6 +67,13 @@ var _ghost_overlay: StandardMaterial3D
 var _bases: Dictionary = {}
 ## Largest height difference under a tower's footprint (m) that a stone plinth may make up.
 const MAX_FOOTING_DROP: float = 1.1
+## A defeated enemy lies for CORPSE_SECONDS; during the last CORPSE_SINK seconds it sinks into the ground.
+const CORPSE_SECONDS: float = 1.9
+const CORPSE_SINK: float = 0.7
+## One shared emitter for every dust puff (arrivals, footsteps, falls) keeps the cost flat.
+var _dust: Node3D
+var _dust_pools: Dictionary = {}
+var _step_clock: float = 0.0
 
 func _ready() -> void:
 	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
@@ -170,6 +177,7 @@ func _physics_process(delta: float) -> void:
 	for index in range(_corpses.size() - 1, -1, -1):
 		var entry: Dictionary = _corpses[index]
 		entry.remaining = float(entry.remaining) - delta
+		if float(entry.remaining) < CORPSE_SINK: (entry.actor as RiggedActor3D).position.y -= delta * 1.1
 		if float(entry.remaining) <= 0.0:
 			var actor: RiggedActor3D = entry.actor
 			actor.visible = false
@@ -211,12 +219,15 @@ func _handle_events(batch: Array[Dictionary]) -> void:
 					var road: Curve3D = simulation.routes[state.route_id]
 					actor.set_heading(road.sample_baked(minf(state.distance + 0.2, road.get_baked_length())) - road.sample_baked(state.distance))
 				enemy_views[int(event.id)] = actor
+				if state != null and state.layer != "air" and not state.underground(): _dust_burst(actor.position, 14, 1.6)
 			"killed", "leaked":
 				if enemy_views.has(int(event.id)):
 					var actor: RiggedActor3D = enemy_views[int(event.id)]
 					if str(event.kind) == "killed":
 						actor.die()
-						_corpses.append({"actor": actor, "remaining": 1.0})
+						# Falls (death clip), lies still a moment, then sinks into the ground before recycling.
+						_corpses.append({"actor": actor, "remaining": CORPSE_SECONDS})
+						if actor.position.y < 1.5: _dust_burst(actor.position, 8, 0.6)
 					else:
 						actor.visible = false
 						actor.process_mode = Node.PROCESS_MODE_DISABLED
@@ -340,6 +351,9 @@ func _remove_tower(id: int) -> void:
 	if simulation.tower_on_pad(_selected_pad) == null: _select_pad(-1)
 
 func _sync_enemies(delta: float) -> void:
+	# Walking enemies kick up a little dust a few times per second (a third of them on each pulse).
+	_step_clock += delta
+	var footsteps: bool = fmod(_step_clock, 0.1) < delta
 	for id: int in enemy_views:
 		var actor: RiggedActor3D = enemy_views[id]
 		var state: SimEnemyV2 = simulation.enemies.get(id) as SimEnemyV2
@@ -356,6 +370,8 @@ func _sync_enemies(delta: float) -> void:
 		if actor is RuinGuardianActorV2: (actor as RuinGuardianActorV2).set_posture(state.pending_ability, state.ability_until > simulation.ticks or state.rally_until > simulation.ticks)
 		if actor is ColossusActorV2: (actor as ColossusActorV2).set_ability_state(state.ability_until > simulation.ticks)
 		actor.animate_motion((actor.position - old) / maxf(delta, 0.001), delta)
+		if footsteps and state.layer != "air" and not state.underground() and actor.position.distance_to(old) > 0.001 and (id % 3) == (int(_step_clock * 30.0) % 3):
+			_dust_burst(actor.position, 1, 0.35)
 		if actor.has_meta("interpolation_spawn"):
 			actor.reset_physics_interpolation()
 			actor.remove_meta("interpolation_spawn")
@@ -726,6 +742,63 @@ func _celebrate_upgrade(display: Node3D, level: int) -> void:
 	var cleanup: Tween = burst.create_tween()
 	cleanup.tween_interval(1.4)
 	cleanup.tween_callback(burst.queue_free)
+
+## Puffs of earth-coloured dust at a point: arrivals through the gates, falls and footsteps.
+func _dust_burst(point: Vector3, count: int, strength: float) -> void:
+	if _dust == null:
+		_dust = Node3D.new()
+		_dust.name = "DustPuffs"
+		add_child(_dust)
+		_dust.add_to_group(BiomeDressingV2.DETAIL_GROUP)
+	if not _dust.visible: return
+	# Small round-robin pools of one-shot emitters, one pool per puff size.
+	var pool: Array = _dust_pools.get(count, [])
+	if pool.is_empty():
+		_dust_pools[count] = pool
+		var puff: SphereMesh = SphereMesh.new()
+		puff.radius = 0.24
+		puff.height = 0.48
+		puff.radial_segments = 6
+		puff.rings = 3
+		var material: StandardMaterial3D = StandardMaterial3D.new()
+		material.albedo_color = Color(0.74, 0.66, 0.52, 0.7)
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.vertex_color_use_as_albedo = true
+		puff.material = material
+		var fade: Gradient = Gradient.new()
+		fade.set_color(0, Color(1, 1, 1, 0.8))
+		fade.set_color(1, Color(1, 1, 1, 0))
+		var grow: Curve = Curve.new()
+		grow.add_point(Vector2(0, 0.6))
+		grow.add_point(Vector2(1, 1.6))
+		for index in range(24 if count <= 2 else 10):
+			var emitter: CPUParticles3D = CPUParticles3D.new()
+			emitter.mesh = puff
+			emitter.amount = count
+			emitter.lifetime = 0.9
+			emitter.one_shot = true
+			emitter.explosiveness = 1.0
+			emitter.emitting = false
+			emitter.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+			emitter.emission_sphere_radius = 0.25
+			emitter.direction = Vector3.UP
+			emitter.spread = 75
+			emitter.gravity = Vector3(0, 0.4, 0)
+			emitter.damping_min = 2.5
+			emitter.damping_max = 3.5
+			emitter.color_ramp = fade
+			emitter.scale_amount_curve = grow
+			_dust.add_child(emitter)
+			pool.append(emitter)
+		_dust_pools[str(count) + "_next"] = 0
+	var next: int = int(_dust_pools.get(str(count) + "_next", 0))
+	var chosen: CPUParticles3D = pool[next % pool.size()]
+	_dust_pools[str(count) + "_next"] = next + 1
+	chosen.initial_velocity_min = strength * 0.8
+	chosen.initial_velocity_max = strength * 1.6
+	chosen.global_position = point + Vector3(0, 0.15, 0)
+	chosen.restart()
 
 func _ring_mesh(radius: float, half_width: float) -> ArrayMesh:
 	var surface: SurfaceTool = SurfaceTool.new()

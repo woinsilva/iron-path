@@ -54,7 +54,8 @@ func run() -> void:
 	var flying_view: RiggedActor3D = battle.enemy_views[flyer.id]
 	check(flying_view.position.y > 2, "Airborne presentation preserves real altitude")
 	battle.simulation.damage(flyer.id, 10000)
-	for index in range(70): battle._physics_process(1.0 / 60)
+	# Corpses lie and sink for BattleViewV2.CORPSE_SECONDS before returning to the pool.
+	for index in range(ceili(BattleViewV2.CORPSE_SECONDS * 60) + 10): battle._physics_process(1.0 / 60)
 	var replacement: SimEnemyV2 = battle.simulation.spawn_enemy("flyer", 1)
 	battle._physics_process(1.0 / 60)
 	check(battle.enemy_views[replacement.id] == flying_view and not flying_view.dead, "Pool reuses the correct family and resets death state")
