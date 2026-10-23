@@ -76,6 +76,7 @@ func _ready() -> void:
 	diorama.biome = str(stage.get("biome", "vale"))
 	diorama.scenery = str(stage.get("scenery", ""))
 	diorama.relief = float(stage.get("relief", 0.0))
+	diorama.photo = bool(stage.get("photo", false))
 	diorama.stage_index = int(stage.index)
 	if int(stage.index) in [6, 7]: diorama.river_x = -20.3
 	if str(stage.id) == "arsenal_lab":

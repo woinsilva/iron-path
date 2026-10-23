@@ -10,6 +10,8 @@ var scenery: String = ""
 ## Height of the rolling terrain in metres (0 keeps the board flat). Roads roll gently, open ground
 ## rises into hills and the board edges climb into a ridge that frames the map.
 var relief: float = 0.0
+## Photo materials and realistic sprites (kept as an option; the vale went back to the stylised look).
+var photo: bool = false
 var _heights: PackedFloat32Array = PackedFloat32Array()
 const HEIGHT_STEP: float = 0.5
 const HEIGHT_ORIGIN: Vector2 = Vector2(-48, -32)
@@ -191,7 +193,7 @@ func _build_ground() -> void:
 		grass.set_shader_parameter("light_color", Color("4f6050"))
 	var earth: StandardMaterial3D = SceneCraft3D.material(Color("665341"))
 	SceneCraft3D.box(self, Vector3(96, 1.2, 64), Vector3(0, -0.75, 0), earth)
-	if not scenery.is_empty() and biome == "vale":
+	if photo or relief > 0.0:
 		var terrain: MeshInstance3D = MeshInstance3D.new()
 		terrain.name = "Terrain"
 		if relief > 0.0: terrain.mesh = _terrain_mesh()
@@ -200,14 +202,14 @@ func _build_ground() -> void:
 			flat.size = Vector2(96, 64)
 			terrain.mesh = flat
 		terrain.position.y = 0.05
-		terrain.material_override = _photo_ground()
+		terrain.material_override = _photo_ground() if photo else grass
 		add_child(terrain)
 	else:
 		SceneCraft3D.box(self, Vector3(96, 0.22, 64), Vector3(0, -0.06, 0), grass)
 	_water_surface = ShaderMaterial.new()
 	_water_surface.shader = load("res://scripts/presentation3d/water.gdshader") as Shader
 	_water_surface.set_shader_parameter("phase",0.0)
-	_water_surface.set_shader_parameter("deep_color",Color("2c5d5a") if biome == "swamp" else (Color("2f5e63") if not scenery.is_empty() and biome == "vale" else Color("3c8492")))
+	_water_surface.set_shader_parameter("deep_color",Color("2c5d5a") if biome == "swamp" else (Color("2f5e63") if photo else Color("3c8492")))
 	if photo_style(): _water_surface.set_shader_parameter("ripple_color", Color("4b7a7c"))
 	water = SceneCraft3D.box(self, Vector3(river_width, 0.12, 64), Vector3(river_x, 0.08, 0), _water_surface)
 
@@ -261,7 +263,7 @@ func _build_road_surface(width: float, height: float, color: Color) -> void:
 			surface.add_vertex(corner[0])
 	var material: Material = SceneCraft3D.material(color)
 	(material as StandardMaterial3D).cull_mode = BaseMaterial3D.CULL_DISABLED
-	if not scenery.is_empty() and biome == "vale":
+	if photo:
 		var trail: ShaderMaterial = ShaderMaterial.new()
 		trail.shader = load("res://scripts/presentation3d/road_pbr.gdshader") as Shader
 		trail.set_shader_parameter("trail_albedo", load("res://art/textures/rocky_trail_Diffuse.jpg"))
@@ -386,7 +388,7 @@ func _build_bridges() -> void:
 		previous = point
 ## Maps dressed with the realistic photo materials and sprites (currently the redesigned vale).
 func photo_style() -> bool:
-	return not scenery.is_empty() and biome == "vale"
+	return photo
 
 func walk_surface_height(point: Vector3) -> float:
 	var height: float = 0.1 + terrain_height(point)

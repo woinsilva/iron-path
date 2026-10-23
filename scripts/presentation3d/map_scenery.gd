@@ -12,7 +12,7 @@ static func build(diorama: Diorama3D, scenery: String) -> void:
 		"vale_meadow": _vale_meadow(diorama)
 		"canyon_bridges": _canyon_bridges(diorama)
 		"swamp_lake": _swamp_lake(diorama)
-	if scenery != "vale_meadow": _frame(diorama)
+	_frame(diorama)
 
 
 ## Beyond the playable board the camera still sees ground on wide screens; fill it so the map never
@@ -23,7 +23,10 @@ static func _frame(diorama: Diorama3D) -> void:
 	var files: Array = ["Tree_1_A_Color1", "Tree_1_B_Color1", "Tree_2_A_Color1", "Tree_4_A_Color1", "Tree_4_B_Color1", "Bush_1_A_Color1", "Bush_4_A_Color1"]
 	if diorama.biome == "canyon": files = ["Rock_3_A_Color1", "Rock_3_C_Color1", "Rock_3_F_Color1", "Rock_1_D_Color1", "Tree_Bare_1_A_Color1"]
 	elif diorama.biome == "swamp": files = ["Tree_3_A_Color1", "Tree_1_B_Color1", "Tree_4_B_Color1", "Bush_2_C_Color1"]
-	for band: Rect2 in [Rect2(-31, -19, 9.5, 38), Rect2(21.5, -19, 9.5, 38), Rect2(-22, 11.6, 44, 7), Rect2(-22, -19, 44, 6.5)]:
+	var bands: Array[Rect2] = [Rect2(-31, -19, 9.5, 38), Rect2(21.5, -19, 9.5, 38), Rect2(-22, 11.6, 44, 7), Rect2(-22, -19, 44, 6.5)]
+	# The stylised vale stays open: only a sparse wood beyond the back edge and flanks.
+	if diorama.biome == "vale": bands = [Rect2(-31, -19, 62, 5.5), Rect2(-31, -13, 8, 24), Rect2(22.5, -13, 8, 24)]
+	for band: Rect2 in bands:
 		var count: int = int(band.get_area() / 7.0)
 		for index in range(count):
 			var point: Vector3 = Vector3(rng.randf_range(band.position.x, band.end.x), 0.06, rng.randf_range(band.position.y, band.end.y))
@@ -31,6 +34,7 @@ static func _frame(diorama: Diorama3D) -> void:
 			if diorama._distance_from_route(point) < 2.4: continue
 			if point.distance_to(diorama.route.sample_baked(diorama.route.get_baked_length())) < 7.0: continue
 			var size: float = rng.randf_range(0.8, 1.4) * (1.6 if diorama.biome == "canyon" else 1.0)
+			if diorama.biome == "vale" and (rng.randf() < 0.45 or _hides_road(diorama, point, 4.2 * size)): continue
 			_prop(diorama, str(files[rng.randi() % files.size()]), point, size, rng.randf_range(-PI, PI), diorama.biome != "canyon")
 
 
@@ -44,7 +48,7 @@ static func _free(diorama: Diorama3D, point: Vector3, road: float, reserved: flo
 
 static func _prop(diorama: Diorama3D, file: String, point: Vector3, size: float, angle: float, sway: bool = true) -> Node3D:
 	var node: Node3D = (load("res://art/models/%s.glb" % file) as PackedScene).instantiate() as Node3D
-	node.position = point
+	node.position = Vector3(point.x, point.y + diorama.terrain_height(point), point.z)
 	node.rotation.y = angle
 	node.scale = Vector3.ONE * size
 	diorama.add_child(node)
@@ -60,7 +64,10 @@ static func _scatter(diorama: Diorama3D, rng: RandomNumberGenerator, files: Arra
 		attempts += 1
 		var point: Vector3 = Vector3(rng.randf_range(area.position.x, area.end.x), 0.08, rng.randf_range(area.position.y, area.end.y))
 		if not _free(diorama, point, road, 2.0): continue
-		_prop(diorama, str(files[rng.randi() % files.size()]), point, rng.randf_range(size.x, size.y), rng.randf_range(-PI, PI), sway)
+		var scale: float = rng.randf_range(size.x, size.y)
+		var file: String = str(files[rng.randi() % files.size()])
+		if file.begins_with("Tree") and _hides_road(diorama, point, 4.2 * scale): continue
+		_prop(diorama, file, point, scale, rng.randf_range(-PI, PI), sway)
 		placed += 1
 
 
@@ -230,37 +237,25 @@ static func _vale_meadow(diorama: Diorama3D) -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = 1101
 	_entrance_gate(diorama, rng)
-	# Realistic vegetation and rocks: camera-matched sprites of CC0 Poly Haven models (art/sprites3d).
-	var tall: Array = ["island_tree_01_r0", "island_tree_01_r120", "island_tree_01_r240"]
-	var broad: Array = ["island_tree_02_r0", "island_tree_02_r120", "island_tree_02_r240"]
-	var shrubs: Array = ["shrub_01", "shrub_04", "shrub_02_0", "shrub_02_1", "shrub_02_2", "shrub_02_3", "fern_02_0", "fern_02_1", "fern_02_2", "fern_02_3"]
-	var ground: Array = ["grass_medium_02_0", "grass_medium_02_1", "grass_medium_02_2", "grass_medium_02_3", "grass_medium_02_4", "celandine_01_0", "celandine_01_1", "celandine_01_2", "dandelion_01_0", "dandelion_01_1", "dandelion_01_2"]
-	var rocks: Array = ["rock_moss_set_01_0", "rock_moss_set_01_1", "rock_moss_set_01_2", "rock_moss_set_01_3", "rock_moss_set_01_4", "rock_moss_set_01_5", "boulder_01"]
-	# Woods hugging the board edges and spilling past them, with clearings left around the exit.
 	var exit: Vector3 = diorama.route.sample_baked(diorama.route.get_baked_length())
-	var gate: Vector3 = diorama.route.sample_baked(2.2)
-	var clear: Array[Vector3] = [exit, gate]
-	# A wood line behind the board and loose groves on the flanks; nothing tall stands where it could hide
-	# the road from the camera (see _hides_road).
-	_sprite_scatter(diorama, rng, tall + broad, 70, Rect2(-31, -19, 62, 7.5), 2.6, Vector2(4.2, 6.4), clear, 6.5)
-	_sprite_scatter(diorama, rng, tall + broad, 18, Rect2(-31, -11, 9, 20), 2.6, Vector2(3.8, 5.6), clear, 6.5)
-	_sprite_scatter(diorama, rng, tall + broad, 14, Rect2(22, -11, 9, 20), 2.6, Vector2(3.8, 5.6), clear, 6.5)
-	# A few copses inside the board, on open ground away from roads and the reference build spots.
-	_sprite_scatter(diorama, rng, broad + tall, 9, Rect2(-20, -10, 37, 20), 3.6, Vector2(3.2, 4.6), clear, 6.0)
-	_sprite_scatter(diorama, rng, shrubs, 70, Rect2(-21, -11, 40, 22), 2.0, Vector2(0.7, 1.4), clear, 3.0)
-	_sprite_scatter(diorama, rng, ground, 220, Rect2(-21, -11, 40, 22), 1.5, Vector2(0.3, 0.6), clear, 2.0)
-	_sprite_scatter(diorama, rng, rocks, 22, Rect2(-21, -11, 40, 22), 2.0, Vector2(0.5, 1.3), clear, 3.0)
-	_sprite_scatter(diorama, rng, ["dead_tree_trunk_02"], 5, Rect2(-20, -10, 37, 20), 2.4, Vector2(0.45, 0.6), clear, 4.0)
+	var trees: Array = ["Tree_1_A_Color1", "Tree_1_B_Color1", "Tree_2_A_Color1", "Tree_2_B_Color1", "Tree_3_A_Color1", "Tree_4_A_Color1", "Tree_4_B_Color1"]
+	# Wood line behind the board and loose groves on the flanks; nothing tall may hide the road.
+	_scatter(diorama, rng, trees, 34, Rect2(-30, -18, 60, 6.4), 2.6, Vector2(0.65, 1.05))
+	_scatter(diorama, rng, trees, 12, Rect2(-30, -11, 8.5, 20), 2.6, Vector2(0.6, 1.0))
+	_scatter(diorama, rng, trees, 10, Rect2(22, -11, 8, 20), 2.6, Vector2(0.6, 1.0))
+	_scatter(diorama, rng, trees, 8, Rect2(-20, -10, 37, 20), 3.4, Vector2(0.55, 0.85))
+	_scatter(diorama, rng, ["Bush_1_A_Color1", "Bush_1_C_Color1", "Bush_2_C_Color1", "Bush_3_A_Color1", "Bush_4_A_Color1"], 44, Rect2(-21, -11, 40, 22), 2.0, Vector2(0.6, 1.1))
+	_scatter(diorama, rng, ["Rock_1_A_Color1", "Rock_1_D_Color1", "Rock_3_A_Color1", "Rock_3_C_Color1"], 18, Rect2(-21, -11, 40, 22), 2.2, Vector2(0.5, 0.9), false)
 	# Village around the exit: cottages with chimney smoke and the guard flag.
-	for entry: Array in [[Vector3(-3.6, 0, 1.5), 0.3, Color("8f4a35")], [Vector3(-3.2, 0, -2.6), -0.2, Color("4f5f72")], [Vector3(2.6, 0, 2.4), 2.6, Color("8f4a35")]]:
+	for entry: Array in [[Vector3(-3.6, 0, 1.5), 0.3, Color("a8543c")], [Vector3(-3.2, 0, -2.6), -0.2, Color("4f6f9a")], [Vector3(2.6, 0, 2.4), 2.6, Color("a8543c")]]:
 		var spot: Vector3 = exit + (entry[0] as Vector3)
 		spot.y = diorama.terrain_height(spot)
 		if _free(diorama, spot, 2.4, 2.4): _house(diorama, spot, float(entry[1]), entry[2], true)
 	var pole: Vector3 = exit + Vector3(-1.2, 0.1, -1.2)
 	pole.y += diorama.terrain_height(pole)
-	_flag(diorama, pole, Color("2f6f76"))
-	# Split-rail fences on stretches of the road, following the ground.
-	var wood: StandardMaterial3D = SceneCraft3D.material(Color("6b543c"), 0.95)
+	_flag(diorama, pole, Color("2f7f86"))
+	# Fences on stretches of the road, following the ground.
+	var wood: StandardMaterial3D = SceneCraft3D.material(Color("8a6a45"))
 	var road: Curve3D = diorama.route
 	var distance: float = 6.0
 	while distance < road.get_baked_length() - 6.0:
@@ -273,11 +268,9 @@ static func _vale_meadow(diorama: Diorama3D) -> void:
 			if diorama._distance_from_route(post) < 1.55 or diorama._is_reserved(post, 1.6): continue
 			post.y = diorama.terrain_height(post)
 			next.y = diorama.terrain_height(next)
-			SceneCraft3D.box(diorama, Vector3(0.1, 0.6, 0.1), post + Vector3(0, 0.3, 0), wood)
-			SceneCraft3D.beam(diorama, post + Vector3(0, 0.45, 0), next + Vector3(0, 0.45, 0), 0.045, wood)
-			SceneCraft3D.beam(diorama, post + Vector3(0, 0.22, 0), next + Vector3(0, 0.22, 0), 0.04, wood)
+			SceneCraft3D.box(diorama, Vector3(0.1, 0.55, 0.1), post + Vector3(0, 0.3, 0), wood)
+			SceneCraft3D.beam(diorama, post + Vector3(0, 0.42, 0), next + Vector3(0, 0.42, 0), 0.05, wood)
 		distance += 1.1 if int(distance / 9.0) % 2 == 0 else 4.0
-	weather(diorama)
 
 
 ## Realistic surfaces for the hand-built pieces: brown materials get the CC0 weathered wood texture,
