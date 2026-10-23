@@ -218,7 +218,7 @@
           "enemy": "runner_veteran",
           "count": 5,
           "interval": 1.4,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -256,7 +256,7 @@
           "enemy": "runner_veteran",
           "count": 12,
           "interval": 1.2,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -294,7 +294,7 @@
           "enemy": "armored",
           "count": 8,
           "interval": 1.2,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -332,7 +332,7 @@
           "enemy": "grunt_elite",
           "count": 14,
           "interval": 0.8,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -370,7 +370,7 @@
           "enemy": "runner_veteran",
           "count": 9,
           "interval": 1.2,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -408,7 +408,7 @@
           "enemy": "swarm",
           "count": 22,
           "interval": 0.3,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -535,6 +535,71 @@
   ],
   "route_labels": [
     "Entrada da Pedreira",
-    "Trilha aérea"
+    "Trilha aérea",
+    "Passagem Norte"
+  ],
+  "extra_route_points": [
+    [
+      [
+        11.0,
+        0.0,
+        -11.0
+      ],
+      [
+        11.0,
+        0.0,
+        -9.0
+      ],
+      [
+        11.0,
+        0.0,
+        -7.0
+      ],
+      [
+        5.0,
+        0.0,
+        -5.0
+      ],
+      [
+        -2.0,
+        0.0,
+        -5.0
+      ],
+      [
+        -10.0,
+        0.0,
+        -2.0
+      ],
+      [
+        -14.0,
+        0.0,
+        4.0
+      ],
+      [
+        -8.0,
+        0.0,
+        7.0
+      ],
+      [
+        0.0,
+        0.0,
+        7.0
+      ],
+      [
+        7.0,
+        0.0,
+        5.0
+      ],
+      [
+        9.0,
+        0.0,
+        0.0
+      ],
+      [
+        3.0,
+        0.0,
+        0.0
+      ]
+    ]
   ]
 }

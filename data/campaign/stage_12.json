@@ -263,7 +263,7 @@
           "enemy": "brute",
           "count": 3,
           "interval": 3,
-          "route": 0,
+          "route": 3,
           "at": 0
         },
         {
@@ -353,7 +353,7 @@
           "enemy": "runner_veteran",
           "count": 12,
           "interval": 0.7,
-          "route": 0,
+          "route": 3,
           "at": 0
         },
         {
@@ -445,7 +445,7 @@
           "enemy": "armored",
           "count": 14,
           "interval": 1.1,
-          "route": 0,
+          "route": 3,
           "at": 0
         },
         {
@@ -523,7 +523,7 @@
           "enemy": "shieldbearer",
           "count": 8,
           "interval": 1.4,
-          "route": 0,
+          "route": 3,
           "at": 3
         },
         {
@@ -601,7 +601,7 @@
           "enemy": "resistant",
           "count": 9,
           "interval": 1.2,
-          "route": 0,
+          "route": 3,
           "at": 0
         },
         {
@@ -764,7 +764,8 @@
   "route_labels": [
     "Via do santuário",
     "Trilha aérea",
-    "Túnel: emerge no marco"
+    "Túnel: emerge no marco",
+    "Passagem das Raízes"
   ],
   "extra_route_points": [
     [
@@ -797,6 +798,58 @@
         5,
         0,
         0
+      ]
+    ],
+    [
+      [
+        19.0,
+        0.0,
+        9.0
+      ],
+      [
+        17.0,
+        0.0,
+        7.5
+      ],
+      [
+        14.0,
+        0.0,
+        5.0
+      ],
+      [
+        14.0,
+        0.0,
+        -3.0
+      ],
+      [
+        6.0,
+        0.0,
+        -6.0
+      ],
+      [
+        -5.0,
+        0.0,
+        -6.0
+      ],
+      [
+        -13.0,
+        0.0,
+        -3.0
+      ],
+      [
+        -11.0,
+        0.0,
+        1.0
+      ],
+      [
+        -3.0,
+        0.0,
+        1.0
+      ],
+      [
+        5.0,
+        0.0,
+        0.0
       ]
     ]
   ],

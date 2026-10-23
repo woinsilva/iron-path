@@ -486,7 +486,8 @@ func _show_stage_sheet(index: int) -> void:
 	if best.has("best_ticks"):
 		var seconds: int = int(best.best_ticks) / BattleSimV2.TICK_RATE
 		record = "%d:%02d" % [seconds / 60, seconds % 60]
-	for fact: Array in [["Ondas", str(stage.waves.size())], ["Famílias de torres", str(stage.allowed_towers.size())], ["Evolução até", "Nível %d" % int(stage.max_level)], ["Melhor tempo", record]]:
+	var entrances: int = 1 + (stage.get("extra_route_points", []) as Array).size()
+	for fact: Array in [["Ondas", str(stage.waves.size())], ["Entradas de inimigos", str(entrances) + (" + trilha aérea" if stage.has("air_route_points") else "")], ["Famílias de torres", str(stage.allowed_towers.size())], ["Evolução até", "Nível %d" % int(stage.max_level)], ["Melhor tempo", record]]:
 		var chip: VBoxContainer = MenuKitV2.panel(facts, Color(accent, 0.5), 16, Color(1, 1, 1, 0.05))
 		(chip.get_parent() as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		chip.add_theme_constant_override("separation", 2)

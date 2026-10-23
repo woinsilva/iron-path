@@ -5,6 +5,12 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Unreleased] — 2026-10-19
 
+### Fase 6 — cenários mais vivos e mapas com mais entradas (2026-10-22)
+- Cada bioma ganhou tufos de grama (Vale, Garganta e Pântano com paletas próprias), flores no Vale, sombras de nuvens passando, névoa baixa no Pântano e partículas no ar (pólen, poeira, vaga-lumes), via `scripts/presentation3d/biome_dressing.gd`. Tudo some no perfil Economia e nada é colocado sobre estradas ou bases.
+- Novas entradas de inimigos: fases 6, 7 e 9 passam a ter duas entradas terrestres e as fases 11 e 12, três (além da trilha aérea). As ondas da segunda metade usam as entradas novas, anunciadas pelo nome na previsão de onda; o cartão da fase mostra quantas entradas existem.
+- HUD da batalha com o mesmo visual dos menus: painéis arredondados, botões que afundam ao toque e "Iniciar defesa" em destaque.
+- Artes do menu re-renderizadas com os cenários novos. Todas as fases seguem vencíveis pelas defesas de referência e a curva de ondas continua sem quedas.
+
 ### Fase 5 — torres: alcance, L6 lendário e visual por nível (2026-10-22)
 - Alcance cresce de verdade com a evolução: do L1 ao L5 +35% a +45% nas torres de longa distância e +20% a +30% nas de área curta e suporte (ex.: Arqueira 4,2 → 6,0 m; Antiaérea 4,9 → 7,0 m). L1 ficou igual.
 - Novo nível L6 lendário em cada ramo (16 configurações novas): +35% de dano, alcance extra e +1 alvo/encadeamento/projétil onde se aplica, por 1,5× o custo do L5.

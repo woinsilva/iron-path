@@ -629,13 +629,21 @@ func _panel(parent: Node, top: float, bottom: float, preset: int) -> VBoxContain
 	panel.set_anchors_and_offsets_preset(preset)
 	panel.offset_top = top
 	panel.offset_bottom = bottom
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.045, 0.075, 0.09, 0.97)
+	var style: StyleBoxFlat = MenuKitV2.box(Color(0.03, 0.09, 0.1, 0.9), Color(MenuKitV2.GOLD, 0.35), 0, 0, 14)
 	style.content_margin_left = 28
 	style.content_margin_right = 28
-	style.content_margin_top = 14
-	style.content_margin_bottom = 14
+	# Rounded and edged only on the side that faces the battlefield.
+	var faces_down: bool = preset == Control.PRESET_TOP_WIDE
+	style.border_width_bottom = 3 if faces_down else 0
+	style.border_width_top = 0 if faces_down else 3
+	style.corner_radius_bottom_left = 26 if faces_down else 0
+	style.corner_radius_bottom_right = 26 if faces_down else 0
+	style.corner_radius_top_left = 0 if faces_down else 26
+	style.corner_radius_top_right = 0 if faces_down else 26
+	style.shadow_color = Color(0, 0, 0, 0.35)
+	style.shadow_size = 12
 	panel.add_theme_stylebox_override("panel", style)
+	panel.theme = MenuKitV2.theme()
 	parent.add_child(panel)
 	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", 10)
@@ -656,19 +664,9 @@ func _button(parent: Node, text: String, callback: Callable, width: float = 150.
 	button.custom_minimum_size = Vector2(width, 96)
 	button.add_theme_font_size_override("font_size", 26)
 	button.pressed.connect(func() -> void: _sound("ui", AudioServiceNode.BUS_UI); callback.call())
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color("294a4c")
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_left = 8
-	style.corner_radius_bottom_right = 8
-	style.content_margin_left = 16
-	style.content_margin_right = 16
-	button.add_theme_stylebox_override("normal", style)
-	var hover: StyleBoxFlat = style.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("426a63")
-	button.add_theme_stylebox_override("hover", hover)
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	parent.add_child(button)
+	MenuKitV2.feedback(button)
 	return button
 
 func _build_hud() -> void:
@@ -747,6 +745,7 @@ func _build_hud() -> void:
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	actions.add_child(gap)
 	_start = _button(actions, "Iniciar defesa", _start_or_early, 270)
+	MenuKitV2.primary(_start)
 	_hint = _label(bottom, "Construa sua defesa e inicie a primeira onda. As próximas chegam automaticamente.", 23, Color("b0c6c5"))
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hint.max_lines_visible = 2
@@ -920,6 +919,8 @@ func apply_graphics_profile(profile: String) -> void:
 	viewport.scaling_3d_scale = 0.7 if profile == "economy" else (1.0 if profile == "quality" else 0.85)
 	viewport.msaa_3d = Viewport.MSAA_DISABLED if profile == "economy" else (Viewport.MSAA_4X if profile == "quality" else Viewport.MSAA_2X)
 	diorama.sunlight.shadow_enabled = profile != "economy"
+	for detail: Node in get_tree().get_nodes_in_group(BiomeDressingV2.DETAIL_GROUP):
+		if diorama.is_ancestor_of(detail): (detail as Node3D).visible = profile != "economy"
 
 func _request_branch(branch: String) -> void:
 	if simulation.upgrade(_selected_pad, branch):

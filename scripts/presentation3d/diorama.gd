@@ -42,6 +42,7 @@ func _ready() -> void:
 	if biome == "swamp": _build_swamp()
 	elif biome == "canyon": _build_canyon()
 	else: _build_forest()
+	BiomeDressingV2.dress(self)
 
 func _build_camera_and_light() -> void:
 	camera = Camera3D.new()

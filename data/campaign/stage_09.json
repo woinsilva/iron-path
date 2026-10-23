@@ -197,7 +197,7 @@
           "enemy": "shieldbearer",
           "count": 4,
           "interval": 1.6,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -235,7 +235,7 @@
           "enemy": "brute",
           "count": 2,
           "interval": 3,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -273,7 +273,7 @@
           "enemy": "resistant",
           "count": 7,
           "interval": 1.1,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -311,7 +311,7 @@
           "enemy": "runner_veteran",
           "count": 13,
           "interval": 0.7,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -368,7 +368,7 @@
           "enemy": "armored",
           "count": 9,
           "interval": 1.1,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -420,7 +420,7 @@
           "enemy": "runner_veteran",
           "count": 9,
           "interval": 0.7,
-          "route": 0,
+          "route": 2,
           "at": 2
         }
       ]
@@ -451,7 +451,7 @@
           "enemy": "brute",
           "count": 4,
           "interval": 2.5,
-          "route": 0,
+          "route": 2,
           "at": 0
         },
         {
@@ -547,6 +547,41 @@
   ],
   "route_labels": [
     "Estrada das ruínas",
-    "Trilha aérea"
+    "Trilha aérea",
+    "Atalho do Brejo"
+  ],
+  "extra_route_points": [
+    [
+      [
+        -19.0,
+        0.0,
+        8.0
+      ],
+      [
+        -15.0,
+        0.0,
+        7.0
+      ],
+      [
+        -13.0,
+        0.0,
+        3.0
+      ],
+      [
+        -11.0,
+        0.0,
+        -1.0
+      ],
+      [
+        -3.0,
+        0.0,
+        -1.0
+      ],
+      [
+        5.0,
+        0.0,
+        0.0
+      ]
+    ]
   ]
 }
