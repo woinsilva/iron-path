@@ -57,6 +57,8 @@ var _last_result: Dictionary = {}
 var _lives_label: Label
 var _coins_label: Label
 var _actions: PanelContainer
+var _tower_title: Label
+var _tower_stats: Dictionary = {}
 var _card_bar: PanelContainer
 var _hud_blockers: Array[Control] = []
 var _placing: String = ""
@@ -828,7 +830,8 @@ func _toggle_pause() -> void:
 	_update_hud()
 
 func _toggle_speed() -> void:
-	Engine.time_scale = 2.0 if Engine.time_scale == 1.0 else 1.0
+	# 1× → 2× → 4× → 1×. The simulation stays tick-based, so results match at every speed.
+	Engine.time_scale = 2.0 if Engine.time_scale == 1.0 else (4.0 if Engine.time_scale == 2.0 else 1.0)
 	_update_hud()
 
 func _purchase(type_id: String) -> void:
@@ -1021,9 +1024,41 @@ func _build_hud() -> void:
 	_actions.visible = false
 	root.add_child(_actions)
 	_hud_blockers.append(_actions)
+	# One card for the selected tower: name and level, its numbers, what the next level buys, and the actions.
+	var card: VBoxContainer = VBoxContainer.new()
+	card.add_theme_constant_override("separation", 6)
+	_actions.add_child(card)
+	_tower_title = Label.new()
+	_tower_title.add_theme_font_size_override("font_size", 28)
+	_tower_title.add_theme_color_override("font_color", MenuKitV2.GOLD)
+	card.add_child(_tower_title)
+	var grid: GridContainer = GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 14)
+	grid.add_theme_constant_override("v_separation", 2)
+	card.add_child(grid)
+	for key: String in ["damage", "rate", "range", "layer"]:
+		var name_label: Label = Label.new()
+		name_label.text = {"damage": "Dano", "rate": "Cadência", "range": "Alcance", "layer": "Alvos"}[key]
+		name_label.add_theme_font_size_override("font_size", 20)
+		name_label.add_theme_color_override("font_color", Color(0.75, 0.84, 0.82))
+		grid.add_child(name_label)
+		var value: Label = Label.new()
+		value.add_theme_font_size_override("font_size", 22)
+		value.custom_minimum_size.x = 150
+		grid.add_child(value)
+		_tower_stats[key] = value
+	for key: String in ["special", "next", "record"]:
+		var line: Label = Label.new()
+		line.add_theme_font_size_override("font_size", 19)
+		line.add_theme_color_override("font_color", Color("ffd36a") if key == "next" else Color(0.82, 0.88, 0.86))
+		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		line.custom_minimum_size.x = 560
+		card.add_child(line)
+		_tower_stats[key] = line
 	var actions: HBoxContainer = HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
-	_actions.add_child(actions)
+	card.add_child(actions)
 	_upgrade = _button(actions, "Melhorar", _request_upgrade, 190)
 	for branch: String in ["A", "B"]:
 		var key: String = branch
@@ -1033,6 +1068,9 @@ func _build_hud() -> void:
 	_sell = _button(actions, "Vender", func() -> void: simulation.sell(_selected_pad), 160)
 	for button: Button in [_upgrade, _branch_buttons.A, _branch_buttons.B, _priority, _cancel, _sell]:
 		button.add_theme_font_size_override("font_size", 22)
+		button.custom_minimum_size.y = 84
+	MenuKitV2.primary(_upgrade)
+	_sell.add_theme_color_override("font_color", Color("ffb3a1"))
 	# Result card.
 	_result = PanelContainer.new()
 	_result.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
@@ -1193,6 +1231,7 @@ func _update_hud() -> void:
 	_sell.disabled = not allowed
 	_cancel.disabled = not allowed
 	if tower:
+		_fill_tower_card(tower, choosing_branch)
 		var definition: Dictionary = simulation.catalog.towers[tower.type_id]
 		_context.text = "%s · Nível %d · Dano útil %d · Eliminações %d" % [str(definition.name), tower.level, int(tower.damage_done), tower.kills]
 		if tower.type_id == "banner":
@@ -1211,6 +1250,8 @@ func _update_hud() -> void:
 		else:
 			_upgrade.text = "Nível máximo"
 			_upgrade.disabled = true
+		# The tower card already shows these numbers; keep the bottom line free for hints.
+		_context.text = ""
 	elif _selected_pad >= 0:
 		_context.text = "Espaço livre · Toque numa carta para construir aqui."
 	elif not _placing.is_empty():
@@ -1219,7 +1260,64 @@ func _update_hud() -> void:
 		_context.text = ""
 	_update_tutorial_hint()
 
-## Keeps the tower's action strip just above it on screen, clamped inside the viewport.
+static func _number(value: float) -> String:
+	var text: String = ("%.2f" % value).rstrip("0").rstrip(".")
+	return text.replace(".", ",")
+
+## Fills the selected tower's card: current numbers, what its attacks do and what the next level buys.
+func _fill_tower_card(tower: SimTowerV2, choosing_branch: bool) -> void:
+	var definition: Dictionary = simulation.catalog.towers[tower.type_id]
+	var values: Dictionary = simulation.stats(tower)
+	var title: String = "%s · Nível %d" % [str(definition.name), tower.level]
+	if not tower.branch.is_empty(): title += " · " + str(definition.branches[tower.branch].name)
+	if tower.state == SimTowerV2.State.BUILDING: title += " · em construção"
+	elif tower.state == SimTowerV2.State.UPGRADING: title += " · melhorando para nível %d" % tower.pending_level
+	_tower_title.text = title
+	var support: bool = tower.type_id == "banner"
+	var kind: String = str({"physical": "físico", "magical": "mágico", "pure": "puro"}.get(str(definition.damage_type), ""))
+	(_tower_stats.damage as Label).text = "—" if support else "%s %s" % [_number(float(values.damage)), kind]
+	(_tower_stats.rate as Label).text = "—" if support else "%s por s" % _number(float(values.rate))
+	(_tower_stats.range as Label).text = "%s m" % _number(simulation.effective_range(tower))
+	(_tower_stats.layer as Label).text = str({"both": "Terra e ar", "ground": "Só terra", "air": "Só ar", "ally": "Torres aliadas"}.get(str(definition.layer), ""))
+	var notes: Array[String] = []
+	var splash: float = float(values.get("splash", definition.get("splash", 0)))
+	if splash > 0: notes.append("Área %s m" % _number(splash))
+	for effect: Dictionary in values.get("effects", []):
+		match str(effect.kind):
+			"slow": notes.append("Lentidão %d%% por %ss" % [int(round(float(effect.power) * 100)), _number(float(effect.duration))])
+			"venom": notes.append("Veneno %s por s durante %ss" % [_number(float(effect.power)), _number(float(effect.duration))])
+			"bleed": notes.append("Sangramento %s por s durante %ss" % [_number(float(effect.power)), _number(float(effect.duration))])
+	if values.has("field"): notes.append("Campo gelado de %s m" % _number(float(values.field.radius)))
+	if values.has("chain_count"): notes.append("Salta para %d alvos" % int(values.chain_count))
+	if values.has("pierce_count"): notes.append("Atravessa %d inimigos" % int(values.pierce_count))
+	if values.has("spread_count"): notes.append("Veneno se espalha para %d" % int(values.spread_count))
+	if values.has("crit_every"): notes.append("Crítico ×%s a cada %d tiros" % [_number(float(values.crit_multiplier)), int(values.crit_every)])
+	if values.has("focus_step"): notes.append("Dano cresce no mesmo alvo até ×%s" % _number(float(values.focus_cap)))
+	if support:
+		var haste: float = float(values.get("haste", values.get("pulse_haste", 0)))
+		if haste > 0: notes.append("Aliados atacam %d%% mais rápido" % int(round(haste * 100)))
+		if float(values.get("reach_bonus", 0)) > 0: notes.append("Alcance aliado +%d%%" % int(round(float(values.reach_bonus) * 100)))
+	(_tower_stats.special as Label).text = " · ".join(notes)
+	(_tower_stats.special as Label).visible = not notes.is_empty()
+	var next: Dictionary = simulation.next_upgrade(tower)
+	var preview: String = ""
+	if not next.is_empty() and not choosing_branch and tower.state == SimTowerV2.State.READY:
+		var gains: Array[String] = []
+		if float(next.get("damage", 0)) > float(values.damage): gains.append("dano %s → %s" % [_number(float(values.damage)), _number(float(next.damage))])
+		if float(next.get("rate", 0)) > float(values.rate): gains.append("cadência %s → %s" % [_number(float(values.rate)), _number(float(next.rate))])
+		if float(next.get("range", 0)) > float(values.range): gains.append("alcance %s → %s m" % [_number(float(values.range)), _number(float(next.range))])
+		if float(next.get("haste", 0)) > float(values.get("haste", 0)): gains.append("bônus %d%% → %d%%" % [int(round(float(values.get("haste", 0)) * 100)), int(round(float(next.haste) * 100))])
+		if not gains.is_empty(): preview = "Próximo nível: " + ", ".join(gains)
+	elif choosing_branch:
+		preview = "Escolha uma especialização abaixo."
+	(_tower_stats.next as Label).text = preview
+	(_tower_stats.next as Label).visible = not preview.is_empty()
+	var record: String = "Dano causado %d · Eliminações %d" % [int(tower.damage_done), tower.kills]
+	if support: record = "%d ataques aliados fortalecidos" % tower.supported_attacks
+	if tower.control_delay > 0.0: record += " · Atraso causado %ss" % _number(tower.control_delay)
+	(_tower_stats.record as Label).text = record
+
+## Keeps the tower's card just above it on screen, clamped inside the viewport.
 func _place_actions(tower: SimTowerV2) -> void:
 	var screen: Vector2 = diorama.camera.unproject_position(tower.position + Vector3(0, 3.2, 0))
 	var size: Vector2 = _actions.get_combined_minimum_size()
@@ -1277,7 +1375,7 @@ func apply_graphics_profile(profile: String) -> void:
 	viewport.msaa_3d = Viewport.MSAA_DISABLED if profile == "economy" else (Viewport.MSAA_4X if profile == "quality" else Viewport.MSAA_2X)
 	diorama.sunlight.shadow_enabled = profile != "economy"
 	for detail: Node in get_tree().get_nodes_in_group(BiomeDressingV2.DETAIL_GROUP):
-		if diorama.is_ancestor_of(detail): (detail as Node3D).visible = profile != "economy"
+		if is_ancestor_of(detail): (detail as Node3D).visible = profile != "economy"
 
 func _request_branch(branch: String) -> void:
 	if simulation.upgrade(_selected_pad, branch):
@@ -1319,7 +1417,7 @@ func _update_tutorial_hint() -> void:
 			if tower.state == SimTowerV2.State.READY: ready = true
 		_hint.text = "3/3 · Toque em Iniciar defesa. Depois, as ondas chegam automaticamente." if ready else "3/3 · Aguarde a barra da obra. A torre atacará quando estiver pronta; depois toque em Iniciar defesa."
 func _show_help() -> void:
-	_show_info("Como defender o caminho", "• Inimigos que chegam à bandeira retiram vidas. Guarde a saída.\n• Arraste uma carta até o mapa: verde pode construir, vermelho não (rua, água ou outra torre).\n• Construção e melhoria levam tempo; a torre fica sem atacar durante a obra.\n• A primeira onda é manual. As demais chegam sozinhas; chamar antes rende até 5 moedas.\n• Selecione torres para melhorar, especializar, vender ou mudar a ordem dos alvos.\n• Arqueira e Cristal atingem ar; Canhão e Alquimista atingem só o chão.\n• Armadura pede magia, sangramento e cobertura. Chefes avisam antes das habilidades.\n• Pausa congela a batalha. 2× acelera o jogo; use o Guia no mapa para conhecer cada função.")
+	_show_info("Como defender o caminho", "• Inimigos que chegam à bandeira retiram vidas. Guarde a saída.\n• Arraste uma carta até o mapa: verde pode construir, vermelho não (rua, água ou outra torre).\n• Construção e melhoria levam tempo; a torre fica sem atacar durante a obra.\n• A primeira onda é manual. As demais chegam sozinhas; chamar antes rende até 5 moedas.\n• Selecione torres para melhorar, especializar, vender ou mudar a ordem dos alvos.\n• Arqueira e Cristal atingem ar; Canhão e Alquimista atingem só o chão.\n• Armadura pede magia, sangramento e cobertura. Chefes avisam antes das habilidades.\n• Pausa congela a batalha. 2× e 4× aceleram o jogo; use o Guia no mapa para conhecer cada função.")
 
 func _show_forecast() -> void:
 	var lines: Array[String] = ["Depois da primeira onda, a sequência é automática. Fechar esta previsão restaura a pausa anterior."]

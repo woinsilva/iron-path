@@ -35,6 +35,11 @@ func run() -> void:
 	check(battle._wave_label.text.contains("10"), "HUD displays authored wave total")
 	battle._toggle_speed()
 	check(Engine.time_scale == 2.0 and battle._speed.text.contains("2×"), "Speed control activates two-times simulation")
+	battle._toggle_speed()
+	check(Engine.time_scale == 4.0 and battle._speed.text.contains("4×"), "Speed control offers four-times simulation")
+	battle._toggle_speed()
+	check(Engine.time_scale == 1.0 and battle._speed.text.contains("1×"), "Speed control cycles back to normal speed")
+	battle._toggle_speed()
 	battle.queue_free()
 	await process_frame
 	check(Engine.time_scale == 1.0 and not paused, "Scene exit restores global time and pause")
